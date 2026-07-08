@@ -2,8 +2,18 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Audiobook — Funções Inorgânicas: Ácidos</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0c1c0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ácidos">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <style>
   html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; background: #10141d; touch-action: none; }
   #hint {
@@ -258,7 +268,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.3.0</div>
+<div id="versao">v0.4.0</div>
 
 <!-- ==================== PÁGINA 1 — UI ==================== -->
 <button id="homeBtn" title="Voltar à capa">
@@ -946,6 +956,11 @@ sheetOverlay.addEventListener('click', fecharSumario);
 
 function marcarSumario() {
   [...$id('sheetList').children].forEach((li, i) => li.classList.toggle('ativa', i === faixaAtual));
+}
+
+// ---------- PWA: registra o service worker ----------
+if ('serviceWorker' in navigator) {
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
 </script>
 </body>
