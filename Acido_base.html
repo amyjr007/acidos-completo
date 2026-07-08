@@ -213,6 +213,19 @@
     letter-spacing: .5px; pointer-events: none; user-select: none;
     text-shadow: 0 0 6px rgba(0, 0, 0, .6);
   }
+
+  /* ---------- Painel de coordenadas da câmera (tecla C) ---------- */
+  #camCoords {
+    position: fixed; top: 62px; left: 14px; z-index: 95;
+    background: rgba(6, 16, 6, 0.96); color: #cfe8a8;
+    border: 1px solid rgba(166, 229, 52, 0.5); border-radius: 12px;
+    padding: 12px 14px; font: 600 12.5px/1.55 'Courier New', monospace;
+    white-space: pre; max-width: 84vw; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .55);
+  }
+  #camCoords .tit { color: var(--acid); font-weight: 800; }
+  #camCoords .snip { color: #eaf7d9; }
+  #camCoords .rodape { color: rgba(166, 229, 52, .75); font-size: 11px; }
 </style>
 </head>
 <body>
@@ -268,7 +281,10 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.4.0</div>
+<div id="versao">v0.5.0</div>
+
+<!-- Painel de coordenadas da câmera (tecla C) -->
+<div id="camCoords" hidden></div>
 
 <!-- ==================== PÁGINA 1 — UI ==================== -->
 <button id="homeBtn" title="Voltar à capa">
@@ -851,6 +867,75 @@ addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
+
+// ---------- Tecla C: coordenadas da câmera ----------
+// Mostra theta/phi/dist/target atuais e copia um trecho pronto para usar
+// nos EVENTOS (função irParaCamera). Aperte C de novo para fechar.
+function snapshotCamera() {
+  return {
+    theta: +theta.toFixed(3), phi: +phi.toFixed(3), dist: +dist.toFixed(2),
+    target: [+target.x.toFixed(2), +target.y.toFixed(2), +target.z.toFixed(2)]
+  };
+}
+function trechoCamera(s) {
+  return `irParaCamera({ theta: ${s.theta}, phi: ${s.phi}, dist: ${s.dist}, target: [${s.target.join(', ')}] });`;
+}
+function copiar(txt) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).catch(() => {});
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+}
+const camBox = document.getElementById('camCoords');
+function mostrarCoordenadas() {
+  const s = snapshotCamera();
+  const trecho = trechoCamera(s);
+  camBox.innerHTML =
+    '<span class="tit">📷 Câmera</span>\n' +
+    'theta:  ' + s.theta.toFixed(3) + '\n' +
+    'phi:    ' + s.phi.toFixed(3) + '\n' +
+    'dist:   ' + s.dist.toFixed(2) + '\n' +
+    'target: ' + s.target.join(', ') + '\n\n' +
+    '<span class="snip">' + trecho + '</span>\n' +
+    '<span class="rodape">copiado! — clique para copiar de novo · C fecha</span>';
+  camBox.hidden = false;
+  camBox.dataset.trecho = trecho;
+  copiar(trecho);
+}
+addEventListener('keydown', e => {
+  if (e.key === 'c' || e.key === 'C') {
+    if (!camBox.hidden) camBox.hidden = true;
+    else mostrarCoordenadas();
+  }
+});
+camBox.addEventListener('click', () => copiar(camBox.dataset.trecho || ''));
+
+// Move a câmera para uma posição salva (usar nos EVENTOS dos diálogos).
+// suave = true anima; caso contrário, salta direto.
+function irParaCamera(pos, suave = true) {
+  const alvo = { theta: pos.theta, phi: pos.phi, dist: pos.dist,
+                 tx: pos.target[0], ty: pos.target[1], tz: pos.target[2] };
+  if (!suave) {
+    theta = alvo.theta; phi = alvo.phi; dist = alvo.dist;
+    target.set(alvo.tx, alvo.ty, alvo.tz); updateCamera(); return;
+  }
+  const ini = { theta, phi, dist, tx: target.x, ty: target.y, tz: target.z };
+  const t0 = performance.now(), dur = 1100;
+  (function passo(now) {
+    let k = Math.min(1, (now - t0) / dur);
+    k = k < .5 ? 4*k*k*k : 1 - Math.pow(-2*k+2, 3) / 2; // easeInOutCubic
+    theta = ini.theta + (alvo.theta - ini.theta) * k;
+    phi   = ini.phi   + (alvo.phi   - ini.phi)   * k;
+    dist  = ini.dist  + (alvo.dist  - ini.dist)  * k;
+    target.set(ini.tx + (alvo.tx-ini.tx)*k, ini.ty + (alvo.ty-ini.ty)*k, ini.tz + (alvo.tz-ini.tz)*k);
+    updateCamera();
+    if (k < 1) requestAnimationFrame(passo);
+  })(t0);
+}
 </script>
 
 <script>
