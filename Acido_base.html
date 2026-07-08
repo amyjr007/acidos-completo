@@ -18,9 +18,9 @@
   html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; background: #10141d; touch-action: none; }
   #hint {
     position: absolute; bottom: 86px; left: 50%; transform: translateX(-50%);
-    color: #cfd8ea; font-family: system-ui, sans-serif; font-size: 13px;
-    background: rgba(20, 26, 40, 0.75); padding: 8px 16px; border-radius: 20px;
-    pointer-events: none; transition: opacity 1s; white-space: nowrap;
+    color: #eaf7d9; font-family: system-ui, sans-serif; font-size: 13px;
+    background: rgba(11, 26, 12, 0.9); padding: 8px 16px; border-radius: 20px;
+    pointer-events: none; transition: opacity 1s; white-space: nowrap; opacity: 0;
   }
 
   /* ================= UI do Audiobook ================= */
@@ -229,7 +229,7 @@
 </style>
 </head>
 <body>
-<div id="hint">1 dedo: pipeta &nbsp;•&nbsp; pinça: zoom &nbsp;•&nbsp; 2 dedos: mover / girar</div>
+<div id="hint"></div>
 
 <!-- ==================== CAPA ==================== -->
 <div id="cover">
@@ -281,7 +281,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.6.0</div>
+<div id="versao">v0.7.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -669,6 +669,7 @@ function endBulbPress(drag) {
 const target = new THREE.Vector3(0.32, 10.93, 0.42);
 let theta = -0.012, phi = 1.534, dist = 9.03;
 const MIN_D = 5, MAX_D = 40;
+let camLocked = true;  // câmera travada por padrão; tecla L libera/trava
 
 function updateCamera() {
   phi = Math.max(0.15, Math.min(Math.PI / 2 - 0.02, phi));
@@ -734,6 +735,8 @@ renderer.domElement.addEventListener('pointermove', e => {
   const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
   pointers.set(e.pointerId, { ...prev, x: e.clientX, y: e.clientY });
 
+  if (camLocked) return;  // câmera travada: ignora movimento
+
   if (pointers.size === 1) {
     if (prev.button === 2 || prev.shift) {
       pan(dx, dy);
@@ -787,9 +790,9 @@ function pan(dx, dy) {
 
 renderer.domElement.addEventListener('wheel', e => {
   e.preventDefault();
+  if (camLocked) return;  // câmera travada: ignora zoom
   dist *= e.deltaY > 0 ? 1.08 : 0.93;
   updateCamera();
-  hideHint();
 }, { passive: false });
 
 let hintHidden = false;
@@ -911,6 +914,10 @@ addEventListener('keydown', e => {
   if (e.key === 'c' || e.key === 'C') {
     if (!camBox.hidden) camBox.hidden = true;
     else mostrarCoordenadas();
+  }
+  if (e.key === 'l' || e.key === 'L') {
+    camLocked = !camLocked;
+    showMsg(camLocked ? '🔒 Câmera travada' : '🔓 Câmera liberada — arraste/pinça para mover');
   }
 });
 camBox.addEventListener('click', () => copiar(camBox.dataset.trecho || ''));
