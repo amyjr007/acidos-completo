@@ -232,6 +232,23 @@
     font-size: clamp(23px, 6.6vw, 38px); font-weight: 700;
   }
   .st-lista b { color: var(--acid); }
+  .st-parte {
+    font-size: clamp(18px, 5vw, 26px); font-weight: 800; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--acid); text-shadow: 0 0 14px var(--acid-glow);
+  }
+  .st-pergunta { font-size: clamp(26px, 7.2vw, 42px); line-height: 1.18; }
+  .st-pergunta .maior {
+    display: inline-block; font-size: 1.5em; font-weight: 900;
+    color: var(--acid); text-shadow: 0 0 16px var(--acid-glow);
+  }
+
+  /* ---------- Imagem panorâmica das narrações ---------- */
+  #panImg {
+    position: fixed; top: 0; left: 0; height: 100vh; width: auto; max-width: none;
+    z-index: 38; opacity: 0; transition: opacity .6s ease; pointer-events: none;
+    transform: translateX(0); will-change: transform;
+  }
+  #panImg.show { opacity: 1; }
   @keyframes stIn {
     0%   { opacity: 0; transform: translateY(38px) scale(.82); filter: blur(5px); }
     55%  { opacity: 1; }
@@ -322,7 +339,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.9.0</div>
+<div id="versao">v0.10.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -332,6 +349,9 @@
   <svg viewBox="0 0 24 24"><path d="M12 3 2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg>
   Home
 </button>
+
+<!-- Imagem panorâmica das narrações -->
+<img id="panImg" alt="">
 
 <!-- Camada de textos das narrações -->
 <div id="storyLayer">
@@ -1042,7 +1062,12 @@ const EVENTOS = {
     { t: 13.0, fn: () => { maoClique(); fecharSumario(); } },                 // "clica" em fechar
     { t: 13.9, fn: () => tutorHand.classList.remove('show') },
   ]),
-  'dialogo1':     () => { /* eventos do diálogo 1 */ },
+  'dialogo1': () => rodarStory([
+    { t: 0.0, fn: () => stShow('top', 'Parte 1', 'st-parte') },
+    { t: 1.2, fn: () => stShow('center', 'O que são ácidos<br><span class="maior">inorgânicos?</span>', 'st-pergunta') },
+    { t: 5.0, fn: stSair },
+    { t: 6.0, fn: () => panImagem('imagens/lab.jpg', 6, 18) },   // varredura panorâmica esq→dir até 18s
+  ]),
   'dialogo1.1':   () => { /* eventos do diálogo 1.1 */ },
   'dialogo1.2':   () => { /* eventos do diálogo 1.2 */ },
   'dialogo1.3':   () => { /* eventos do diálogo 1.3 */ },
@@ -1156,9 +1181,33 @@ function stSair() {  // animação dinâmica de saída + remoção
 function limparStory() {
   if (storyRAF) cancelAnimationFrame(storyRAF);
   storyRAF = null; storyCues = [];
-  stTop.innerHTML = ''; stCenter.innerHTML = '';
+  stSair();          // saída animada dos textos (não some do nada)
+  pararPan();
   tutorHand.classList.remove('show', 'tap');
   fecharSumario();
+}
+
+// ---------- Imagem panorâmica (varredura sincronizada ao áudio) ----------
+let panRAF = null;
+function panImagem(src, tIni, tFim) {
+  const img = $id('panImg');
+  if (img.getAttribute('src') !== src) img.src = src;
+  requestAnimationFrame(() => img.classList.add('show'));
+  cancelAnimationFrame(panRAF);
+  const tick = () => {
+    const ct = player.currentTime;
+    const k = Math.max(0, Math.min(1, (ct - tIni) / (tFim - tIni)));
+    const max = Math.max(0, img.offsetWidth - innerWidth);
+    img.style.transform = 'translateX(' + (-k * max) + 'px)';
+    if (ct < tFim) panRAF = requestAnimationFrame(tick);
+  };
+  panRAF = requestAnimationFrame(tick);
+}
+function pararPan() {
+  cancelAnimationFrame(panRAF); panRAF = null;
+  const img = $id('panImg');
+  img.classList.remove('show');
+  img.style.transform = 'translateX(0)';
 }
 
 // ---------- Mãozinha do tutorial ----------
