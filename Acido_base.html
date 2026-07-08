@@ -281,7 +281,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.5.0</div>
+<div id="versao">v0.6.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -312,8 +312,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x10141d);
-scene.fog = new THREE.Fog(0x10141d, 30, 70);
+scene.background = new THREE.Color(0x0a160a);
+scene.fog = new THREE.Fog(0x0a160a, 30, 70);
 
 const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 200);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -324,15 +324,15 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
 // ---------- Iluminação (estilo cartoon suave) ----------
-scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x1a2030, 0.9));
-const key = new THREE.DirectionalLight(0xfff3e0, 1.1);
+scene.add(new THREE.HemisphereLight(0xd6f0a8, 0x18240f, 0.9));
+const key = new THREE.DirectionalLight(0xf4ffe0, 1.1);
 key.position.set(8, 14, 6);
 key.castShadow = true;
 key.shadow.mapSize.set(2048, 2048);
 key.shadow.camera.left = -15; key.shadow.camera.right = 15;
 key.shadow.camera.top = 15; key.shadow.camera.bottom = -15;
 scene.add(key);
-const fill = new THREE.DirectionalLight(0x8fb0ff, 0.4);
+const fill = new THREE.DirectionalLight(0x9ad85a, 0.4);
 fill.position.set(-10, 6, -8);
 scene.add(fill);
 
@@ -346,13 +346,13 @@ function toonMat(color) {
 }
 
 // ---------- Bancada escura ----------
-const bench = new THREE.Mesh(new THREE.BoxGeometry(26, 1.2, 14), toonMat(0x232936));
+const bench = new THREE.Mesh(new THREE.BoxGeometry(26, 1.2, 14), toonMat(0x1d2b16));
 bench.position.y = -0.6;
 bench.receiveShadow = true;
 scene.add(bench);
 
 // borda da bancada (detalhe cartoon)
-const edge = new THREE.Mesh(new THREE.BoxGeometry(26.4, 0.25, 14.4), toonMat(0x323a4d));
+const edge = new THREE.Mesh(new THREE.BoxGeometry(26.4, 0.25, 14.4), toonMat(0x2b4020));
 edge.position.y = 0.02;
 edge.receiveShadow = true;
 scene.add(edge);
@@ -360,25 +360,25 @@ scene.add(edge);
 // pés da bancada
 const legGeo = new THREE.BoxGeometry(1, 6, 1);
 [[-11.5, -6], [11.5, -6], [-11.5, 6], [11.5, 6]].forEach(([x, z]) => {
-  const leg = new THREE.Mesh(legGeo, toonMat(0x1b202b));
+  const leg = new THREE.Mesh(legGeo, toonMat(0x152010));
   leg.position.set(x, -4.2, z);
   scene.add(leg);
 });
 
 // chão
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), toonMat(0x151a26));
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), toonMat(0x0f1b0b));
 floor.rotation.x = -Math.PI / 2;
 floor.position.y = -7.2;
 floor.receiveShadow = true;
 scene.add(floor);
 
 // parede de fundo
-const wall = new THREE.Mesh(new THREE.PlaneGeometry(120, 60), toonMat(0x131826));
+const wall = new THREE.Mesh(new THREE.PlaneGeometry(120, 60), toonMat(0x0e1c0b));
 wall.position.set(0, 20, -28);
 scene.add(wall);
 
 // azulejos decorativos na parede (linha cartoon)
-const tileMat = toonMat(0x1c2334);
+const tileMat = toonMat(0x172810);
 for (let i = -5; i <= 5; i++) {
   const tile = new THREE.Mesh(new THREE.BoxGeometry(3.4, 3.4, 0.1), tileMat);
   tile.position.set(i * 3.8, 6, -27.9);
@@ -665,8 +665,9 @@ function endBulbPress(drag) {
 }
 
 // ---------- Controles de câmera ----------
-const target = new THREE.Vector3(2, 1.5, 1.5);
-let theta = 0.0, phi = 1.15, dist = 15;
+// Câmera padrão de entrada (enquadramento de fundo do audiobook)
+const target = new THREE.Vector3(0.32, 10.93, 0.42);
+let theta = -0.012, phi = 1.534, dist = 9.03;
 const MIN_D = 5, MAX_D = 40;
 
 function updateCamera() {
