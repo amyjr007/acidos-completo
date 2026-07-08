@@ -139,16 +139,6 @@
   }
   #homeBtn svg { width: 17px; height: 17px; fill: var(--acid); }
 
-  /* ---------- Faixa "tocando agora" ---------- */
-  #nowPlaying {
-    position: fixed; top: 14px; left: 14px; z-index: 60; max-width: 55vw;
-    background: var(--painel); color: var(--texto);
-    border: 1px solid rgba(166, 229, 52, 0.3); border-radius: 999px;
-    padding: 9px 15px; font: 600 12.5px system-ui, sans-serif;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  #nowPlaying b { color: var(--acid); }
-
   /* ---------- Botão Play ---------- */
   #playBtn {
     position: fixed; right: 18px; bottom: 68px; z-index: 60;
@@ -163,12 +153,14 @@
 
   /* ---------- Navegação rápida ---------- */
   #quickNav {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 61;
+    position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom));
+    transform: translateX(-50%); z-index: 61; max-width: 74vw;
     background: var(--painel); color: var(--texto);
-    border-top: 1px solid rgba(166, 229, 52, 0.4);
-    padding: 13px 16px calc(13px + env(safe-area-inset-bottom));
-    text-align: center; font: 700 14px system-ui, sans-serif;
+    border: 1px solid rgba(166, 229, 52, 0.4); border-radius: 999px;
+    padding: 11px 22px; white-space: nowrap;
+    text-align: center; font: 700 13.5px system-ui, sans-serif;
     cursor: pointer; user-select: none; -webkit-user-select: none;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .4);
   }
   #quickNav .seta { color: var(--acid); margin-right: 8px; }
 
@@ -212,6 +204,42 @@
     font: 600 11px system-ui, sans-serif; color: rgba(166, 229, 52, 0.6);
     letter-spacing: .5px; pointer-events: none; user-select: none;
     text-shadow: 0 0 6px rgba(0, 0, 0, .6);
+  }
+
+  /* ---------- Camada de textos das narrações ---------- */
+  #storyLayer { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; }
+  #stTop {
+    position: absolute; top: 12%; left: 0; right: 0; text-align: center; padding: 0 20px;
+  }
+  #stCenter {
+    position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 0 24px;
+  }
+  .st-item {
+    font-family: system-ui, sans-serif; color: #f2fbe4; font-weight: 800;
+    font-size: clamp(30px, 8.5vw, 48px); line-height: 1.12; text-align: center;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, .65), 0 0 26px rgba(166, 229, 52, .22);
+    animation: stIn .7s cubic-bezier(.18, .9, .24, 1.35) both;
+  }
+  .st-credito { font-size: clamp(20px, 5.6vw, 30px); font-weight: 700; color: #dceec0; }
+  .st-grande {
+    font-size: clamp(56px, 17vw, 104px); font-weight: 900; letter-spacing: 2px;
+    color: var(--acid); text-shadow: 0 0 16px var(--acid-glow), 0 0 44px var(--acid-glow);
+  }
+  .st-medio { font-size: clamp(30px, 9vw, 54px); color: #eaf7d9; }
+  .st-lista {
+    width: min(82vw, 460px); text-align: left;
+    font-size: clamp(23px, 6.6vw, 38px); font-weight: 700;
+  }
+  .st-lista b { color: var(--acid); }
+  @keyframes stIn {
+    0%   { opacity: 0; transform: translateY(38px) scale(.82); filter: blur(5px); }
+    55%  { opacity: 1; }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
+  @keyframes stOut {
+    0%   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    100% { opacity: 0; transform: translateY(-30px) scale(.9); filter: blur(5px); }
   }
 
   /* ---------- Painel de coordenadas da câmera (tecla C) ---------- */
@@ -281,7 +309,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.7.0</div>
+<div id="versao">v0.8.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -292,7 +320,11 @@
   Home
 </button>
 
-<div id="nowPlaying" hidden>&#9835; <b>Tocando:</b> <span id="nowTitle"></span></div>
+<!-- Camada de textos das narrações -->
+<div id="storyLayer">
+  <div id="stTop"></div>
+  <div id="stCenter"></div>
+</div>
 
 <button id="playBtn" aria-label="Reproduzir / pausar narração">
   <svg id="iconPlay" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -968,7 +1000,20 @@ const FAIXAS = [
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
 // É aqui que entram as animações da cena 3D durante cada narração.
 const EVENTOS = {
-  'dialogo0':     () => { /* eventos do diálogo 0 */ },
+  'dialogo0': () => rodarStory([
+    { t: 0.0,  fn: () => stShow('top',    'Olá!') },
+    { t: 1.0,  fn: () => stShow('center', 'Bem-Vindo') },
+    { t: 2.0,  fn: stSair },
+    { t: 2.7,  fn: () => stShow('center', 'Desenvolvido por<br>Amauri Junior', 'st-credito') },
+    { t: 7.5,  fn: () => stShow('center', 'Ácidos', 'st-grande') },
+    { t: 10.0, fn: () => stShow('center', 'Inorgânicos', 'st-medio') },
+    { t: 14.0, fn: stSair },
+    { t: 15.0, fn: () => stShow('center', 'Não vamos aprofundar') },
+    { t: 17.0, fn: stSair },
+    { t: 21.0, fn: () => stShow('center', '<b>1.</b> Definição de Arrhenius', 'st-lista') },
+    { t: 25.0, fn: () => stShow('center', '<b>2.</b> Classificação', 'st-lista') },
+    { t: 28.0, fn: () => stShow('center', '<b>3.</b> Nomenclatura', 'st-lista') },
+  ]),
   'dialogo0.1':   () => { /* eventos do diálogo 0.1 */ },
   'dialogo1':     () => { /* eventos do diálogo 1 */ },
   'dialogo1.1':   () => { /* eventos do diálogo 1.1 */ },
@@ -993,9 +1038,8 @@ function tocarFaixa(i) {
   player.src = f.arquivo;
   player.currentTime = 0;
   player.play();
-  $id('nowTitle').textContent = f.titulo;
-  $id('nowPlaying').hidden = false;
   marcarSumario();
+  limparStory();
   if (typeof EVENTOS[f.id] === 'function') EVENTOS[f.id]();
 }
 
@@ -1026,6 +1070,7 @@ $id('btnIniciar').addEventListener('click', () => {
 });
 $id('homeBtn').addEventListener('click', () => {
   player.pause();
+  limparStory();
   $id('cover').classList.remove('saindo');
 });
 
@@ -1049,6 +1094,43 @@ sheetOverlay.addEventListener('click', fecharSumario);
 
 function marcarSumario() {
   [...$id('sheetList').children].forEach((li, i) => li.classList.toggle('ativa', i === faixaAtual));
+}
+
+// ---------- Camada de textos: cenas sincronizadas ao áudio ----------
+// As marcações de tempo seguem player.currentTime, então pausar o áudio
+// pausa os textos, e retomar continua de onde parou.
+const storyLayer = $id('storyLayer');
+const stTop = $id('stTop');
+const stCenter = $id('stCenter');
+let storyRAF = null, storyCues = [];
+
+function stShow(onde, html, cls) {
+  const el = document.createElement('div');
+  el.className = 'st-item' + (cls ? ' ' + cls : '');
+  el.innerHTML = html;
+  (onde === 'top' ? stTop : stCenter).appendChild(el);
+  return el;
+}
+function stSair() {  // animação dinâmica de saída + remoção
+  storyLayer.querySelectorAll('.st-item').forEach(el => {
+    el.style.animation = 'stOut .5s ease-in both';
+    el.addEventListener('animationend', () => el.remove(), { once: true });
+  });
+}
+function limparStory() {
+  if (storyRAF) cancelAnimationFrame(storyRAF);
+  storyRAF = null; storyCues = [];
+  stTop.innerHTML = ''; stCenter.innerHTML = '';
+}
+function rodarStory(cues) {
+  limparStory();
+  storyCues = cues.map(c => ({ t: c.t, fn: c.fn, feito: false }));
+  const tick = () => {
+    const ct = player.currentTime;
+    for (const c of storyCues) if (!c.feito && ct >= c.t) { c.feito = true; c.fn(); }
+    storyRAF = requestAnimationFrame(tick);
+  };
+  storyRAF = requestAnimationFrame(tick);
 }
 
 // ---------- PWA: registra o service worker ----------
