@@ -215,6 +215,9 @@
     position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%);
     display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 0 24px;
   }
+  #stBottom {
+    position: absolute; bottom: 13%; left: 0; right: 0; text-align: center; padding: 0 24px;
+  }
   .st-item {
     font-family: system-ui, sans-serif; color: #f2fbe4; font-weight: 800;
     font-size: clamp(30px, 8.5vw, 48px); line-height: 1.12; text-align: center;
@@ -241,14 +244,29 @@
     display: inline-block; font-size: 1.5em; font-weight: 900;
     color: var(--acid); text-shadow: 0 0 16px var(--acid-glow);
   }
-
-  /* ---------- Imagem panorâmica das narrações ---------- */
-  #panImg {
-    position: fixed; top: 0; left: 0; height: 100vh; width: auto; max-width: none;
-    z-index: 38; opacity: 0; transition: opacity .6s ease; pointer-events: none;
-    transform: translateX(0); will-change: transform;
+  .st-titulo2 {
+    font-size: clamp(30px, 8.5vw, 50px); font-weight: 900;
+    color: var(--acid); text-shadow: 0 0 16px var(--acid-glow);
   }
-  #panImg.show { opacity: 1; }
+  .st-desc {
+    font-size: clamp(19px, 5.2vw, 28px); font-weight: 600;
+    color: #eaf7d9; max-width: 88vw; line-height: 1.3;
+  }
+  .st-ano {
+    font-size: clamp(26px, 7.5vw, 44px); font-weight: 800; color: #f2fbe4;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, .6);
+  }
+
+  /* ---------- Imagem das narrações (centralizada, tamanho normal) ---------- */
+  #panImg {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(.94);
+    max-width: 92vw; max-height: 70vh; width: auto; height: auto;
+    border-radius: 14px; box-shadow: 0 12px 40px rgba(0, 0, 0, .6);
+    z-index: 38; opacity: 0; pointer-events: none;
+    transition: opacity .6s ease, transform .6s ease;
+  }
+  #panImg.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   @keyframes stIn {
     0%   { opacity: 0; transform: translateY(38px) scale(.82); filter: blur(5px); }
     55%  { opacity: 1; }
@@ -339,7 +357,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.10.0</div>
+<div id="versao">v0.11.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -357,6 +375,7 @@
 <div id="storyLayer">
   <div id="stTop"></div>
   <div id="stCenter"></div>
+  <div id="stBottom"></div>
 </div>
 
 <!-- Mãozinha do tutorial (dialogo0.1) -->
@@ -1049,6 +1068,7 @@ const EVENTOS = {
     { t: 21.0, fn: () => stShow('center', '<b>1.</b> Definição de Arrhenius', 'st-lista') },
     { t: 25.0, fn: () => stShow('center', '<b>2.</b> Classificação', 'st-lista') },
     { t: 28.0, fn: () => stShow('center', '<b>3.</b> Nomenclatura', 'st-lista') },
+    { t: 33.8, fn: () => stShow('bottom', '1º ano do E. Médio', 'st-ano') },
   ]),
   // Tutorial (só demonstração — a mãozinha não clica de verdade)
   'dialogo0.1': () => rodarStory([
@@ -1063,10 +1083,17 @@ const EVENTOS = {
     { t: 13.9, fn: () => tutorHand.classList.remove('show') },
   ]),
   'dialogo1': () => rodarStory([
-    { t: 0.0, fn: () => stShow('top', 'Parte 1', 'st-parte') },
-    { t: 1.2, fn: () => stShow('center', 'O que são ácidos<br><span class="maior">inorgânicos?</span>', 'st-pergunta') },
-    { t: 5.0, fn: stSair },
-    { t: 6.0, fn: () => panImagem('imagens/lab.jpg', 6, 18) },   // varredura panorâmica esq→dir até 18s
+    { t: 0.0,  fn: () => stShow('top', 'Parte 1', 'st-parte') },
+    { t: 1.2,  fn: () => stShow('center', 'O que são ácidos<br><span class="maior">inorgânicos?</span>', 'st-pergunta') },
+    { t: 5.0,  fn: stSair },
+    { t: 10.0, fn: () => mostrarImagem('imagens/lab.jpg') },   // aparece centralizada
+    { t: 18.0, fn: esconderImagem },                           // sai
+    { t: 22.0, fn: () => stShow('top', 'Dois grupos de substâncias', 'st-parte') },
+    { t: 24.0, fn: () => stShow('center', 'Substâncias Orgânicas', 'st-titulo2') },
+    { t: 26.8, fn: () => stShow('center', 'Que têm o carbono como elemento principal', 'st-desc') },
+    { t: 30.0, fn: stSair },
+    { t: 31.0, fn: () => stShow('center', 'Substâncias Inorgânicas', 'st-titulo2') },
+    { t: 32.7, fn: () => stShow('center', 'Que reúne todas as outras substâncias na natureza', 'st-desc') },
   ]),
   'dialogo1.1':   () => { /* eventos do diálogo 1.1 */ },
   'dialogo1.2':   () => { /* eventos do diálogo 1.2 */ },
@@ -1163,13 +1190,15 @@ function marcarSumario() {
 const storyLayer = $id('storyLayer');
 const stTop = $id('stTop');
 const stCenter = $id('stCenter');
+const stBottom = $id('stBottom');
 let storyRAF = null, storyCues = [];
 
 function stShow(onde, html, cls) {
   const el = document.createElement('div');
   el.className = 'st-item' + (cls ? ' ' + cls : '');
   el.innerHTML = html;
-  (onde === 'top' ? stTop : stCenter).appendChild(el);
+  const cont = onde === 'top' ? stTop : onde === 'bottom' ? stBottom : stCenter;
+  cont.appendChild(el);
   return el;
 }
 function stSair() {  // animação dinâmica de saída + remoção
@@ -1182,32 +1211,19 @@ function limparStory() {
   if (storyRAF) cancelAnimationFrame(storyRAF);
   storyRAF = null; storyCues = [];
   stSair();          // saída animada dos textos (não some do nada)
-  pararPan();
+  esconderImagem();
   tutorHand.classList.remove('show', 'tap');
   fecharSumario();
 }
 
-// ---------- Imagem panorâmica (varredura sincronizada ao áudio) ----------
-let panRAF = null;
-function panImagem(src, tIni, tFim) {
+// ---------- Imagem das narrações (centralizada, tamanho normal) ----------
+function mostrarImagem(src) {
   const img = $id('panImg');
   if (img.getAttribute('src') !== src) img.src = src;
   requestAnimationFrame(() => img.classList.add('show'));
-  cancelAnimationFrame(panRAF);
-  const tick = () => {
-    const ct = player.currentTime;
-    const k = Math.max(0, Math.min(1, (ct - tIni) / (tFim - tIni)));
-    const max = Math.max(0, img.offsetWidth - innerWidth);
-    img.style.transform = 'translateX(' + (-k * max) + 'px)';
-    if (ct < tFim) panRAF = requestAnimationFrame(tick);
-  };
-  panRAF = requestAnimationFrame(tick);
 }
-function pararPan() {
-  cancelAnimationFrame(panRAF); panRAF = null;
-  const img = $id('panImg');
-  img.classList.remove('show');
-  img.style.transform = 'translateX(0)';
+function esconderImagem() {
+  $id('panImg').classList.remove('show');
 }
 
 // ---------- Mãozinha do tutorial ----------
