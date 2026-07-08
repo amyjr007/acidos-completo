@@ -216,7 +216,7 @@
     display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 0 24px;
   }
   #stBottom {
-    position: absolute; bottom: 13%; left: 0; right: 0; text-align: center; padding: 0 24px;
+    position: absolute; bottom: calc(13% + 1.6rem); left: 0; right: 0; text-align: center; padding: 0 24px;
   }
   .st-item {
     font-family: system-ui, sans-serif; color: #f2fbe4; font-weight: 800;
@@ -357,7 +357,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.11.1</div>
+<div id="versao">v0.12.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1166,10 +1166,17 @@ $id('homeBtn').addEventListener('click', () => {
 const sheet = $id('sheet');
 const sheetOverlay = $id('sheetOverlay');
 
-FAIXAS.forEach((f, i) => {
+// Sumário da navegação rápida: cada item pula para o INÍCIO de uma faixa.
+// 'faixa' é o índice em FAIXAS. Edite/adicione itens aqui.
+const SUMARIO = [
+  { titulo: 'Introdução e tutorial do app', faixa: 0 },  // início do dialogo0
+  { titulo: 'As substâncias inorgânicas',   faixa: 2 },  // início do dialogo1
+];
+
+SUMARIO.forEach(item => {
   const li = document.createElement('li');
-  li.textContent = f.titulo;
-  li.addEventListener('click', () => { fecharSumario(); tocarFaixa(i); });
+  li.textContent = item.titulo;
+  li.addEventListener('click', () => { fecharSumario(); tocarFaixa(item.faixa); });
   $id('sheetList').appendChild(li);
 });
 
@@ -1181,7 +1188,10 @@ $id('sheetClose').addEventListener('click', fecharSumario);
 sheetOverlay.addEventListener('click', fecharSumario);
 
 function marcarSumario() {
-  [...$id('sheetList').children].forEach((li, i) => li.classList.toggle('ativa', i === faixaAtual));
+  // marca a seção cujo início (faixa) é o mais próximo abaixo da faixa atual
+  let ativo = -1;
+  SUMARIO.forEach((item, i) => { if (item.faixa <= faixaAtual) ativo = i; });
+  [...$id('sheetList').children].forEach((li, i) => li.classList.toggle('ativa', i === ativo));
 }
 
 // ---------- Camada de textos: cenas sincronizadas ao áudio ----------
