@@ -242,6 +242,19 @@
     100% { opacity: 0; transform: translateY(-30px) scale(.9); filter: blur(5px); }
   }
 
+  /* ---------- Mãozinha do tutorial ---------- */
+  #tutorHand {
+    position: fixed; left: 50%; top: 60%; z-index: 80;
+    transform: translate(-50%, -50%); pointer-events: none; opacity: 0;
+    transition: left 1.2s cubic-bezier(.45,.05,.2,1),
+                top  1.2s cubic-bezier(.45,.05,.2,1),
+                opacity .4s;
+  }
+  #tutorHand.show { opacity: 1; }
+  #tutorHand .mao { display: inline-block; font-size: 46px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.55)); }
+  #tutorHand.tap .mao { animation: maoTap .45s ease; }
+  @keyframes maoTap { 0%, 100% { transform: scale(1); } 42% { transform: scale(.68); } }
+
   /* ---------- Painel de coordenadas da câmera (tecla C) ---------- */
   #camCoords {
     position: fixed; top: 62px; left: 14px; z-index: 95;
@@ -309,7 +322,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.8.0</div>
+<div id="versao">v0.9.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -325,6 +338,9 @@
   <div id="stTop"></div>
   <div id="stCenter"></div>
 </div>
+
+<!-- Mãozinha do tutorial (dialogo0.1) -->
+<div id="tutorHand"><span class="mao">&#128070;</span></div>
 
 <button id="playBtn" aria-label="Reproduzir / pausar narração">
   <svg id="iconPlay" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -1014,7 +1030,18 @@ const EVENTOS = {
     { t: 25.0, fn: () => stShow('center', '<b>2.</b> Classificação', 'st-lista') },
     { t: 28.0, fn: () => stShow('center', '<b>3.</b> Nomenclatura', 'st-lista') },
   ]),
-  'dialogo0.1':   () => { /* eventos do diálogo 0.1 */ },
+  // Tutorial (só demonstração — a mãozinha não clica de verdade)
+  'dialogo0.1': () => rodarStory([
+    { t: 2.0,  fn: () => maoMostrar({ x: innerWidth * 0.5, y: innerHeight * 0.6 }) },
+    { t: 4.0,  fn: () => maoMover(centro($id('quickNav'), 12), 2000) },       // chega ~6s
+    { t: 7.0,  fn: () => { maoClique(); abrirSumario(); } },                  // "clica" e abre os tópicos
+    { t: 8.5,  fn: () => maoMover(centro($id('sheetList').children[0]), 1000) },
+    { t: 10.0, fn: () => maoMover(centro($id('sheetList').children[1]), 1000) },
+    { t: 11.5, fn: () => maoMover(centro($id('sheetList').children[2]), 1000) },
+    { t: 12.5, fn: () => maoMover(centro($id('sheetClose')), 800) },
+    { t: 13.0, fn: () => { maoClique(); fecharSumario(); } },                 // "clica" em fechar
+    { t: 13.9, fn: () => tutorHand.classList.remove('show') },
+  ]),
   'dialogo1':     () => { /* eventos do diálogo 1 */ },
   'dialogo1.1':   () => { /* eventos do diálogo 1.1 */ },
   'dialogo1.2':   () => { /* eventos do diálogo 1.2 */ },
@@ -1028,12 +1055,14 @@ const EVENTOS = {
 const player = new Audio();
 player.preload = 'auto';
 let faixaAtual = -1;
+let faixaTerminou = false;  // true quando a faixa acaba: próximo play toca a próxima
 
 const $id = s => document.getElementById(s);
 
 function tocarFaixa(i) {
   if (i < 0 || i >= FAIXAS.length) return;
   faixaAtual = i;
+  faixaTerminou = false;
   const f = FAIXAS[i];
   player.src = f.arquivo;
   player.currentTime = 0;
@@ -1043,20 +1072,27 @@ function tocarFaixa(i) {
   if (typeof EVENTOS[f.id] === 'function') EVENTOS[f.id]();
 }
 
-// Botão play: 1º clique inicia o diálogo 0; depois alterna play/pause
+// Botão play:
+//  - 1º clique inicia o diálogo 0
+//  - se a faixa terminou, toca a PRÓXIMA
+//  - caso contrário, alterna play/pause da faixa atual
 $id('playBtn').addEventListener('click', () => {
-  if (faixaAtual < 0) tocarFaixa(0);
-  else if (player.paused) player.play();
+  if (faixaAtual < 0) { tocarFaixa(0); return; }
+  if (faixaTerminou) {
+    if (faixaAtual < FAIXAS.length - 1) tocarFaixa(faixaAtual + 1);
+    return;
+  }
+  if (player.paused) player.play();
   else player.pause();
 });
 
 player.addEventListener('play',  () => setIconePlay(true));
 player.addEventListener('pause', () => setIconePlay(false));
 
-// Ao terminar uma faixa, segue automaticamente para a próxima
+// Ao terminar uma faixa, NÃO avança sozinho: deixa o play pronto p/ a próxima
 player.addEventListener('ended', () => {
-  if (faixaAtual < FAIXAS.length - 1) tocarFaixa(faixaAtual + 1);
-  else setIconePlay(false);
+  faixaTerminou = true;
+  setIconePlay(false);
 });
 
 function setIconePlay(tocando) {
@@ -1121,6 +1157,34 @@ function limparStory() {
   if (storyRAF) cancelAnimationFrame(storyRAF);
   storyRAF = null; storyCues = [];
   stTop.innerHTML = ''; stCenter.innerHTML = '';
+  tutorHand.classList.remove('show', 'tap');
+  fecharSumario();
+}
+
+// ---------- Mãozinha do tutorial ----------
+const tutorHand = $id('tutorHand');
+function centro(el, offY = 0) {
+  const r = el.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 + offY };
+}
+function maoMostrar(p) {
+  tutorHand.style.transition = 'none';
+  tutorHand.style.left = p.x + 'px';
+  tutorHand.style.top = p.y + 'px';
+  requestAnimationFrame(() => {
+    tutorHand.style.transition = '';
+    tutorHand.classList.add('show');
+  });
+}
+function maoMover(p, dur = 1200) {
+  tutorHand.style.transitionDuration = dur + 'ms, ' + dur + 'ms, .4s';
+  tutorHand.style.left = p.x + 'px';
+  tutorHand.style.top = p.y + 'px';
+}
+function maoClique() {
+  tutorHand.classList.remove('tap');
+  void tutorHand.offsetWidth;  // reinicia a animação
+  tutorHand.classList.add('tap');
 }
 function rodarStory(cues) {
   limparStory();
