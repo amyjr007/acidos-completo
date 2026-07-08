@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Audiobook — Funções Inorgânicas: Ácidos</title>
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; background: #10141d; touch-action: none; }
+  #hint {
+    position: absolute; bottom: 86px; left: 50%; transform: translateX(-50%);
+    color: #cfd8ea; font-family: system-ui, sans-serif; font-size: 13px;
+    background: rgba(20, 26, 40, 0.75); padding: 8px 16px; border-radius: 20px;
+    pointer-events: none; transition: opacity 1s; white-space: nowrap;
+  }
+
+  /* ================= UI do Audiobook ================= */
+  :root {
+    --acid: #a6e534;
+    --acid-2: #6dbf1d;
+    --acid-glow: rgba(166, 229, 52, 0.45);
+    --painel: rgba(11, 26, 12, 0.92);
+    --texto: #eaf7d9;
+  }
+  button { font-family: system-ui, sans-serif; }
+
+  /* ---------- Capa ---------- */
+  #cover {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; text-align: center; color: var(--texto);
+    font-family: system-ui, sans-serif; overflow: hidden;
+    padding: 0 20px;
+    background:
+      radial-gradient(circle at 50% 20%, rgba(166,229,52,.16), transparent 45%),
+      radial-gradient(circle at 85% 88%, rgba(109,191,29,.10), transparent 42%),
+      linear-gradient(165deg, #060d06 0%, #0c1c0b 55%, #050f06 100%);
+    transition: opacity .5s;
+  }
+  #cover.saindo { opacity: 0; pointer-events: none; }
+
+  /* fundo: equações químicas animadas */
+  #eqBg {
+    position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  }
+  .eq {
+    position: absolute; white-space: nowrap;
+    font: 700 clamp(17px, 5.2vw, 23px) 'Courier New', monospace;
+    color: rgba(150, 214, 60, 0.22);
+    text-shadow: 0 0 10px rgba(166, 229, 52, 0.12);
+    animation: eqDrift 9s ease-in-out infinite;
+  }
+  @keyframes eqDrift {
+    0%, 100% { transform: translateX(0); opacity: .55; }
+    50%      { transform: translateX(-16px); opacity: 1; }
+  }
+
+  /* moléculas decorativas nos cantos */
+  .molec { position: absolute; z-index: 0; stroke: rgba(166,229,52,.20); fill: none; stroke-width: 2.5; }
+
+  /* conteúdo acima do fundo */
+  #cover > .capa-conteudo { position: relative; z-index: 2; display: contents; }
+
+  /* ondas de áudio + frasco */
+  .topo { position: relative; z-index: 2; display: flex; align-items: flex-end; justify-content: center; height: 120px; margin-bottom: 30px; }
+  .ondas { position: absolute; bottom: 26px; display: flex; align-items: center; gap: 4px; z-index: 1; }
+  .ondas span {
+    width: 4px; border-radius: 3px; background: var(--acid);
+    box-shadow: 0 0 8px var(--acid-glow);
+    animation: onda 1.1s ease-in-out infinite;
+  }
+  @keyframes onda { 0%,100% { height: 8px; opacity:.45; } 50% { height: 40px; opacity: .95; } }
+
+  .frasco { width: clamp(74px, 20vw, 92px); position: relative; z-index: 2; overflow: visible;
+    filter: drop-shadow(0 0 8px rgba(166,229,52,.55)); }
+  .bolha { animation: subirBolha 2.8s ease-in infinite; opacity: 0; }
+  .bolha.b2 { animation-delay: .9s; }
+  .bolha.b3 { animation-delay: 1.8s; }
+  @keyframes subirBolha {
+    0%   { transform: translateY(0);     opacity: 0; }
+    15%  { opacity: .9; }
+    85%  { opacity: .6; }
+    100% { transform: translateY(-30px); opacity: 0; }
+  }
+
+  .credito {
+    position: relative; z-index: 2;
+    margin: 18px 0 0; font-size: clamp(12px, 3.4vw, 14px); font-weight: 600;
+    letter-spacing: .5px; color: #cfe8a8; opacity: .8;
+  }
+  .titulo {
+    position: relative; z-index: 2;
+    margin: 0; font-size: clamp(26px, 7.6vw, 40px); line-height: 1.05;
+    font-weight: 800; letter-spacing: .5px; color: #f2fbe4;
+    text-shadow: 0 0 18px rgba(255,255,255,.12);
+  }
+  .subtema {
+    position: relative; z-index: 2;
+    margin: 2px 0 0; font-size: clamp(52px, 17vw, 96px); line-height: 1;
+    font-weight: 900; letter-spacing: 2px; color: var(--acid);
+    text-shadow: 0 0 12px var(--acid-glow), 0 0 34px var(--acid-glow), 0 0 60px rgba(166,229,52,.35);
+    animation: pulsarNeon 3s ease-in-out infinite;
+  }
+  @keyframes pulsarNeon {
+    0%,100% { text-shadow: 0 0 12px var(--acid-glow), 0 0 30px var(--acid-glow), 0 0 55px rgba(166,229,52,.3); }
+    50%     { text-shadow: 0 0 16px var(--acid-glow), 0 0 44px var(--acid-glow), 0 0 78px rgba(166,229,52,.5); }
+  }
+  .lema {
+    position: relative; z-index: 2;
+    margin: 6px 0 0; font-size: clamp(15px, 4.4vw, 20px); font-style: italic;
+    color: #dceec0; opacity: .9;
+  }
+  #btnIniciar {
+    position: relative; z-index: 2;
+    margin-top: 42px; padding: 17px 74px; border: none; border-radius: 999px;
+    background: linear-gradient(145deg, #baf34f, var(--acid-2));
+    color: #0a1a06; font-size: 22px; font-weight: 800; letter-spacing: 3px;
+    cursor: pointer; box-shadow: 0 0 26px var(--acid-glow), 0 8px 20px rgba(0,0,0,.4);
+    transition: transform .15s;
+  }
+  #btnIniciar:active { transform: scale(.95); }
+
+  /* ---------- Botão Home ---------- */
+  #homeBtn {
+    position: fixed; top: 14px; right: 14px; z-index: 60;
+    display: flex; align-items: center; gap: 7px;
+    background: var(--painel); color: var(--acid);
+    border: 1px solid rgba(166, 229, 52, 0.45); border-radius: 999px;
+    padding: 9px 16px; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  #homeBtn svg { width: 17px; height: 17px; fill: var(--acid); }
+
+  /* ---------- Faixa "tocando agora" ---------- */
+  #nowPlaying {
+    position: fixed; top: 14px; left: 14px; z-index: 60; max-width: 55vw;
+    background: var(--painel); color: var(--texto);
+    border: 1px solid rgba(166, 229, 52, 0.3); border-radius: 999px;
+    padding: 9px 15px; font: 600 12.5px system-ui, sans-serif;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #nowPlaying b { color: var(--acid); }
+
+  /* ---------- Botão Play ---------- */
+  #playBtn {
+    position: fixed; right: 18px; bottom: 68px; z-index: 60;
+    width: 66px; height: 66px; border-radius: 50%; border: none;
+    background: linear-gradient(145deg, #b4f04a, var(--acid-2));
+    box-shadow: 0 8px 22px var(--acid-glow);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform .15s;
+  }
+  #playBtn:active { transform: scale(.92); }
+  #playBtn svg { width: 30px; height: 30px; fill: #0a1a06; }
+
+  /* ---------- Navegação rápida ---------- */
+  #quickNav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 61;
+    background: var(--painel); color: var(--texto);
+    border-top: 1px solid rgba(166, 229, 52, 0.4);
+    padding: 13px 16px calc(13px + env(safe-area-inset-bottom));
+    text-align: center; font: 700 14px system-ui, sans-serif;
+    cursor: pointer; user-select: none; -webkit-user-select: none;
+  }
+  #quickNav .seta { color: var(--acid); margin-right: 8px; }
+
+  #sheetOverlay {
+    position: fixed; inset: 0; z-index: 69;
+    background: rgba(4, 10, 4, 0.55);
+  }
+  #sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
+    background: #0d2110; color: var(--texto);
+    border-top: 2px solid var(--acid); border-radius: 20px 20px 0 0;
+    max-height: 72vh; display: flex; flex-direction: column;
+    transform: translateY(105%); transition: transform .35s ease;
+    font-family: system-ui, sans-serif;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  #sheet.open { transform: translateY(0); }
+  .sheet-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px 10px; border-bottom: 1px solid rgba(166,229,52,.22);
+  }
+  .sheet-head span { font-size: 17px; font-weight: 800; color: var(--acid); letter-spacing: 1px; }
+  #sheetClose {
+    width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(166,229,52,.45);
+    background: transparent; color: var(--acid); font-size: 16px; cursor: pointer;
+  }
+  #sheetList {
+    margin: 0; padding: 6px 18px 18px 40px; overflow-y: auto;
+  }
+  #sheetList li {
+    padding: 13px 10px; font-size: 15px; cursor: pointer;
+    border-bottom: 1px solid rgba(166, 229, 52, 0.12);
+  }
+  #sheetList li::marker { color: var(--acid); font-weight: 800; }
+  #sheetList li.ativa { color: var(--acid); font-weight: 800; }
+  #sheetList li:active { background: rgba(166, 229, 52, 0.1); }
+
+  /* ---------- Selo de versão ---------- */
+  #versao {
+    position: fixed; left: 10px; bottom: 8px; z-index: 105;
+    font: 600 11px system-ui, sans-serif; color: rgba(166, 229, 52, 0.6);
+    letter-spacing: .5px; pointer-events: none; user-select: none;
+    text-shadow: 0 0 6px rgba(0, 0, 0, .6);
+  }
+</style>
+</head>
+<body>
+<div id="hint">1 dedo: pipeta &nbsp;•&nbsp; pinça: zoom &nbsp;•&nbsp; 2 dedos: mover / girar</div>
+
+<!-- ==================== CAPA ==================== -->
+<div id="cover">
+
+  <!-- fundo: equações químicas animadas -->
+  <div id="eqBg">
+    <span class="eq" style="top:24%; left:6%;">HCl &rarr; H<sup>+</sup> + Cl<sup>&minus;</sup></span>
+    <span class="eq" style="top:62%; left:10%; animation-delay:-3s;">H<sub>2</sub>SO<sub>4</sub> &rarr; 2H<sup>+</sup> + SO<sub>4</sub><sup>2&minus;</sup></span>
+    <span class="eq" style="top:71%; left:8%;  animation-delay:-5s;">HNO<sub>3</sub> &rarr; H<sup>+</sup> + NO<sub>3</sub><sup>&minus;</sup></span>
+    <span class="eq" style="top:34%; right:6%; animation-delay:-1.5s;">H<sub>3</sub>PO<sub>4</sub></span>
+    <span class="eq" style="top:80%; right:8%; animation-delay:-6s;">pH &lt; 7</span>
+
+    <!-- moléculas hexagonais decorativas -->
+    <svg class="molec" style="top:16%; right:4%;  width:70px; height:70px;" viewBox="0 0 60 60"><polygon points="30,4 52,17 52,43 30,56 8,43 8,17"/><line x1="30" y1="4" x2="30" y2="-6"/><line x1="52" y1="17" x2="62" y2="11"/></svg>
+    <svg class="molec" style="bottom:5%; left:5%;  width:60px; height:60px;" viewBox="0 0 60 60"><polygon points="30,4 52,17 52,43 30,56 8,43 8,17"/></svg>
+    <svg class="molec" style="bottom:8%; right:6%; width:66px; height:66px;" viewBox="0 0 60 60"><polygon points="30,4 52,17 52,43 30,56 8,43 8,17"/><line x1="8" y1="43" x2="-2" y2="49"/></svg>
+  </div>
+
+  <!-- topo: ondas de áudio + erlenmeyer animado -->
+  <div class="topo">
+    <div class="ondas">
+      <span style="animation-delay:0s"></span><span style="animation-delay:.15s"></span>
+      <span style="animation-delay:.30s"></span><span style="animation-delay:.45s"></span>
+      <span style="animation-delay:.55s"></span><span style="animation-delay:.35s"></span>
+      <span style="animation-delay:.20s"></span><span style="animation-delay:.05s"></span>
+      <span style="animation-delay:.25s"></span><span style="animation-delay:.45s"></span>
+      <span style="animation-delay:.60s"></span><span style="animation-delay:.40s"></span>
+      <span style="animation-delay:.20s"></span><span style="animation-delay:.10s"></span>
+    </div>
+    <svg class="frasco" viewBox="0 0 120 145" aria-hidden="true">
+      <path d="M42 78 L21 118 a10 10 0 0 0 9 15 h60 a10 10 0 0 0 9 -15 L78 78 Z"
+            fill="rgba(166,229,52,.5)" stroke="none"/>
+      <circle class="bolha"    cx="52" cy="118" r="4"   fill="#c8f57a"/>
+      <circle class="bolha b2" cx="66" cy="122" r="3"   fill="#c8f57a"/>
+      <circle class="bolha b3" cx="59" cy="115" r="2.4" fill="#c8f57a"/>
+      <path d="M46 12 h28 v6 l-5 5 v46 l30 55 a10 10 0 0 1 -9 15 H30 a10 10 0 0 1 -9 -15 l30 -55 V23 l-5 -5 Z"
+            fill="none" stroke="#a6e534" stroke-width="4" stroke-linejoin="round"/>
+      <line x1="47" y1="86" x2="57" y2="86" stroke="#a6e534" stroke-width="2.5" opacity=".6"/>
+      <line x1="44" y1="98" x2="54" y2="98" stroke="#a6e534" stroke-width="2.5" opacity=".6"/>
+    </svg>
+  </div>
+
+  <h1 class="titulo">FUN&Ccedil;&Otilde;ES INORG&Acirc;NICAS</h1>
+  <div class="subtema">&Aacute;CIDOS</div>
+  <p class="lema">"Um Audiobook Interativo"</p>
+
+  <button id="btnIniciar">INICIAR</button>
+  <p class="credito">Designed by Professor Amauri Junior</p>
+</div>
+
+<!-- Selo de versão (canto inferior esquerdo) -->
+<div id="versao">v0.3.0</div>
+
+<!-- ==================== PÁGINA 1 — UI ==================== -->
+<button id="homeBtn" title="Voltar à capa">
+  <svg viewBox="0 0 24 24"><path d="M12 3 2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg>
+  Home
+</button>
+
+<div id="nowPlaying" hidden>&#9835; <b>Tocando:</b> <span id="nowTitle"></span></div>
+
+<button id="playBtn" aria-label="Reproduzir / pausar narração">
+  <svg id="iconPlay" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+  <svg id="iconPause" viewBox="0 0 24 24" style="display:none"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+</button>
+
+<div id="quickNav"><span class="seta">&#9650;</span>Navega&ccedil;&atilde;o r&aacute;pida</div>
+
+<div id="sheetOverlay" hidden></div>
+<div id="sheet">
+  <div class="sheet-head">
+    <span>Sum&aacute;rio</span>
+    <button id="sheetClose" aria-label="Fechar sumário">&#10005;</button>
+  </div>
+  <ol id="sheetList"></ol>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x10141d);
+scene.fog = new THREE.Fog(0x10141d, 30, 70);
+
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 200);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+// ---------- Iluminação (estilo cartoon suave) ----------
+scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x1a2030, 0.9));
+const key = new THREE.DirectionalLight(0xfff3e0, 1.1);
+key.position.set(8, 14, 6);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.left = -15; key.shadow.camera.right = 15;
+key.shadow.camera.top = 15; key.shadow.camera.bottom = -15;
+scene.add(key);
+const fill = new THREE.DirectionalLight(0x8fb0ff, 0.4);
+fill.position.set(-10, 6, -8);
+scene.add(fill);
+
+// ---------- Materiais toon ----------
+function toonMat(color) {
+  const c = new Uint8Array([90, 160, 230, 255]);
+  const grad = new THREE.DataTexture(c, 4, 1, THREE.LuminanceFormat);
+  grad.minFilter = grad.magFilter = THREE.NearestFilter;
+  grad.needsUpdate = true;
+  return new THREE.MeshToonMaterial({ color, gradientMap: grad });
+}
+
+// ---------- Bancada escura ----------
+const bench = new THREE.Mesh(new THREE.BoxGeometry(26, 1.2, 14), toonMat(0x232936));
+bench.position.y = -0.6;
+bench.receiveShadow = true;
+scene.add(bench);
+
+// borda da bancada (detalhe cartoon)
+const edge = new THREE.Mesh(new THREE.BoxGeometry(26.4, 0.25, 14.4), toonMat(0x323a4d));
+edge.position.y = 0.02;
+edge.receiveShadow = true;
+scene.add(edge);
+
+// pés da bancada
+const legGeo = new THREE.BoxGeometry(1, 6, 1);
+[[-11.5, -6], [11.5, -6], [-11.5, 6], [11.5, 6]].forEach(([x, z]) => {
+  const leg = new THREE.Mesh(legGeo, toonMat(0x1b202b));
+  leg.position.set(x, -4.2, z);
+  scene.add(leg);
+});
+
+// chão
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), toonMat(0x151a26));
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -7.2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// parede de fundo
+const wall = new THREE.Mesh(new THREE.PlaneGeometry(120, 60), toonMat(0x131826));
+wall.position.set(0, 20, -28);
+scene.add(wall);
+
+// azulejos decorativos na parede (linha cartoon)
+const tileMat = toonMat(0x1c2334);
+for (let i = -5; i <= 5; i++) {
+  const tile = new THREE.Mesh(new THREE.BoxGeometry(3.4, 3.4, 0.1), tileMat);
+  tile.position.set(i * 3.8, 6, -27.9);
+  scene.add(tile);
+}
+
+// ---------- Vidro e líquidos ----------
+const glassMat = new THREE.MeshPhongMaterial({
+  color: 0xcfe8ff, transparent: true, opacity: 0.22,
+  shininess: 120, specular: 0xffffff, side: THREE.DoubleSide, depthWrite: false
+});
+
+function makeBeaker(radius, height, liquidColor, liquidLevel, liquidOpacity = 0.65) {
+  const g = new THREE.Group();
+
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius * 0.96, height, 40, 1, true), glassMat);
+  body.position.y = height / 2;
+  g.add(body);
+
+  const bottom = new THREE.Mesh(new THREE.CircleGeometry(radius * 0.96, 40), glassMat);
+  bottom.rotation.x = -Math.PI / 2;
+  bottom.position.y = 0.02;
+  g.add(bottom);
+
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.05, 10, 40),
+    new THREE.MeshPhongMaterial({ color: 0xe8f4ff, transparent: true, opacity: 0.5, shininess: 150 }));
+  rim.rotation.x = Math.PI / 2;
+  rim.position.y = height;
+  g.add(rim);
+
+  if (liquidColor !== null) {
+    const lh = height * liquidLevel;
+    const liquid = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius * 0.9, radius * 0.88, lh, 40),
+      new THREE.MeshPhongMaterial({ color: liquidColor, transparent: true, opacity: liquidOpacity, shininess: 90 })
+    );
+    liquid.position.y = lh / 2 + 0.05;
+    g.add(liquid);
+
+    const surf = new THREE.Mesh(new THREE.CircleGeometry(radius * 0.9, 40),
+      new THREE.MeshPhongMaterial({ color: liquidColor, transparent: true, opacity: Math.min(liquidOpacity + 0.2, 0.85), shininess: 100 }));
+    surf.rotation.x = -Math.PI / 2;
+    surf.position.y = lh + 0.06;
+    g.add(surf);
+  }
+  return g;
+}
+
+// ---------- Etiquetas com subscrito ----------
+function labelTexture(parts) {
+  const cv = document.createElement('canvas');
+  cv.width = 256; cv.height = 150;
+  const ctx = cv.getContext('2d');
+
+  // etiqueta branca com borda
+  ctx.fillStyle = '#fdfbf4';
+  roundRect(ctx, 8, 8, 240, 134, 14);
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = '#3a4258';
+  roundRect(ctx, 8, 8, 240, 134, 14);
+  ctx.stroke();
+  // linha decorativa
+  ctx.strokeStyle = '#c9503e';
+  ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(28, 118); ctx.lineTo(228, 118); ctx.stroke();
+
+  const main = 58, sub = 36;
+  ctx.fillStyle = '#232936';
+  ctx.textBaseline = 'alphabetic';
+
+  let total = 0;
+  parts.forEach(p => {
+    ctx.font = (p.sub ? sub : main) + 'px Verdana, sans-serif';
+    total += ctx.measureText(p.t).width;
+  });
+
+  let x = (256 - total) / 2;
+  const baseY = 88;
+  parts.forEach(p => {
+    ctx.font = (p.sub ? sub : main) + 'px Verdana, sans-serif';
+    ctx.fillText(p.t, x, p.sub ? baseY + 14 : baseY);
+    x += ctx.measureText(p.t).width;
+  });
+
+  const tex = new THREE.CanvasTexture(cv);
+  tex.anisotropy = 8;
+  return tex;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function addLabel(group, parts, radius, height) {
+  const tex = labelTexture(parts);
+  const w = radius * 1.7, h = w * 0.6;
+  const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(w, h),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true })
+  );
+  plane.position.set(0, height * 0.5, radius + 0.03);
+  group.add(plane);
+}
+
+// ---------- Béquer principal com água ----------
+const waterBeaker = makeBeaker(1.6, 3.4, 0x4aa8e8, 0.62);
+waterBeaker.position.set(-3.5, 0.3, 1.5);
+waterBeaker.traverse(o => { if (o.isMesh) o.castShadow = true; });
+scene.add(waterBeaker);
+
+// ---------- 3 béqueres com etiquetas ----------
+const reagents = [
+  { name: 'HCl', parts: [{ t: 'HCl' }], pos: [1.8, 0.3, 1.5] },
+  { name: 'H₂S', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'S' }], pos: [4.6, 0.3, 1.5] },
+  { name: 'H₃PO₄', parts: [{ t: 'H' }, { t: '3', sub: true }, { t: 'PO' }, { t: '4', sub: true }], pos: [7.4, 0.3, 1.5] },
+];
+
+reagents.forEach(r => {
+  const b = makeBeaker(1.1, 2.6, 0xe6f2fa, 0.5, 0.14);
+  addLabel(b, r.parts, 1.1, 2.6);
+  b.position.set(...r.pos);
+  b.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  scene.add(b);
+});
+
+// sombra fake suave sob os béqueres (cartoon)
+function softShadow(x, z, r) {
+  const m = new THREE.Mesh(new THREE.CircleGeometry(r, 32),
+    new THREE.MeshBasicMaterial({ color: 0x0b0e15, transparent: true, opacity: 0.35 }));
+  m.rotation.x = -Math.PI / 2;
+  m.position.set(x, 0.31, z);
+  scene.add(m);
+}
+softShadow(-3.5, 1.5, 2.0);
+reagents.forEach(r => softShadow(r.pos[0], r.pos[2], 1.4));
+
+// ---------- Pipeta ----------
+const PLANE_Z = 1.5;
+const pipette = new THREE.Group();
+const pipBody = new THREE.Group();
+pipette.add(pipBody);
+
+const pipGlass = new THREE.MeshPhongMaterial({
+  color: 0xd8ecff, transparent: true, opacity: 0.35,
+  shininess: 140, specular: 0xffffff, depthWrite: false
+});
+
+const tipMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.01, 1.0, 20), pipGlass);
+tipMesh.position.y = 0.5;
+pipBody.add(tipMesh);
+
+const tubeMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2.0, 20), pipGlass);
+tubeMesh.position.y = 2.0;
+pipBody.add(tubeMesh);
+
+const bulbMesh = new THREE.Mesh(new THREE.SphereGeometry(0.38, 24, 20), pipGlass);
+bulbMesh.scale.set(1, 1.25, 1);
+bulbMesh.position.y = 3.35;
+bulbMesh.castShadow = true;
+pipBody.add(bulbMesh);
+
+// líquido dentro da pipeta (cresce de baixo pra cima)
+const pipLiquidGeo = new THREE.CylinderGeometry(0.065, 0.065, 1.9, 16);
+pipLiquidGeo.translate(0, 0.95, 0);
+const pipLiquid = new THREE.Mesh(pipLiquidGeo,
+  new THREE.MeshPhongMaterial({ color: 0xbfe3f2, transparent: true, opacity: 0.6, shininess: 100 }));
+pipLiquid.position.y = 1.02;
+pipLiquid.scale.y = 0.0001;
+pipBody.add(pipLiquid);
+
+// áreas de toque invisíveis (maiores, pra facilitar no dedo)
+const hitMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
+const hitTip = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.3, 8), hitMat.clone());
+hitTip.position.y = 0.55; hitTip.name = 'tip';
+pipBody.add(hitTip);
+const hitTube = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 2.0, 8), hitMat.clone());
+hitTube.position.y = 2.0; hitTube.name = 'tube';
+pipBody.add(hitTube);
+const hitBulb = new THREE.Mesh(new THREE.SphereGeometry(0.8, 12, 10), hitMat.clone());
+hitBulb.position.y = 3.35; hitBulb.name = 'bulb';
+pipBody.add(hitBulb);
+
+pipette.position.set(1.8, 3.3, PLANE_Z); // flutuando acima do HCl
+scene.add(pipette);
+
+// estado da pipeta
+let pipFill = 0, pipTargetFill = 0;
+let sucking = false;
+let squeezeTime = -10;
+const ACID_SURF = 0.3 + 2.6 * 0.5 + 0.06;
+const WATER_SURF = 0.3 + 3.4 * 0.62 + 0.06;
+
+function tipContainer() {
+  const x = pipette.position.x, y = pipette.position.y;
+  if (Math.abs(x - (-3.5)) < 1.35 && y < WATER_SURF - 0.05) return { name: 'água', color: 0x4aa8e8 };
+  for (const r of reagents) {
+    if (Math.abs(x - r.pos[0]) < 0.85 && y < ACID_SURF - 0.05) return { name: r.name, color: 0xdcedf7 };
+  }
+  return null;
+}
+
+// gotas
+const drops = [];
+function spawnDrop() {
+  const d = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8),
+    new THREE.MeshPhongMaterial({ color: pipLiquid.material.color.getHex(), transparent: true, opacity: 0.85, shininess: 120 }));
+  d.position.set(pipette.position.x, pipette.position.y - 0.02, PLANE_Z);
+  scene.add(d);
+  drops.push({ mesh: d, vy: 0 });
+}
+function dropFloorY(x) {
+  if (Math.abs(x - (-3.5)) < 1.4) return WATER_SURF; // água
+  for (const r of reagents) if (Math.abs(x - r.pos[0]) < 0.95) return ACID_SURF;
+  return 0.36; // bancada
+}
+
+// arraste da pipeta (restrito ao plano dos vidros)
+const raycaster = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+const dragPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -PLANE_Z);
+const planePoint = new THREE.Vector3();
+const LIMITS = { minX: -8.5, maxX: 11, minY: 0.42, maxY: 7.5 };
+let pipDrag = null;
+
+function raycastPipette(e) {
+  ndc.x = (e.clientX / innerWidth) * 2 - 1;
+  ndc.y = -(e.clientY / innerHeight) * 2 + 1;
+  raycaster.setFromCamera(ndc, camera);
+  const hits = raycaster.intersectObjects([hitTip, hitTube, hitBulb]);
+  if (hits.length) return hits[0].object.name;
+
+  // fallback: proximidade na tela (facilita pegar no celular)
+  const pts = [['tip', 0.4], ['tube', 2.0], ['bulb', 3.35]];
+  const v = new THREE.Vector3();
+  let best = null, bestD = 60;
+  for (const [name, off] of pts) {
+    v.set(pipette.position.x, pipette.position.y + off, PLANE_Z).project(camera);
+    const sx = (v.x + 1) / 2 * innerWidth, sy = (-v.y + 1) / 2 * innerHeight;
+    const d = Math.hypot(e.clientX - sx, e.clientY - sy);
+    if (d < bestD) { bestD = d; best = name; }
+  }
+  return best;
+}
+
+function startBulbPress(drag) {
+  if (pipFill > 0.1) {
+    drag.action = 'expel';
+  } else {
+    const c = tipContainer();
+    if (c) {
+      sucking = true;
+      pipLiquid.material.color.setHex(c.color);
+      squeezeTime = clock.getElapsedTime();
+      showMsg('Sugando ' + c.name + '... (segure)');
+      drag.action = 'suck';
+    } else {
+      drag.action = 'needliquid';
+    }
+  }
+}
+
+function endBulbPress(drag) {
+  sucking = false;
+  if (drag.action === 'suck') {
+    pipTargetFill = pipFill;
+    if (pipFill > 0.05) showMsg('Pipeta com ' + Math.round(pipFill * 100) + '% de líquido');
+    return;
+  }
+  if (drag.moved) return;
+  if (drag.action === 'expel') {
+    pipTargetFill = 0;
+    squeezeTime = clock.getElapsedTime();
+    showMsg('Soltando o líquido...');
+  } else if (drag.action === 'needliquid') {
+    showMsg('Mergulhe a ponta num líquido primeiro');
+  }
+}
+
+// ---------- Controles de câmera ----------
+const target = new THREE.Vector3(2, 1.5, 1.5);
+let theta = 0.0, phi = 1.15, dist = 15;
+const MIN_D = 5, MAX_D = 40;
+
+function updateCamera() {
+  phi = Math.max(0.15, Math.min(Math.PI / 2 - 0.02, phi));
+  dist = Math.max(MIN_D, Math.min(MAX_D, dist));
+  camera.position.set(
+    target.x + dist * Math.sin(phi) * Math.sin(theta),
+    target.y + dist * Math.cos(phi),
+    target.z + dist * Math.sin(phi) * Math.cos(theta)
+  );
+  camera.lookAt(target);
+}
+updateCamera();
+
+const pointers = new Map();
+let lastPinch = 0, lastMid = null, lastAngle = null;
+
+renderer.domElement.addEventListener('pointerdown', e => {
+  renderer.domElement.setPointerCapture(e.pointerId);
+  hideHint();
+
+  if (!pipDrag) {
+    const part = raycastPipette(e);
+    if (part) {
+      raycaster.ray.intersectPlane(dragPlane, planePoint);
+      pipDrag = {
+        id: e.pointerId, part, moved: false, action: null,
+        startX: e.clientX, startY: e.clientY,
+        offX: planePoint.x - pipette.position.x,
+        offY: planePoint.y - pipette.position.y
+      };
+      if (part === 'bulb' || part === 'tip') startBulbPress(pipDrag);
+      return;
+    }
+  } else {
+    return; // segurando a pipeta: ignora outros toques
+  }
+
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, button: e.button, shift: e.shiftKey });
+  if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    lastPinch = Math.hypot(a.x - b.x, a.y - b.y);
+    lastMid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    lastAngle = Math.atan2(b.y - a.y, b.x - a.x);
+  }
+});
+
+renderer.domElement.addEventListener('pointermove', e => {
+  if (pipDrag && e.pointerId === pipDrag.id) {
+    if (Math.hypot(e.clientX - pipDrag.startX, e.clientY - pipDrag.startY) > 10) pipDrag.moved = true;
+    ndc.x = (e.clientX / innerWidth) * 2 - 1;
+    ndc.y = -(e.clientY / innerHeight) * 2 + 1;
+    raycaster.setFromCamera(ndc, camera);
+    if (raycaster.ray.intersectPlane(dragPlane, planePoint)) {
+      pipette.position.x = Math.max(LIMITS.minX, Math.min(LIMITS.maxX, planePoint.x - pipDrag.offX));
+      pipette.position.y = Math.max(LIMITS.minY, Math.min(LIMITS.maxY, planePoint.y - pipDrag.offY));
+      pipette.position.z = PLANE_Z;
+    }
+    return;
+  }
+
+  if (!pointers.has(e.pointerId)) return;
+  const prev = pointers.get(e.pointerId);
+  const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+  pointers.set(e.pointerId, { ...prev, x: e.clientX, y: e.clientY });
+
+  if (pointers.size === 1) {
+    if (prev.button === 2 || prev.shift) {
+      pan(dx, dy);
+      updateCamera();
+    } else if (e.pointerType === 'mouse') {
+      theta -= dx * 0.006;
+      phi -= dy * 0.006;
+      updateCamera();
+    }
+    // toque com 1 dedo não move a câmera (reservado pra pipeta)
+  } else if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    const pinch = Math.hypot(a.x - b.x, a.y - b.y);
+    const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    const ang = Math.atan2(b.y - a.y, b.x - a.x);
+    if (lastPinch > 0) dist *= lastPinch / pinch;
+    if (lastMid) pan(mid.x - lastMid.x, mid.y - lastMid.y);
+    if (lastAngle !== null) {
+      let da = ang - lastAngle;
+      if (da > Math.PI) da -= 2 * Math.PI;
+      if (da < -Math.PI) da += 2 * Math.PI;
+      theta += da;
+    }
+    lastPinch = pinch;
+    lastMid = mid;
+    lastAngle = ang;
+    updateCamera();
+  }
+});
+
+function endPointer(e) {
+  if (pipDrag && e.pointerId === pipDrag.id) {
+    if (pipDrag.part === 'bulb' || pipDrag.part === 'tip') endBulbPress(pipDrag);
+    pipDrag = null;
+    return;
+  }
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) { lastPinch = 0; lastMid = null; lastAngle = null; }
+}
+renderer.domElement.addEventListener('pointerup', endPointer);
+renderer.domElement.addEventListener('pointercancel', endPointer);
+renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+
+function pan(dx, dy) {
+  const factor = dist * 0.0016;
+  const right = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0);
+  const up = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1);
+  target.addScaledVector(right, -dx * factor);
+  target.addScaledVector(up, dy * factor);
+}
+
+renderer.domElement.addEventListener('wheel', e => {
+  e.preventDefault();
+  dist *= e.deltaY > 0 ? 1.08 : 0.93;
+  updateCamera();
+  hideHint();
+}, { passive: false });
+
+let hintHidden = false;
+const hintEl = document.getElementById('hint');
+function hideHint() {
+  if (hintHidden) return;
+  hintHidden = true;
+  setTimeout(() => { hintEl.style.opacity = '0'; }, 2500);
+}
+let msgTimer;
+function showMsg(text) {
+  hintEl.textContent = text;
+  hintEl.style.opacity = '1';
+  clearTimeout(msgTimer);
+  msgTimer = setTimeout(() => { hintEl.style.opacity = '0'; }, 2200);
+}
+
+// ---------- Animação ----------
+const clock = new THREE.Clock();
+let lastT = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+  const dt = Math.min(t - lastT, 0.05);
+  lastT = t;
+
+  waterBeaker.children.forEach(c => {
+    if (c.geometry && c.geometry.type === 'CircleGeometry' && c.material.opacity > 0.7) {
+      c.position.y = 3.4 * 0.62 + 0.06 + Math.sin(t * 2) * 0.015;
+    }
+  });
+
+  // flutuação suave da pipeta (só visual, quando não está sendo arrastada)
+  pipBody.position.y = pipDrag ? 0 : Math.sin(t * 1.6) * 0.06;
+
+  // sucção enquanto segura a pêra (ponta precisa estar submersa)
+  if (sucking) {
+    if (tipContainer() && pipFill < 1) {
+      const before = pipFill;
+      pipFill = Math.min(1, pipFill + dt * 0.55);
+      pipTargetFill = pipFill;
+      if (pipFill >= 1 && before < 1) showMsg('Pipeta cheia!');
+    }
+  }
+
+  // enchimento / esvaziamento do líquido da pipeta
+  const wasExpelling = pipTargetFill < pipFill - 0.01;
+  if (pipFill > pipTargetFill) pipFill = Math.max(pipTargetFill, pipFill - dt * 0.9);
+  pipLiquid.scale.y = Math.max(pipFill, 0.0001);
+
+  // gotas caindo enquanto esvazia
+  if (wasExpelling && Math.floor(t * 12) !== Math.floor((t - dt) * 12)) spawnDrop();
+
+  // aperto da pêra (animação de squash)
+  const sq = Math.max(0, 1 - (t - squeezeTime) * 3);
+  const squash = 1 - 0.25 * Math.sin(sq * Math.PI);
+  bulbMesh.scale.set(1 + (1 - squash) * 0.6, 1.25 * squash, 1 + (1 - squash) * 0.6);
+
+  // física das gotas
+  for (let i = drops.length - 1; i >= 0; i--) {
+    const d = drops[i];
+    d.vy -= 9.8 * dt;
+    d.mesh.position.y += d.vy * dt;
+    if (d.mesh.position.y <= dropFloorY(d.mesh.position.x)) {
+      scene.remove(d.mesh);
+      drops.splice(i, 1);
+    }
+  }
+
+  renderer.render(scene, camera);
+}
+animate();
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+
+<script>
+// ============================================================
+//  AUDIOBOOK — Funções Inorgânicas: Ácidos
+// ============================================================
+
+// Faixas na ordem de reprodução. Edite os títulos do sumário aqui.
+const FAIXAS = [
+  { id: 'dialogo0',     arquivo: 'audios/dialogo0.mp3',     titulo: 'Diálogo 0' },
+  { id: 'dialogo0.1',   arquivo: 'audios/dialogo0.1.mp3',   titulo: 'Diálogo 0.1' },
+  { id: 'dialogo1',     arquivo: 'audios/dialogo1.mp3',     titulo: 'Diálogo 1' },
+  { id: 'dialogo1.1',   arquivo: 'audios/dialogo1.1.mp3',   titulo: 'Diálogo 1.1' },
+  { id: 'dialogo1.2',   arquivo: 'audios/dialogo1.2.mp3',   titulo: 'Diálogo 1.2' },
+  { id: 'dialogo1.3',   arquivo: 'audios/dialogo1.3.mp3',   titulo: 'Diálogo 1.3' },
+  { id: 'dialogo1.3A',  arquivo: 'audios/Dialogo1.3A.mp3',  titulo: 'Diálogo 1.3A' },
+  { id: 'dialogo1.3B',  arquivo: 'audios/dialogo1.3B.mp3',  titulo: 'Diálogo 1.3B' },
+  { id: 'dialogo1.3B1', arquivo: 'audios/dialogo1.3B1.mp3', titulo: 'Diálogo 1.3B1' },
+  { id: 'dialogo1.3B2', arquivo: 'audios/dialogo1.3B2.mp3', titulo: 'Diálogo 1.3B2' },
+];
+
+// EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
+// É aqui que entram as animações da cena 3D durante cada narração.
+const EVENTOS = {
+  'dialogo0':     () => { /* eventos do diálogo 0 */ },
+  'dialogo0.1':   () => { /* eventos do diálogo 0.1 */ },
+  'dialogo1':     () => { /* eventos do diálogo 1 */ },
+  'dialogo1.1':   () => { /* eventos do diálogo 1.1 */ },
+  'dialogo1.2':   () => { /* eventos do diálogo 1.2 */ },
+  'dialogo1.3':   () => { /* eventos do diálogo 1.3 */ },
+  'dialogo1.3A':  () => { /* eventos do diálogo 1.3A */ },
+  'dialogo1.3B':  () => { /* eventos do diálogo 1.3B */ },
+  'dialogo1.3B1': () => { /* eventos do diálogo 1.3B1 */ },
+  'dialogo1.3B2': () => { /* eventos do diálogo 1.3B2 */ },
+};
+
+const player = new Audio();
+player.preload = 'auto';
+let faixaAtual = -1;
+
+const $id = s => document.getElementById(s);
+
+function tocarFaixa(i) {
+  if (i < 0 || i >= FAIXAS.length) return;
+  faixaAtual = i;
+  const f = FAIXAS[i];
+  player.src = f.arquivo;
+  player.currentTime = 0;
+  player.play();
+  $id('nowTitle').textContent = f.titulo;
+  $id('nowPlaying').hidden = false;
+  marcarSumario();
+  if (typeof EVENTOS[f.id] === 'function') EVENTOS[f.id]();
+}
+
+// Botão play: 1º clique inicia o diálogo 0; depois alterna play/pause
+$id('playBtn').addEventListener('click', () => {
+  if (faixaAtual < 0) tocarFaixa(0);
+  else if (player.paused) player.play();
+  else player.pause();
+});
+
+player.addEventListener('play',  () => setIconePlay(true));
+player.addEventListener('pause', () => setIconePlay(false));
+
+// Ao terminar uma faixa, segue automaticamente para a próxima
+player.addEventListener('ended', () => {
+  if (faixaAtual < FAIXAS.length - 1) tocarFaixa(faixaAtual + 1);
+  else setIconePlay(false);
+});
+
+function setIconePlay(tocando) {
+  $id('iconPlay').style.display  = tocando ? 'none'  : 'block';
+  $id('iconPause').style.display = tocando ? 'block' : 'none';
+}
+
+// ---------- Capa / Home ----------
+$id('btnIniciar').addEventListener('click', () => {
+  $id('cover').classList.add('saindo');
+});
+$id('homeBtn').addEventListener('click', () => {
+  player.pause();
+  $id('cover').classList.remove('saindo');
+});
+
+// ---------- Navegação rápida (sumário) ----------
+const sheet = $id('sheet');
+const sheetOverlay = $id('sheetOverlay');
+
+FAIXAS.forEach((f, i) => {
+  const li = document.createElement('li');
+  li.textContent = f.titulo;
+  li.addEventListener('click', () => { fecharSumario(); tocarFaixa(i); });
+  $id('sheetList').appendChild(li);
+});
+
+function abrirSumario()  { sheet.classList.add('open');    sheetOverlay.hidden = false; }
+function fecharSumario() { sheet.classList.remove('open'); sheetOverlay.hidden = true;  }
+
+$id('quickNav').addEventListener('click', abrirSumario);
+$id('sheetClose').addEventListener('click', fecharSumario);
+sheetOverlay.addEventListener('click', fecharSumario);
+
+function marcarSumario() {
+  [...$id('sheetList').children].forEach((li, i) => li.classList.toggle('ativa', i === faixaAtual));
+}
+</script>
+</body>
+</html>
