@@ -267,6 +267,18 @@
   }
   #panImg.show { opacity: 1; pointer-events: auto; cursor: grab; }
   #panImg.grabbing { cursor: grabbing; }
+
+  /* ---------- Prateleira das substâncias inorgânicas (dialogo1.1) ---------- */
+  #shelfInorg {
+    position: fixed; inset: 0; z-index: 38;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transform: translateY(26px) scale(.95);
+    transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.25,1);
+  }
+  #shelfInorg.show { opacity: 1; transform: none; }
+  #shelfInorg svg { width: 100%; height: 100%; display: block;
+    filter: drop-shadow(0 14px 34px rgba(0,0,0,.55)); }
   @keyframes stIn {
     0%   { opacity: 0; transform: translateY(38px) scale(.82); filter: blur(5px); }
     55%  { opacity: 1; }
@@ -357,7 +369,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.13.0</div>
+<div id="versao">v0.14.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -370,6 +382,9 @@
 
 <!-- Imagem panorâmica das narrações -->
 <img id="panImg" alt="">
+
+<!-- Prateleira das substâncias inorgânicas (dialogo1.1) -->
+<div id="shelfInorg" aria-hidden="true"></div>
 
 <!-- Camada de textos das narrações -->
 <div id="storyLayer">
@@ -1095,7 +1110,9 @@ const EVENTOS = {
     { t: 31.0, fn: () => stShow('center', 'Substâncias Inorgânicas', 'st-titulo2') },
     { t: 32.7, fn: () => stShow('center', 'Que reúne todas as outras substâncias na natureza', 'st-desc') },
   ]),
-  'dialogo1.1':   () => { /* eventos do diálogo 1.1 */ },
+  'dialogo1.1':   () => rodarStory([
+    { t: 4.0, fn: mostrarPrateleira },   // prateleira com as categorias de substâncias inorgânicas
+  ]),
   'dialogo1.2':   () => { /* eventos do diálogo 1.2 */ },
   'dialogo1.3':   () => { /* eventos do diálogo 1.3 */ },
   'dialogo1.3A':  () => { /* eventos do diálogo 1.3A */ },
@@ -1222,6 +1239,7 @@ function limparStory() {
   storyRAF = null; storyCues = [];
   stSair();          // saída animada dos textos (não some do nada)
   esconderImagem();
+  esconderPrateleira();
   tutorHand.classList.remove('show', 'tap');
   fecharSumario();
 }
@@ -1244,6 +1262,154 @@ function mostrarImagem(src) {
   requestAnimationFrame(() => panImgEl.classList.add('show'));
 }
 function esconderImagem() { panImgEl.classList.remove('show'); }
+
+// ---------- Prateleira das substâncias inorgânicas (dialogo1.1) ----------
+// Estante de madeira em SVG: 4 prateleiras x 5 frascos de boticário.
+// Só as vidrarias + rótulo (fórmula e nome). SEM placas de categoria e SEM fundo do lab.
+const shelfEl = $id('shelfInorg');
+let shelfMontada = false;
+
+// dígitos viram subscrito (H2SO4 -> H₂SO₄); letras/parênteses ficam normais.
+function subFormula(f) {
+  let o = '';
+  for (const ch of f) {
+    o += (ch >= '0' && ch <= '9')
+      ? '<tspan baseline-shift="sub" font-size="70%">' + ch + '</tspan>'
+      : ch;
+  }
+  return o;
+}
+
+// Desenha 1 frasco. cx = centro X, by = base (onde apoia na prateleira).
+function fnFrasco(cx, by, cfg, id, defs) {
+  const w2 = 39, nw2 = 13, sw2 = 20, r = 9;
+  const bodyTop = by - 140, shTop = by - 166, neckTop = by - 188, stTop = by - 208;
+  const stroke = '#2f2116';
+  const sil =
+    'M' + (cx - w2) + ' ' + bodyTop + ' L' + (cx - w2) + ' ' + (by - r) +
+    ' Q' + (cx - w2) + ' ' + by + ' ' + (cx - w2 + r) + ' ' + by +
+    ' L' + (cx + w2 - r) + ' ' + by + ' Q' + (cx + w2) + ' ' + by + ' ' + (cx + w2) + ' ' + (by - r) +
+    ' L' + (cx + w2) + ' ' + bodyTop +
+    ' C' + (cx + w2) + ' ' + (bodyTop - 16) + ' ' + (cx + nw2) + ' ' + (shTop + 12) + ' ' + (cx + nw2) + ' ' + shTop +
+    ' L' + (cx + nw2) + ' ' + neckTop + ' L' + (cx - nw2) + ' ' + neckTop + ' L' + (cx - nw2) + ' ' + shTop +
+    ' C' + (cx - nw2) + ' ' + (shTop + 12) + ' ' + (cx - w2) + ' ' + (bodyTop - 16) + ' ' + (cx - w2) + ' ' + bodyTop + ' Z';
+
+  const innerTop = bodyTop + 6, bodyH = by - innerTop;
+  const clipId = 'bcl' + id;
+  defs.push('<clipPath id="' + clipId + '"><rect x="' + (cx - w2 + 4) + '" y="' + innerTop +
+    '" width="' + ((w2 - 4) * 2) + '" height="' + (by - 4 - innerTop) + '" rx="7"/></clipPath>');
+
+  const fillTop = by - bodyH * cfg.l;
+  let content = '<g clip-path="url(#' + clipId + ')">';
+  content += '<rect x="' + (cx - w2) + '" y="' + fillTop + '" width="' + (w2 * 2) + '" height="' + (by - fillTop) + '" fill="' + cfg.c + '"/>';
+  if (cfg.t === 'liq') {
+    content += '<ellipse cx="' + cx + '" cy="' + fillTop + '" rx="' + (w2 - 6) + '" ry="6" fill="#ffffff" opacity="0.20"/>';
+  } else {                       // sólido: montinho + grânulos
+    content += '<ellipse cx="' + cx + '" cy="' + fillTop + '" rx="' + (w2 - 6) + '" ry="11" fill="' + cfg.c + '"/>';
+    const gx = [-22, -8, 7, 20, -14, 5, 17, -4], gy = [7, 15, 5, 12, 25, 26, 20, 22];
+    for (let k = 0; k < 8; k++)
+      content += '<circle cx="' + (cx + gx[k]) + '" cy="' + (fillTop + gy[k]) + '" r="' + (2.4 + (k % 3 === 0 ? 1.4 : 0)) +
+        '" fill="' + (k % 2 ? 'rgba(255,255,255,.32)' : 'rgba(0,0,0,.16)') + '"/>';
+  }
+  content += '</g>';
+
+  const gloss = '<rect clip-path="url(#' + clipId + ')" x="' + (cx - w2 + 9) + '" y="' + (bodyTop + 10) +
+    '" width="9" height="' + (bodyH * 0.5) + '" rx="4" fill="#ffffff" opacity="0.16"/>';
+
+  const stH = (neckTop - stTop) + 8;
+  const stopper = '<rect x="' + (cx - sw2) + '" y="' + stTop + '" width="' + (sw2 * 2) + '" height="' + stH +
+    '" rx="6" fill="' + cfg.s + '" stroke="' + stroke + '" stroke-width="2.4"/>' +
+    '<line x1="' + (cx - sw2 + 3) + '" y1="' + (neckTop - 2) + '" x2="' + (cx + sw2 - 3) + '" y2="' + (neckTop - 2) +
+    '" stroke="' + stroke + '" stroke-width="2" opacity="0.45"/>';
+
+  const lw = 72, lx = cx - lw / 2, ly = by - 72, lh = 46;
+  const label = '<g>' +
+    '<rect x="' + lx + '" y="' + ly + '" width="' + lw + '" height="' + lh + '" rx="5" fill="#efe4c6" stroke="#c9b587" stroke-width="1.5"/>' +
+    '<rect x="' + lx + '" y="' + ly + '" width="' + lw + '" height="' + lh + '" rx="5" fill="url(#gLabel)"/>' +
+    '<text x="' + cx + '" y="' + (by - 48) + '" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="15.5" font-weight="700" fill="#2c2013">' + subFormula(cfg.f) + '</text>' +
+    '<text x="' + cx + '" y="' + (by - 32) + '" text-anchor="middle" textLength="' + (lw - 10) + '" lengthAdjust="spacingAndGlyphs" font-family="system-ui,Segoe UI,sans-serif" font-size="8" fill="#6a5636">' + cfg.n + '</text>' +
+    '</g>';
+
+  return '<g>' + content +
+    '<path d="' + sil + '" fill="' + cfg.g + '"/>' + gloss +
+    '<path d="' + sil + '" fill="none" stroke="' + stroke + '" stroke-width="2.6" stroke-linejoin="round"/>' +
+    stopper + label + '</g>';
+}
+
+function montarPrateleira() {
+  const COLS = [92, 196, 300, 404, 508];
+  const ROWS = [255, 515, 775, 1035];
+  const CL = 'rgba(220,234,240,0.12)';   // vidro incolor
+  const cfgs = [
+    // Ácidos — vidro âmbar, líquidos
+    [ { g:'rgba(196,132,52,0.40)', c:'#e0a24e', s:'#8a5a25', t:'liq', l:0.85, f:'HCl',     n:'Ácido Clorídrico' },
+      { g:'rgba(150,92,34,0.46)',  c:'#b9772e', s:'#6f4519', t:'liq', l:0.84, f:'H2SO4',   n:'Ácido Sulfúrico' },
+      { g:'rgba(96,52,22,0.55)',   c:'#5e3210', s:'#4a2c12', t:'liq', l:0.87, f:'HNO3',    n:'Ácido Nítrico' },
+      { g:'rgba(170,96,36,0.44)',  c:'#b5621f', s:'#7a4718', t:'liq', l:0.82, f:'CH3COOH', n:'Ácido Acético' },
+      { g:'rgba(196,140,58,0.40)', c:'#d99f45', s:'#8a5a25', t:'liq', l:0.85, f:'H3PO4',   n:'Ácido Fosfórico' } ],
+    // Bases — mistura de vidro âmbar e incolor
+    [ { g:'rgba(178,110,40,0.44)', c:'#c98a3f', s:'#7a4b1c', t:'liq', l:0.84, f:'NaOH',    n:'Hidróxido de Sódio' },
+      { g:'rgba(150,92,34,0.46)',  c:'#b9772e', s:'#6f4519', t:'liq', l:0.84, f:'KOH',     n:'Hidróxido de Potássio' },
+      { g:CL,                      c:'#e7ebee', s:'#c3cdd3', t:'liq', l:0.84, f:'Ca(OH)2', n:'Hidróxido de Cálcio' },
+      { g:'rgba(196,140,58,0.40)', c:'#d9b877', s:'#8a5a25', t:'liq', l:0.82, f:'NH3(aq)', n:'Amônia Aquosa' },
+      { g:CL,                      c:'#e2e8ec', s:'#c3cdd3', t:'liq', l:0.85, f:'Mg(OH)2', n:'Hidróxido de Magnésio' } ],
+    // Sais — vidro incolor, sólidos coloridos
+    [ { g:CL, c:'#f1f4f6', s:'#c3cdd3', t:'sol', l:0.75, f:'NaCl',  n:'Cloreto de Sódio' },
+      { g:CL, c:'#3d80d6', s:'#c3cdd3', t:'sol', l:0.76, f:'CuSO4', n:'Sulfato de Cobre II' },
+      { g:CL, c:'#eef1f3', s:'#c3cdd3', t:'sol', l:0.75, f:'CaCO3', n:'Carbonato de Cálcio' },
+      { g:CL, c:'#c9dcae', s:'#c3cdd3', t:'sol', l:0.75, f:'KNO3',  n:'Nitrato de Potássio' },
+      { g:CL, c:'#e6c23c', s:'#c3cdd3', t:'sol', l:0.76, f:'FeCl3', n:'Cloreto de Ferro III' } ],
+    // Óxidos — vidro incolor, pós coloridos
+    [ { g:CL, c:'#bb3f1f', s:'#c3cdd3', t:'sol', l:0.75, f:'Fe2O3', n:'Óxido de Ferro III' },
+      { g:CL, c:'#eef1f3', s:'#c3cdd3', t:'sol', l:0.75, f:'CaO',   n:'Óxido de Cálcio' },
+      { g:CL, c:'#1e1e20', s:'#b8c2c8', t:'sol', l:0.75, f:'CuO',   n:'Óxido de Cobre II' },
+      { g:CL, c:'#eff2f4', s:'#c3cdd3', t:'sol', l:0.75, f:'ZnO',   n:'Óxido de Zinco' },
+      { g:CL, c:'#e4e8eb', s:'#c3cdd3', t:'sol', l:0.75, f:'Al2O3', n:'Óxido de Alumínio' } ],
+  ];
+
+  const defs = [], frascos = [];
+  let id = 0;
+  for (let r = 0; r < 4; r++)
+    for (let c = 0; c < 5; c++)
+      frascos.push(fnFrasco(COLS[c], ROWS[r], cfgs[r][c], id++, defs));
+
+  const grads =
+    '<linearGradient id="gPost" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7d5029"/><stop offset="0.5" stop-color="#5a3819"/><stop offset="1" stop-color="#3d260f"/></linearGradient>' +
+    '<linearGradient id="gBack" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3420"/><stop offset="1" stop-color="#2f1e0d"/></linearGradient>' +
+    '<linearGradient id="gFront" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#835529"/><stop offset="1" stop-color="#472c15"/></linearGradient>' +
+    '<linearGradient id="gLabel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,255,255,.42)"/><stop offset="0.5" stop-color="rgba(255,255,255,0)"/><stop offset="1" stop-color="rgba(90,70,40,.16)"/></linearGradient>';
+
+  const back = '<rect x="42" y="20" width="516" height="1032" fill="url(#gBack)"/>';
+  let planks = '';
+  [128, 214, 300, 386, 472].forEach(x =>
+    planks += '<line x1="' + x + '" y1="22" x2="' + x + '" y2="1050" stroke="rgba(0,0,0,.16)" stroke-width="2"/>');
+  let boards = '';
+  ROWS.forEach(base =>
+    boards += '<rect x="16" y="' + (base - 6) + '" width="568" height="30" fill="url(#gFront)"/>' +
+              '<rect x="16" y="' + (base - 6) + '" width="568" height="5" fill="#9c6c3a"/>' +
+              '<line x1="16" y1="' + (base + 23) + '" x2="584" y2="' + (base + 23) + '" stroke="rgba(0,0,0,.4)" stroke-width="2.5"/>');
+  const posts =
+    '<rect x="0" y="10" width="46" height="1052" fill="url(#gPost)"/>' +
+    '<rect x="554" y="10" width="46" height="1052" fill="url(#gPost)"/>' +
+    '<rect x="40" y="10" width="4" height="1052" fill="rgba(0,0,0,.28)"/>' +
+    '<rect x="556" y="10" width="4" height="1052" fill="rgba(0,0,0,.28)"/>';
+  const cornice =
+    '<rect x="0" y="8" width="600" height="30" rx="4" fill="url(#gFront)"/>' +
+    '<rect x="0" y="8" width="600" height="6" fill="#9c6c3a"/>';
+
+  shelfEl.innerHTML =
+    '<svg viewBox="0 0 600 1070" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">' +
+    '<defs>' + grads + defs.join('') + '</defs>' +
+    back + planks + frascos.join('') + boards + posts + cornice +
+    '</svg>';
+  shelfMontada = true;
+}
+
+function mostrarPrateleira() {
+  if (!shelfMontada) montarPrateleira();
+  requestAnimationFrame(() => shelfEl.classList.add('show'));
+}
+function esconderPrateleira() { shelfEl.classList.remove('show'); }
 
 // arraste horizontal (revela esquerda/direita), com limite nas bordas
 panImgEl.addEventListener('pointerdown', e => {
