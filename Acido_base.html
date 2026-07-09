@@ -382,6 +382,38 @@
     opacity: 0; transition: opacity .5s ease .25s;
   }
   #storyImg.cap-on .cap { opacity: 1; }
+  /* saída da imagem: desliza pra cima, empurrada pelo título (fim do dialogo1.2) */
+  #storyImg .frame { transition: transform 1.3s cubic-bezier(.5, 0, .2, 1); }
+  #storyImg.sobe .frame { transform: translateY(-125vh); }
+
+  /* Título "Definição de Arrhenius" que sobe de baixo e continua no dialogo1.3 */
+  #tituloDef {
+    position: fixed; left: 0; right: 0; top: 13%; z-index: 42;
+    text-align: center; padding: 0 24px;
+    font-family: system-ui, sans-serif; font-weight: 900; color: var(--acid);
+    text-shadow: 0 0 16px var(--acid-glow);
+    font-size: clamp(24px, 6.6vw, 40px); line-height: 1.15;
+    transform: translateY(92vh); opacity: 0; pointer-events: none;
+    transition: transform 1.3s cubic-bezier(.35, 0, .2, 1), opacity .4s ease;
+  }
+  #tituloDef.show { opacity: 1; }
+  #tituloDef.subiu { transform: translateY(0); }
+
+  /* Definição digitada (dialogo1.3) */
+  #defTexto {
+    position: fixed; left: 50%; top: 53%; z-index: 41;
+    transform: translate(-50%, -50%); text-align: center;
+    width: min(88vw, 620px); box-sizing: border-box; padding: 0 6px;
+    font-family: system-ui, sans-serif; font-weight: 700; color: #eaf7d9;
+    font-size: clamp(19px, 5.2vw, 30px); line-height: 1.42;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, .6);
+    opacity: 0; pointer-events: none; transition: opacity .4s ease;
+  }
+  #defTexto.show { opacity: 1; }
+  #defTexto sup { color: var(--acid); font-weight: 900; font-size: .72em; }
+  #defTexto .caret { color: var(--acid); font-weight: 400; }
+  @keyframes caretBlink { 50% { opacity: 0; } }
+  #defTexto .caret { animation: caretBlink .8s steps(1) infinite; }
 
   /* Bloco "Ácidos são perigosos" + pictogramas */
   .st-perigo { color: #ff6a52; text-shadow: 0 2px 16px rgba(0, 0, 0, .6), 0 0 20px rgba(255, 90, 60, .4); }
@@ -477,7 +509,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.17.1</div>
+<div id="versao">v0.18.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -498,6 +530,10 @@
 <!-- Título-pergunta e imagem com Ken Burns (dialogo1.2) -->
 <div id="tituloAcido"></div>
 <div id="storyImg"><div class="frame"><img alt=""><div class="cap"></div></div></div>
+
+<!-- Título e definição digitada (dialogo1.2 -> 1.3) -->
+<div id="tituloDef">Definição de Arrhenius</div>
+<div id="defTexto"></div>
 
 <!-- Camada de textos das narrações -->
 <div id="storyLayer">
@@ -1251,8 +1287,12 @@ const EVENTOS = {
     { t: 21.0, fn: () => { stSair(); tituloAcidoEl.classList.remove('show'); } },  // tudo some
     { t: 26.0, fn: () => mostrarImg2('imagens/arrhenius.jpeg', { fit: 'cover', pos: '50% 5%', origin: '50% 0%', from: 'scale(1.03)', cap: 'Svante Arrhenius — 1887' }) },
     { t: 28.6, fn: () => kenBurns(18000, { transform: 'scale(1.16)' }) },   // zoom no rosto (topo ancorado) até acabar o áudio
+    { t: 36.0, fn: subirDefinicao },                                        // imagem sobe e sai, empurrada por "Definição de Arrhenius"
   ]),
-  'dialogo1.3':   () => { /* eventos do diálogo 1.3 */ },
+  'dialogo1.3':   () => rodarStory([
+    { t: 0.0, fn: iniciarCena13 },                                  // "Definição de Arrhenius" continua no topo
+    { t: 1.6, fn: () => digitarDef(DEF_ARRHENIUS, 1.6, 10.0) },     // digita a definição (H+ sobrescrito) até t10
+  ]),
   'dialogo1.3A':  () => { /* eventos do diálogo 1.3A */ },
   'dialogo1.3B':  () => { /* eventos do diálogo 1.3B */ },
   'dialogo1.3B1': () => { /* eventos do diálogo 1.3B1 */ },
@@ -1337,6 +1377,7 @@ const sheetOverlay = $id('sheetOverlay');
 const SUMARIO = [
   { titulo: 'Introdução e tutorial do app', faixa: 0 },  // início do dialogo0
   { titulo: 'As substâncias inorgânicas',   faixa: 2 },  // início do dialogo1
+  { titulo: 'Definição de Arrhenius',       faixa: 5 },  // início do dialogo1.3
 ];
 
 SUMARIO.forEach(item => {
@@ -1655,7 +1696,55 @@ function esconderImg2() { storyImgEl.classList.remove('show'); }
 function resetCena12() {
   tituloAcidoEl.classList.remove('show', 'topo');
   esconderImg2();
-  storyImgEl.classList.remove('cap-on');
+  storyImgEl.classList.remove('cap-on', 'sobe');
+  resetCena13();
+}
+
+// ---------- Coreografia da cena do dialogo1.3 (definição) ----------
+const tituloDefEl = $id('tituloDef');
+const defTextoEl = $id('defTexto');
+let typeRAF = null;
+
+const DEF_ARRHENIUS =
+  '"Ácidos são substâncias moleculares que, quando dissolvidas em água, ' +
+  'liberam como único cátion o íon H+"';
+
+// fim do 1.2: imagem sobe e sai, empurrada pelo título que vem de baixo
+function subirDefinicao() {
+  storyImgEl.classList.add('sobe');
+  tituloDefEl.classList.add('show', 'subiu');
+}
+// início do 1.3: título "Definição de Arrhenius" já no topo (continua do 1.2), sem re-animar
+function iniciarCena13() {
+  tituloDefEl.style.transition = 'none';
+  tituloDefEl.classList.add('show', 'subiu');
+  void tituloDefEl.offsetWidth;
+  tituloDefEl.style.transition = '';
+  defTextoEl.classList.remove('show');
+  defTextoEl.innerHTML = '';
+}
+// H+ vira sobrescrito; caret pisca enquanto digita
+function montarDef(s, digitando) {
+  let h = s.split('H+').join('H<sup>+</sup>');
+  return digitando ? h + '<span class="caret">▏</span>' : h;
+}
+// máquina de escrever guiada pelo tempo do áudio (t0 -> t1)
+function digitarDef(texto, t0, t1) {
+  defTextoEl.classList.add('show');
+  if (typeRAF) cancelAnimationFrame(typeRAF);
+  const n = texto.length;
+  const tick = () => {
+    const p = Math.max(0, Math.min(1, (player.currentTime - t0) / (t1 - t0)));
+    defTextoEl.innerHTML = montarDef(texto.slice(0, Math.round(p * n)), p < 1);
+    typeRAF = p < 1 ? requestAnimationFrame(tick) : null;
+  };
+  tick();
+}
+function resetCena13() {
+  if (typeRAF) { cancelAnimationFrame(typeRAF); typeRAF = null; }
+  tituloDefEl.classList.remove('show', 'subiu');
+  defTextoEl.classList.remove('show');
+  defTextoEl.innerHTML = '';
 }
 
 // Pictograma GHS de corrosivo (losango vermelho): tubos pingando sobre superfície e mão.
