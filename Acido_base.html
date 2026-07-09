@@ -149,7 +149,20 @@
     cursor: pointer; transition: transform .15s;
   }
   #playBtn:active { transform: scale(.92); }
-  #playBtn svg { width: 30px; height: 30px; fill: #0a1a06; }
+  #playBtn > svg:not(#playRing) { width: 30px; height: 30px; fill: #0a1a06; }
+  /* anel que marca o tempo da narração ao redor do play */
+  #playRing {
+    position: absolute; left: 50%; top: 50%; width: 82px; height: 82px;
+    transform: translate(-50%, -50%) rotate(-90deg); pointer-events: none; overflow: visible;
+  }
+  #playRing circle { fill: none; stroke-width: 4; }
+  #playRing .track { stroke: rgba(255, 255, 255, .18); }
+  #playRing .prog {
+    stroke: #eaffcf; stroke-linecap: round;
+    stroke-dasharray: 232.5; stroke-dashoffset: 232.5;
+    transition: stroke-dashoffset .18s linear;
+    filter: drop-shadow(0 0 3px rgba(234, 255, 207, .5));
+  }
 
   /* ---------- Navegação rápida ---------- */
   #quickNav {
@@ -343,23 +356,30 @@
     color: var(--acid); text-shadow: 0 0 16px var(--acid-glow);
   }
 
-  /* Imagem das narrações com Ken Burns (dialogo1.2) */
+  /* Imagem das narrações (card quadrado centralizado) com Ken Burns (dialogo1.2) */
   #storyImg {
-    position: fixed; inset: 0; z-index: 39; overflow: hidden; background: #0a0e15;
+    position: fixed; inset: 0; z-index: 39;
+    display: flex; align-items: center; justify-content: center;
     opacity: 0; pointer-events: none; transition: opacity .6s ease;
   }
   #storyImg.show { opacity: 1; }
+  #storyImg .frame {
+    position: relative; width: min(74vw, 320px); height: min(74vw, 320px);
+    border-radius: 22px; overflow: hidden; background: #0a0e15;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, .55);
+  }
   #storyImg img {
     position: absolute; inset: 0; width: 100%; height: 100%;
     object-fit: cover; object-position: center; transform-origin: center;
     transform: scale(1.04); user-select: none; -webkit-user-drag: none;
   }
   #storyImg .cap {
-    position: absolute; left: 0; right: 0; bottom: 7%; text-align: center;
-    font-family: system-ui, sans-serif; font-weight: 800;
-    font-size: clamp(18px, 5vw, 27px); color: #f6fbef; letter-spacing: .3px;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, .95), 0 0 20px rgba(0, 0, 0, .8);
-    padding: 0 20px; opacity: 0; transition: opacity .5s ease .25s;
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 30px 12px 12px;
+    text-align: center; font-family: system-ui, sans-serif; font-weight: 800;
+    font-size: clamp(15px, 4.4vw, 20px); color: #f6fbef; letter-spacing: .3px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, .95);
+    background: linear-gradient(to top, rgba(0, 0, 0, .78), rgba(0, 0, 0, 0));
+    opacity: 0; transition: opacity .5s ease .25s;
   }
   #storyImg.cap-on .cap { opacity: 1; }
 
@@ -457,7 +477,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.16.0</div>
+<div id="versao">v0.17.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -477,7 +497,7 @@
 
 <!-- Título-pergunta e imagem com Ken Burns (dialogo1.2) -->
 <div id="tituloAcido"></div>
-<div id="storyImg"><img alt=""><div class="cap"></div></div>
+<div id="storyImg"><div class="frame"><img alt=""><div class="cap"></div></div></div>
 
 <!-- Camada de textos das narrações -->
 <div id="storyLayer">
@@ -490,6 +510,10 @@
 <div id="tutorHand"><span class="mao">&#128070;</span></div>
 
 <button id="playBtn" aria-label="Reproduzir / pausar narração">
+  <svg id="playRing" viewBox="0 0 82 82" aria-hidden="true">
+    <circle class="track" cx="41" cy="41" r="37"/>
+    <circle id="playRingProg" class="prog" cx="41" cy="41" r="37"/>
+  </svg>
   <svg id="iconPlay" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
   <svg id="iconPause" viewBox="0 0 24 24" style="display:none"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
 </button>
@@ -1272,10 +1296,21 @@ $id('playBtn').addEventListener('click', () => {
 player.addEventListener('play',  () => setIconePlay(true));
 player.addEventListener('pause', () => setIconePlay(false));
 
+// Anel de progresso do tempo ao redor do play
+const RING_C = 232.5;   // 2*pi*37
+const ringProg = $id('playRingProg');
+function marcarAnel(p) { ringProg.style.strokeDashoffset = RING_C * (1 - Math.max(0, Math.min(1, p || 0))); }
+player.addEventListener('timeupdate', () => {
+  const d = player.duration;
+  marcarAnel(d && isFinite(d) ? player.currentTime / d : 0);
+});
+player.addEventListener('loadedmetadata', () => marcarAnel(0));   // zera ao trocar de faixa
+
 // Ao terminar uma faixa, NÃO avança sozinho: deixa o play pronto p/ a próxima
 player.addEventListener('ended', () => {
   faixaTerminou = true;
   setIconePlay(false);
+  marcarAnel(1);
 });
 
 function setIconePlay(tocando) {
