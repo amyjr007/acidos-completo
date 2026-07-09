@@ -477,7 +477,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.17.0</div>
+<div id="versao">v0.17.1</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1249,8 +1249,8 @@ const EVENTOS = {
     { t: 15.0, fn: esconderImg2 },
     { t: 19.0, fn: () => stShow('center', perigoHTML, 'st-perigo') },        // ácidos são perigosos + pictogramas
     { t: 21.0, fn: () => { stSair(); tituloAcidoEl.classList.remove('show'); } },  // tudo some
-    { t: 26.0, fn: () => mostrarImg2('imagens/arrhenius.jpeg', { fit: 'cover', pos: '50% 38%', from: 'scale(1.03)', cap: 'Svante Arrhenius — 1887' }) },
-    { t: 28.6, fn: () => kenBurns(18000, { transform: 'scale(1.18)', pos: '50% 38%' }) },   // Ken Burns até acabar o áudio
+    { t: 26.0, fn: () => mostrarImg2('imagens/arrhenius.jpeg', { fit: 'cover', pos: '50% 5%', origin: '50% 0%', from: 'scale(1.03)', cap: 'Svante Arrhenius — 1887' }) },
+    { t: 28.6, fn: () => kenBurns(18000, { transform: 'scale(1.16)' }) },   // zoom no rosto (topo ancorado) até acabar o áudio
   ]),
   'dialogo1.3':   () => { /* eventos do diálogo 1.3 */ },
   'dialogo1.3A':  () => { /* eventos do diálogo 1.3A */ },
@@ -1626,13 +1626,14 @@ function iniciarCena12() {
 }
 function subirTitAcido() { tituloAcidoEl.classList.add('topo'); }
 
-// Imagem com Ken Burns. opts: { fit, pos, from, cap }
+// Imagem com Ken Burns. opts: { fit, pos, origin, from, cap }
 function mostrarImg2(src, opts) {
   opts = opts || {};
   if (storyImgImg.getAttribute('src') !== src) storyImgImg.setAttribute('src', src);
   storyImgImg.style.transition = 'none';                 // zera o Ken Burns anterior
   storyImgImg.style.objectFit = opts.fit || 'cover';
   storyImgImg.style.objectPosition = opts.pos || 'center';
+  storyImgImg.style.transformOrigin = opts.origin || 'center';
   storyImgImg.style.transform = opts.from || 'scale(1.04)';
   if (opts.cap) { storyImgCap.textContent = opts.cap; storyImgEl.classList.add('cap-on'); }
   else storyImgEl.classList.remove('cap-on');
