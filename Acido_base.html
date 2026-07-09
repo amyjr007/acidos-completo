@@ -257,16 +257,16 @@
     text-shadow: 0 2px 16px rgba(0, 0, 0, .6);
   }
 
-  /* ---------- Imagem das narrações (centralizada, tamanho normal) ---------- */
+  /* ---------- Imagem das narrações (pan arrastável com o dedo) ---------- */
   #panImg {
-    position: fixed; top: 50%; left: 50%;
-    transform: translate(-50%, -50%) scale(.94);
-    max-width: 92vw; max-height: 70vh; width: auto; height: auto;
-    border-radius: 14px; box-shadow: 0 12px 40px rgba(0, 0, 0, .6);
-    z-index: 38; opacity: 0; pointer-events: none;
-    transition: opacity .6s ease, transform .6s ease;
+    position: fixed; top: 0; left: 0; height: 100vh; width: auto; max-width: none;
+    z-index: 38; opacity: 0; transition: opacity .5s ease;
+    pointer-events: none; touch-action: none; will-change: transform;
+    user-select: none; -webkit-user-select: none; -webkit-user-drag: none;
+    transform: translateX(0);
   }
-  #panImg.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  #panImg.show { opacity: 1; pointer-events: auto; cursor: grab; }
+  #panImg.grabbing { cursor: grabbing; }
   @keyframes stIn {
     0%   { opacity: 0; transform: translateY(38px) scale(.82); filter: blur(5px); }
     55%  { opacity: 1; }
@@ -357,7 +357,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.12.0</div>
+<div id="versao">v0.13.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1226,15 +1226,41 @@ function limparStory() {
   fecharSumario();
 }
 
-// ---------- Imagem das narrações (centralizada, tamanho normal) ----------
+// ---------- Imagem das narrações (pan arrastável com o dedo) ----------
+const panImgEl = $id('panImg');
+let imgPanX = 0, imgMinX = 0, imgDrag = null;
+
+function aplicarPanImg() { panImgEl.style.transform = 'translateX(' + imgPanX + 'px)'; }
+
+function centralizarImg() {
+  imgMinX = Math.min(0, innerWidth - panImgEl.offsetWidth); // <= 0 (quanto dá p/ arrastar)
+  imgPanX = imgMinX / 2;                                     // entra mostrando o centro
+  aplicarPanImg();
+}
 function mostrarImagem(src) {
-  const img = $id('panImg');
-  if (img.getAttribute('src') !== src) img.src = src;
-  requestAnimationFrame(() => img.classList.add('show'));
+  if (panImgEl.getAttribute('src') !== src) panImgEl.src = src;
+  if (panImgEl.complete && panImgEl.naturalWidth) centralizarImg();
+  else panImgEl.onload = centralizarImg;
+  requestAnimationFrame(() => panImgEl.classList.add('show'));
 }
-function esconderImagem() {
-  $id('panImg').classList.remove('show');
+function esconderImagem() { panImgEl.classList.remove('show'); }
+
+// arraste horizontal (revela esquerda/direita), com limite nas bordas
+panImgEl.addEventListener('pointerdown', e => {
+  imgDrag = { id: e.pointerId, startX: e.clientX, baseX: imgPanX };
+  panImgEl.setPointerCapture(e.pointerId);
+  panImgEl.classList.add('grabbing');
+});
+panImgEl.addEventListener('pointermove', e => {
+  if (!imgDrag || e.pointerId !== imgDrag.id) return;
+  imgPanX = Math.max(imgMinX, Math.min(0, imgDrag.baseX + (e.clientX - imgDrag.startX)));
+  aplicarPanImg();
+});
+function fimDragImg(e) {
+  if (imgDrag && e.pointerId === imgDrag.id) { imgDrag = null; panImgEl.classList.remove('grabbing'); }
 }
+panImgEl.addEventListener('pointerup', fimDragImg);
+panImgEl.addEventListener('pointercancel', fimDragImg);
 
 // ---------- Mãozinha do tutorial ----------
 const tutorHand = $id('tutorHand');
