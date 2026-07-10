@@ -748,7 +748,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.41.0</div>
+<div id="versao">v0.42.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -797,7 +797,7 @@
 
 <!-- Minigame de identificação (dialogo1.1E + jogo) -->
 <div id="game" aria-hidden="true">
-  <svg id="gameSvg" viewBox="-53 -94 706 1259" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
+  <svg id="gameSvg" viewBox="-53 -30 706 1259" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
 </div>
 <div id="gameHud"></div>
 <div id="gameFlash"></div>
@@ -2345,7 +2345,7 @@ function construirEstanteJogo() {
 // no jogo os frascos são 15% mais baixos, fórmula 10% maior e SEM nome (mais espaço)
 function gmMakeBottle(cfg) {
   const defs = [];
-  const rc = Object.assign({}, cfg, { hs: 0.85, ff: 17, n: '' });
+  const rc = Object.assign({}, cfg, { hs: 0.72, ff: 19, n: '' });
   const markup = fnFrasco(0, 0, rc, 'gm' + (gmUid++), defs);
   gmDefs.insertAdjacentHTML('beforeend', defs.join(''));
   return markup;
@@ -2405,15 +2405,19 @@ function mostrarPrateleiraJogo() {
   substTitle.style.transition = '';
   gameEl.classList.add('show');
 }
-function tutColocarHCl() { gmNovoAtivo(0, SHELF_CFGS[0][0], 300, 535); }
+function tutColocarHCl() { gmEntrarDeBaixo(0, SHELF_CFGS[0][0]); }   // HCl entra de baixo, igual ao jogo
 function tutPulsarLabel() {
   const gl = gmActive && gmActive.querySelector('.tut-label-glow');
   if (gl) { gl.classList.remove('on'); void gl.getBoundingClientRect(); gl.classList.add('on'); }
 }
 function tutArrastarHCl() {
-  maoMostrar(gmToScreen(300, 470));
-  gmTweenTo(SHELF_COLS[0], SHELF_ROWS[0], 1600);
-  maoMover(gmToScreen(SHELF_COLS[0], SHELF_ROWS[0] - 70), 1600);
+  // mãozinha aparece em cima do frasco (na posição de descanso) e arrasta até a prateleira
+  const de = gmToScreen(gmState.restX, gmState.restY);
+  maoMostrar({ x: de.x, y: de.y - 34 });
+  const alvoX = SHELF_COLS[0], alvoY = SHELF_ROWS[0];
+  gmTweenTo(alvoX, alvoY, 1600);
+  const para = gmToScreen(alvoX, alvoY);
+  maoMover({ x: para.x, y: para.y - 34 }, 1600);
   setTimeout(() => {
     gmActive.innerHTML = '';
     gmColocarFixo(0, SHELF_CFGS[0][0]);       // HCl fica na prateleira dos ácidos
