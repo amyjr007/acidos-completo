@@ -32,6 +32,8 @@
     --texto: #eaf7d9;
     --rosa: #ff5db1;
     --rosa-glow: rgba(255, 93, 177, 0.5);
+    --ferrugem: #cf6a2f;
+    --ferrugem-glow: rgba(207, 106, 47, 0.5);
   }
   button { font-family: system-ui, sans-serif; }
 
@@ -268,6 +270,15 @@
     color: #f2fbe4;
     text-shadow: 0 2px 16px rgba(0, 0, 0, .65), 0 0 26px rgba(166, 229, 52, .22);
   }
+  /* sobe o texto ~1,5 linha em relação ao centro */
+  .st-sobe { position: relative; top: -2.6rem; }
+  /* trecho destacado que pulsa dentro de uma frase */
+  .dest { display: inline-block; }
+  .dest.pulsar { animation: destPulsa .6s ease-in-out 2; }
+  @keyframes destPulsa {
+    0%, 100% { color: #f2fbe4; transform: scale(1);    text-shadow: 0 2px 16px rgba(0, 0, 0, .65); }
+    50%      { color: #ffb27a; transform: scale(1.18); text-shadow: 0 0 18px rgba(207, 106, 47, .95); }
+  }
   .st-desc {
     font-size: clamp(19px, 5.2vw, 28px); font-weight: 600;
     color: #eaf7d9; max-width: 88vw; line-height: 1.3;
@@ -357,8 +368,8 @@
 
   /* ---------- Cena do dialogo1.1A ---------- */
   #cena11a { position: fixed; inset: 0; z-index: 41; pointer-events: none; }
-  /* saída dramática (some tudo do 1.1A ao entrar no 1.1B) */
-  #cena11a.saindo {
+  /* saída dramática (some tudo de uma categoria ao entrar na próxima) */
+  #cena11a.saindo, #cena11b.saindo, #cena11c.saindo {
     transition: transform .55s cubic-bezier(.5, 0, .75, 0), filter .55s ease, opacity .55s ease;
     transform: scale(1.4); filter: blur(9px); opacity: 0;
   }
@@ -387,6 +398,21 @@
     0%,100% { text-shadow: 0 0 12px var(--rosa-glow), 0 0 30px var(--rosa-glow), 0 0 55px rgba(255,93,177,.3); }
     50%     { text-shadow: 0 0 16px var(--rosa-glow), 0 0 44px var(--rosa-glow), 0 0 78px rgba(255,93,177,.5); }
   }
+  /* ---------- Cena do dialogo1.1C (Óxidos): "Óxidos" marrom ferrugem ---------- */
+  #cena11c { position: fixed; inset: 0; z-index: 41; pointer-events: none; }
+  .c11c-titulo {
+    position: absolute; top: 14%; left: 0; right: 0; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: 1px;
+    font-size: clamp(40px, 13vw, 76px); color: var(--ferrugem);
+    opacity: 0; transform: translateY(24px) scale(.9);
+    transition: opacity .6s ease, transform .6s cubic-bezier(.2, .9, .25, 1.35);
+    animation: pulsarNeonFerrugem 3s ease-in-out infinite;
+  }
+  .c11c-titulo.show { opacity: 1; transform: none; }
+  @keyframes pulsarNeonFerrugem {
+    0%,100% { text-shadow: 0 0 12px var(--ferrugem-glow), 0 0 30px var(--ferrugem-glow), 0 0 55px rgba(207,106,47,.3); }
+    50%     { text-shadow: 0 0 16px var(--ferrugem-glow), 0 0 44px var(--ferrugem-glow), 0 0 78px rgba(207,106,47,.5); }
+  }
   /* não-ácidos (H2O, H2O2) lado a lado */
   .c11a-nao {
     position: absolute; top: 31%; left: 0; right: 0;
@@ -405,18 +431,19 @@
     text-shadow: 0 0 10px rgba(255, 60, 60, .85), 0 0 24px rgba(255, 30, 30, .6);
   }
   .c11a-h2o2 .aviso { margin-left: 10px; -webkit-text-fill-color: initial; }
-  /* frascos das cenas (ácidos, bases, ...) — subidos na altura dos quadrados de fundo */
-  .c11a-frascos, .c11b-frascos {
+  /* frascos das cenas (ácidos, bases, óxidos, ...) — subidos na altura dos quadrados de fundo */
+  .c11a-frascos, .c11b-frascos, .c11c-frascos {
     position: absolute; left: 0; right: 0; bottom: calc(12% + 2.3rem);
     opacity: 0; transform: translateY(34px);
     transition: opacity .7s ease, transform .7s cubic-bezier(.2, .9, .25, 1.2);
   }
-  .c11a-frascos.show, .c11b-frascos.show { opacity: 1; transform: none; }
-  .c11a-frascos svg, .c11b-frascos svg { display: block; width: 100%; height: auto; max-height: 46vh; margin: 0 auto; }
-  /* pulsada rápida com brilho no "H" (ácidos, t17) e no "OH" (bases, t11.7) */
-  .c11a-frascos .fH, .c11b-frascos .fOH { transform-box: fill-box; transform-origin: center; }
+  .c11a-frascos.show, .c11b-frascos.show, .c11c-frascos.show { opacity: 1; transform: none; }
+  .c11a-frascos svg, .c11b-frascos svg, .c11c-frascos svg { display: block; width: 100%; height: auto; max-height: 46vh; margin: 0 auto; }
+  /* pulsada rápida: "H" (ácidos), "OH" (bases), "O" (óxidos) — brilho + cresce/diminui */
+  .c11a-frascos .fH, .c11b-frascos .fOH, .c11c-frascos .fO { transform-box: fill-box; transform-origin: center; }
   .c11a-frascos.pulseH .fH { animation: hPulsa .55s ease-in-out 2; }
   .c11b-frascos.pulseOH .fOH { animation: ohPulsa .55s ease-in-out 2; }
+  .c11c-frascos.pulseO .fO { animation: oPulsa .55s ease-in-out 2; }
   @keyframes hPulsa {
     0%, 100% { fill: #2c2013; transform: scale(1); }
     50%      { fill: #baf34f; transform: scale(1.5); }
@@ -424,6 +451,10 @@
   @keyframes ohPulsa {
     0%, 100% { fill: #2c2013; transform: scale(1); }
     50%      { fill: #ff5db1; transform: scale(1.5); }
+  }
+  @keyframes oPulsa {
+    0%, 100% { fill: #2c2013; transform: scale(1); }
+    50%      { fill: #ff9a4d; transform: scale(1.5); }
   }
   /* descrição logo abaixo do título (não empurra o título -> 1->1.1 seamless) */
   #substDesc {
@@ -608,7 +639,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.32.0</div>
+<div id="versao">v0.33.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -641,6 +672,12 @@
 <div id="cena11b" aria-hidden="true">
   <div class="c11b-titulo">Bases</div>
   <div class="c11b-frascos"></div>
+</div>
+
+<!-- Cena do dialogo1.1C: "Óxidos" (marrom ferrugem) e frascos de óxidos -->
+<div id="cena11c" aria-hidden="true">
+  <div class="c11c-titulo">Óxidos</div>
+  <div class="c11c-frascos"></div>
 </div>
 
 <!-- Título-pergunta e imagem com Ken Burns (dialogo1.2) -->
@@ -1415,12 +1452,19 @@ const EVENTOS = {
   'dialogo1.1B': () => rodarStory([
     { t: 0.0,  fn: iniciarCena11B },                            // some tudo do 1.1A (saída dramática)
     { t: 0.3,  fn: () => c11bTitulo.classList.add('show') },    // "Bases" (rosa) — mesma entrada de "Ácidos"
-    { t: 3.2,  fn: () => stShow('center', '"Todas as bases terminam a fórmula com OH"', 'st-credito st-branco') },
+    { t: 3.2,  fn: () => stShow('center', '"Todas as bases terminam a fórmula com OH"', 'st-credito st-branco st-sobe') },
     { t: 7.8,  fn: () => c11bFrascos.classList.add('show') },   // frascos das bases (fórmula + nome)
     { t: 8.2,  fn: () => pausaCurta(2000) },                    // pausa de 2s e volta o áudio
     { t: 11.7, fn: () => pulsarOH() },                          // pulsada com brilho rosa no "OH"
   ]),
-  'dialogo1.1C':  () => { /* eventos do diálogo 1.1C */ },
+  'dialogo1.1C': () => rodarStory([
+    { t: 0.0,  fn: iniciarCena11C },                            // some tudo do 1.1B (saída dramática)
+    { t: 1.0,  fn: () => c11cTitulo.classList.add('show') },    // "Óxidos" (marrom ferrugem)
+    { t: 5.0,  fn: () => stShow('center', '"Se o composto tiver só <span class="dest">dois elementos</span> e o oxigênio tiver do lado direito então é óxido"', 'st-credito st-branco st-sobe') },
+    { t: 11.3, fn: () => c11cFrascos.classList.add('show') },   // frascos dos óxidos (fórmula + nome)
+    { t: 14.0, fn: () => { pausaCurta(2000); pulsarDois(); } }, // pulsa "dois elementos" + pausa 2s
+    { t: 16.0, fn: () => pulsarO() },                           // brilho/pulso no oxigênio dos frascos
+  ]),
   'dialogo1.1D':  () => { /* eventos do diálogo 1.1D */ },
   'dialogo1.1E':  () => { /* eventos do diálogo 1.1E */ },
   'dialogo1.2':   () => rodarStory([
@@ -1528,6 +1572,7 @@ const SUMARIO = [
   { titulo: 'As substâncias inorgânicas',   faixa: idxFaixa('dialogo1') },
   { titulo: 'Identificando ácidos',         faixa: idxFaixa('dialogo1.1A') },
   { titulo: 'Identificando as bases',       faixa: idxFaixa('dialogo1.1B') },
+  { titulo: 'Identificando óxidos',         faixa: idxFaixa('dialogo1.1C') },
 ];
 
 SUMARIO.forEach(item => {
@@ -1582,6 +1627,7 @@ function limparStory() {
   resetCena11();
   resetCena11A();
   resetCena11B();
+  resetCena11C();
   resetCena12();
   tutorHand.classList.remove('show', 'tap');
   fecharSumario();
@@ -1857,6 +1903,17 @@ function fmtOHFormula(f) {
   return o;
 }
 
+// subscreve dígitos e destaca o oxigênio "O" com <tspan class="fO"> (pra pulsar no brilho ferrugem)
+function fmtOxideFormula(f) {
+  let o = '';
+  for (const ch of f) {
+    if (ch === 'O') o += '<tspan class="fO">O</tspan>';
+    else if (ch >= '0' && ch <= '9') o += '<tspan baseline-shift="sub" font-size="70%">' + ch + '</tspan>';
+    else o += ch;
+  }
+  return o;
+}
+
 // medidas dos frascos das cenas (ácidos, bases e próximas categorias)
 const FRASCO = { w2: 57, lw: 100, lh: 58, ff: 23, fn: 11 };   // rótulo na posição original (lyoff padrão = 26)
 const FRASCO_CXS = [62, 186, 310, 434, 558], FRASCO_BY = 250;
@@ -1952,6 +2009,7 @@ function montarFrascosBases() {
 }
 
 function iniciarCena11B() {
+  cena11bEl.classList.remove('saindo');    // reverte a saída dramática caso volte pra cá
   // some tudo do 1.1A com saída dramática (zoom + blur + fade)
   substTitle.classList.remove('show');
   cena11aEl.classList.add('saindo');
@@ -1966,6 +2024,54 @@ function pulsarOH() {
   c11bFrascos.classList.remove('pulseOH');
   void c11bFrascos.offsetWidth;
   c11bFrascos.classList.add('pulseOH');
+}
+
+// ---------- Coreografia da cena do dialogo1.1C (Óxidos) ----------
+const cena11cEl = $id('cena11c');
+const c11cTitulo = cena11cEl.querySelector('.c11c-titulo');
+const c11cFrascos = cena11cEl.querySelector('.c11c-frascos');
+
+let frascosOxidosMontados = false;
+function montarFrascosOxidos() {
+  const OXIDOS = [
+    { f: 'Fe2O3', n: 'Óxido de Ferro III' },
+    { f: 'CaO',   n: 'Óxido de Cálcio' },
+    { f: 'CuO',   n: 'Óxido de Cobre II' },
+    { f: 'ZnO',   n: 'Óxido de Zinco' },
+    { f: 'Al2O3', n: 'Óxido de Alumínio' },
+  ];
+  // líquidos variados: vermelho, branco, escuro e transparente (água)
+  const cores = ['rgba(180,70,40,0.6)', 'rgba(238,242,244,0.78)', 'rgba(45,45,50,0.62)',
+                 'rgba(238,242,244,0.78)', 'rgba(150,200,225,0.5)'];
+  const itens = OXIDOS.map((o, i) => ({ f: o.f, n: o.n, c: cores[i], fHTML: fmtOxideFormula(o.f) }));
+  montarFrascos(c11cFrascos, itens, 900);
+  frascosOxidosMontados = true;
+}
+
+function iniciarCena11C() {
+  cena11cEl.classList.remove('saindo');    // reverte a saída dramática caso volte pra cá
+  // some tudo do 1.1B com saída dramática
+  substTitle.classList.remove('show');
+  cena11bEl.classList.add('saindo');
+  if (!frascosOxidosMontados) montarFrascosOxidos();
+}
+function resetCena11C() {
+  c11cTitulo.classList.remove('show');
+  c11cFrascos.classList.remove('show', 'pulseO');
+}
+// pulsada rápida com brilho ferrugem no oxigênio "O" de cada óxido
+function pulsarO() {
+  c11cFrascos.classList.remove('pulseO');
+  void c11cFrascos.offsetWidth;
+  c11cFrascos.classList.add('pulseO');
+}
+// pulsada no trecho "dois elementos" da frase dos óxidos
+function pulsarDois() {
+  const el = storyLayer.querySelector('.dest');
+  if (!el) return;
+  el.classList.remove('pulsar');
+  void el.offsetWidth;
+  el.classList.add('pulsar');
 }
 
 // ---------- Coreografia da cena do dialogo1.2 ----------
