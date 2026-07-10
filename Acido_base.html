@@ -369,10 +369,11 @@
   /* ---------- Cena do dialogo1.1A ---------- */
   #cena11a { position: fixed; inset: 0; z-index: 41; pointer-events: none; }
   /* saída dramática (some tudo de uma categoria ao entrar na próxima) */
-  #cena11a.saindo, #cena11b.saindo, #cena11c.saindo {
+  #cena11a.saindo, #cena11b.saindo, #cena11c.saindo, #cena11d.saindo {
     transition: transform .55s cubic-bezier(.5, 0, .75, 0), filter .55s ease, opacity .55s ease;
     transform: scale(1.4); filter: blur(9px); opacity: 0;
   }
+  #cena11d { position: fixed; inset: 0; z-index: 41; pointer-events: none; }
   /* "Ácidos" com o mesmo brilho da capa */
   .c11a-acidos {
     position: absolute; top: 14%; left: 0; right: 0; text-align: center;
@@ -432,13 +433,13 @@
   }
   .c11a-h2o2 .aviso { margin-left: 10px; -webkit-text-fill-color: initial; }
   /* frascos das cenas (ácidos, bases, óxidos, ...) — subidos na altura dos quadrados de fundo */
-  .c11a-frascos, .c11b-frascos, .c11c-frascos {
+  .c11a-frascos, .c11b-frascos, .c11c-frascos, .c11d-frascos {
     position: absolute; left: 0; right: 0; bottom: calc(12% + 2.3rem);
     opacity: 0; transform: translateY(34px);
     transition: opacity .7s ease, transform .7s cubic-bezier(.2, .9, .25, 1.2);
   }
-  .c11a-frascos.show, .c11b-frascos.show, .c11c-frascos.show { opacity: 1; transform: none; }
-  .c11a-frascos svg, .c11b-frascos svg, .c11c-frascos svg { display: block; width: 100%; height: auto; max-height: 46vh; margin: 0 auto; }
+  .c11a-frascos.show, .c11b-frascos.show, .c11c-frascos.show, .c11d-frascos.show { opacity: 1; transform: none; }
+  .c11a-frascos svg, .c11b-frascos svg, .c11c-frascos svg, .c11d-frascos svg { display: block; width: 100%; height: auto; max-height: 46vh; margin: 0 auto; }
   /* pulsada rápida: "H" (ácidos), "OH" (bases), "O" (óxidos) — brilho + cresce/diminui */
   .c11a-frascos .fH, .c11b-frascos .fOH, .c11c-frascos .fO { transform-box: fill-box; transform-origin: center; }
   .c11a-frascos.pulseH .fH { animation: hPulsa .55s ease-in-out 2; }
@@ -639,7 +640,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.35.0</div>
+<div id="versao">v0.36.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -678,6 +679,11 @@
 <div id="cena11c" aria-hidden="true">
   <div class="c11c-titulo">Óxidos</div>
   <div class="c11c-frascos"></div>
+</div>
+
+<!-- Cena do dialogo1.1D: frascos de sais -->
+<div id="cena11d" aria-hidden="true">
+  <div class="c11d-frascos"></div>
 </div>
 
 <!-- Título-pergunta e imagem com Ken Burns (dialogo1.2) -->
@@ -1466,7 +1472,11 @@ const EVENTOS = {
     { t: 14.0, fn: () => pulsarDois() },                        // pulsa o trecho "dois elementos"
     { t: 16.0, fn: () => pulsarO() },                           // brilho/pulso no oxigênio dos frascos
   ]),
-  'dialogo1.1D':  () => { /* eventos do diálogo 1.1D */ },
+  'dialogo1.1D': () => rodarStory([
+    { t: 0.0, fn: iniciarCena11D },                             // some tudo do 1.1C (saída dramática)
+    { t: 3.0, fn: () => stShow('center', '"Se não tiver H na frente ou OH no final, nem for óxido, deve ser um sal"', 'st-credito st-branco st-sobe') },
+    { t: 9.0, fn: () => c11dFrascos.classList.add('show') },    // frascos dos sais (fórmula + nome)
+  ]),
   'dialogo1.1E':  () => { /* eventos do diálogo 1.1E */ },
   'dialogo1.2':   () => rodarStory([
     { t: 0.0,  fn: iniciarCena12 },                                          // "O que são Ácidos?" continua do 1.1
@@ -1574,6 +1584,7 @@ const SUMARIO = [
   { titulo: 'Identificando ácidos',         faixa: idxFaixa('dialogo1.1A') },
   { titulo: 'Identificando as bases',       faixa: idxFaixa('dialogo1.1B') },
   { titulo: 'Identificando óxidos',         faixa: idxFaixa('dialogo1.1C') },
+  { titulo: 'Identificando sais',           faixa: idxFaixa('dialogo1.1D') },
 ];
 
 SUMARIO.forEach(item => {
@@ -1629,6 +1640,7 @@ function limparStory() {
   resetCena11A();
   resetCena11B();
   resetCena11C();
+  resetCena11D();
   resetCena12();
   tutorHand.classList.remove('show', 'tap');
   fecharSumario();
@@ -2075,6 +2087,39 @@ function pulsarDois() {
   el.classList.remove('pulsar');
   void el.offsetWidth;
   el.classList.add('pulsar');
+}
+
+// ---------- Coreografia da cena do dialogo1.1D (Sais) ----------
+const cena11dEl = $id('cena11d');
+const c11dFrascos = cena11dEl.querySelector('.c11d-frascos');
+
+let frascosSaisMontados = false;
+function montarFrascosSais() {
+  const SAIS = [
+    { f: 'NaCl',  n: 'Cloreto de Sódio' },
+    { f: 'CuSO4', n: 'Sulfato de Cobre II' },
+    { f: 'CaCO3', n: 'Carbonato de Cálcio' },
+    { f: 'KNO3',  n: 'Nitrato de Potássio' },
+    { f: 'FeCl3', n: 'Cloreto de Ferro III' },
+  ];
+  // sólidos: cristais/pós coloridos (branco, azul, branco, esverdeado, amarelo)
+  const cores = ['#f1f4f6', '#3d80d6', '#eef1f3', '#c9dcae', '#e6c23c'];
+  const itens = SAIS.map((s, i) => ({
+    f: s.f, n: s.n, c: cores[i], t: 'sol', l: 0.72, fHTML: subFormula(s.f),
+  }));
+  montarFrascos(c11dFrascos, itens, 1100);
+  frascosSaisMontados = true;
+}
+
+function iniciarCena11D() {
+  cena11dEl.classList.remove('saindo');    // reverte a saída dramática caso volte pra cá
+  // some tudo do 1.1C com saída dramática
+  substTitle.classList.remove('show');
+  cena11cEl.classList.add('saindo');
+  if (!frascosSaisMontados) montarFrascosSais();
+}
+function resetCena11D() {
+  c11dFrascos.classList.remove('show');
 }
 
 // ---------- Coreografia da cena do dialogo1.2 ----------
