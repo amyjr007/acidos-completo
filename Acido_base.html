@@ -367,6 +367,7 @@
   }
   #substTitle.show { opacity: 1; }
   #substTitle.topo { top: 6%; transform: translateY(-50%) scale(.5); }
+  #substTitle.topo.jogo { top: 3%; }   /* no minigame (1.1E) sobe mais um pouquinho */
 
   /* ---------- Cena do dialogo1.1A ---------- */
   #cena11a { position: fixed; inset: 0; z-index: 41; pointer-events: none; }
@@ -748,7 +749,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.43.0</div>
+<div id="versao">v0.44.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1589,7 +1590,7 @@ const EVENTOS = {
     { t: 0.3,  fn: () => c11bTitulo.classList.add('show') },    // "Bases" (rosa) — mesma entrada de "Ácidos"
     { t: 3.2,  fn: () => stShow('center', '"Todas as bases terminam a fórmula com OH"', 'st-credito st-branco st-sobe') },
     { t: 7.8,  fn: () => c11bFrascos.classList.add('show') },   // frascos das bases (fórmula + nome)
-    { t: 8.2,  fn: () => pausaCurta(2000) },                    // pausa de 2s e volta o áudio
+    { t: 8.3,  fn: () => pausaCurta(2000) },                    // pausa de 2s e volta o áudio
     { t: 11.7, fn: () => pulsarOH() },                          // pulsada com brilho rosa no "OH"
   ]),
   'dialogo1.1C': () => rodarStory([
@@ -2054,7 +2055,7 @@ function fecharCena11() {
 }
 function resetCena11() {
   shelfEl.classList.remove('show', 'pousada', 'grupos-on', 'tier0-on', 'tier1-on', 'tier2-on', 'tier3-on', 'zoom');
-  substTitle.classList.remove('show', 'topo');
+  substTitle.classList.remove('show', 'topo', 'jogo');
   substDesc.classList.remove('show');
 }
 
@@ -2400,7 +2401,7 @@ function resetCena11E() {
 function mostrarPrateleiraJogo() {
   substTitle.style.transition = 'none';
   substTitle.innerHTML = 'Substâncias Inorgânicas';
-  substTitle.classList.add('show', 'topo');
+  substTitle.classList.add('show', 'topo', 'jogo');
   void substTitle.offsetWidth;
   substTitle.style.transition = '';
   gameEl.classList.add('show');
@@ -2474,7 +2475,7 @@ function irParaMinigame() {
   marcarSumario();
   substTitle.style.transition = 'none';
   substTitle.innerHTML = 'Substâncias Inorgânicas';
-  substTitle.classList.add('show', 'topo');
+  substTitle.classList.add('show', 'topo', 'jogo');
   void substTitle.offsetWidth; substTitle.style.transition = '';
   construirEstanteJogo();
   gmColocarFixo(0, SHELF_CFGS[0][0]);          // HCl já na prateleira (como no fim do tutorial)
