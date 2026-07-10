@@ -261,6 +261,11 @@
     font-size: clamp(30px, 8.5vw, 50px); font-weight: 900;
     color: var(--acid); text-shadow: 0 0 16px var(--acid-glow);
   }
+  /* mesmo tamanho de "Vamos começar?", porém em branco */
+  .st-branco {
+    color: #f2fbe4;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, .65), 0 0 26px rgba(166, 229, 52, .22);
+  }
   .st-desc {
     font-size: clamp(19px, 5.2vw, 28px); font-weight: 600;
     color: #eaf7d9; max-width: 88vw; line-height: 1.3;
@@ -289,13 +294,15 @@
   }
   #shelfInorg.show { opacity: 1; }
   #shelfInorg svg { width: 100%; height: 100%; display: block;
-    filter: drop-shadow(0 14px 34px rgba(0,0,0,.55)); }
+    filter: drop-shadow(0 14px 34px rgba(0,0,0,.55));
+    transform: translateZ(0); backface-visibility: hidden; }
 
   /* a estante desliza de baixo (empurra o título) e depois dá zoom nos ácidos */
   #shelfInorg .pr-scene {
     transform-box: fill-box; transform-origin: center;
     transform: translate(0px, 1160px) scale(.85);
     transition: transform 3s cubic-bezier(.35, 0, .2, 1);
+    will-change: transform; backface-visibility: hidden;
   }
   #shelfInorg.pousada .pr-scene { transform: translate(0px, 0px) scale(.85); }
   #shelfInorg.zoom .pr-scene {
@@ -358,10 +365,10 @@
     animation: pulsarNeon 3s ease-in-out infinite;
   }
   .c11a-acidos.show { opacity: 1; transform: none; }
-  /* não-ácidos (H2O, H2O2) do lado esquerdo */
+  /* não-ácidos (H2O, H2O2) lado a lado */
   .c11a-nao {
-    position: absolute; top: 31%; left: 7%;
-    display: flex; flex-direction: column; gap: 12px;
+    position: absolute; top: 31%; left: 0; right: 0;
+    display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 40px;
     font-family: 'Courier New', monospace; font-weight: 800;
   }
   .c11a-nao > div {
@@ -371,14 +378,14 @@
   }
   .c11a-nao > div.show { opacity: 1; transform: none; }
   .c11a-nao sub { font-size: .62em; }
-  .c11a-h2o2 {
+  .c11a-h2o, .c11a-h2o2 {
     color: #ff4141;
     text-shadow: 0 0 10px rgba(255, 60, 60, .85), 0 0 24px rgba(255, 30, 30, .6);
   }
   .c11a-h2o2 .aviso { margin-left: 10px; -webkit-text-fill-color: initial; }
   /* frascos de ácidos embaixo */
   .c11a-frascos {
-    position: absolute; left: 0; right: 0; bottom: 1%;
+    position: absolute; left: 0; right: 0; bottom: calc(1% + 3.4rem);
     opacity: 0; transform: translateY(34px);
     transition: opacity .7s ease, transform .7s cubic-bezier(.2, .9, .25, 1.2);
   }
@@ -567,7 +574,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.24.0</div>
+<div id="versao">v0.25.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1349,9 +1356,9 @@ const EVENTOS = {
     { t: 21.0, fn: () => shelfEl.classList.add('zoom') },             // zoom in nos ácidos
     { t: 28.0, fn: () => shelfEl.classList.remove('zoom') },          // zoom out -> câmera normal
     { t: 34.0, fn: () => shelfEl.classList.remove('show') },          // estante some em fade; fica só "Substâncias Inorgânicas" no topo
-    { t: 36.0, fn: () => stShow('center', '"Esse método de identificação não é oficial"', 'st-desc') },
+    { t: 36.0, fn: () => stShow('center', '"Esse método de identificação não é oficial"', 'st-titulo2 st-branco') },
     { t: 40.0, fn: stSair },
-    { t: 41.7, fn: () => stShow('center', '"Cada grupo tem um critério químico"', 'st-desc') },
+    { t: 41.7, fn: () => stShow('center', '"Cada grupo tem um critério químico"', 'st-titulo2 st-branco') },
     { t: 47.0, fn: stSair },
     { t: 49.0, fn: () => stShow('center', 'Vamos começar?', 'st-titulo2') },
   ]),
@@ -1469,7 +1476,7 @@ const idxFaixa = id => FAIXAS.findIndex(f => f.id === id);
 const SUMARIO = [
   { titulo: 'Introdução e tutorial do app', faixa: idxFaixa('dialogo0') },
   { titulo: 'As substâncias inorgânicas',   faixa: idxFaixa('dialogo1') },
-  { titulo: 'Definição de Arrhenius',       faixa: idxFaixa('dialogo1.3') },
+  { titulo: 'Identificando ácidos',         faixa: idxFaixa('dialogo1.1A') },
 ];
 
 SUMARIO.forEach(item => {
@@ -1566,7 +1573,7 @@ function subFormula(f) {
 
 // Desenha 1 frasco. cx = centro X, by = base (onde apoia na prateleira).
 function fnFrasco(cx, by, cfg, id, defs) {
-  const w2 = 39, nw2 = 13, sw2 = 20, r = 9;
+  const w2 = cfg.w2 || 39, nw2 = 13, sw2 = 20, r = 9;
   const bodyTop = by - 140, shTop = by - 166, neckTop = by - 188, stTop = by - 208;
   const stroke = '#2f2116';
   const sil =
@@ -1606,12 +1613,13 @@ function fnFrasco(cx, by, cfg, id, defs) {
     '<line x1="' + (cx - sw2 + 3) + '" y1="' + (neckTop - 2) + '" x2="' + (cx + sw2 - 3) + '" y2="' + (neckTop - 2) +
     '" stroke="' + stroke + '" stroke-width="2" opacity="0.45"/>';
 
-  const lw = 72, lx = cx - lw / 2, ly = by - 72, lh = 46;
+  const lw = cfg.lw || 72, lx = cx - lw / 2, ly = by - 72, lh = 46;
+  const ffF = cfg.ff || 15.5, ffN = cfg.fn || 8;
   const label = '<g>' +
     '<rect x="' + lx + '" y="' + ly + '" width="' + lw + '" height="' + lh + '" rx="5" fill="#efe4c6" stroke="#c9b587" stroke-width="1.5"/>' +
     '<rect x="' + lx + '" y="' + ly + '" width="' + lw + '" height="' + lh + '" rx="5" fill="url(#gLabel)"/>' +
-    '<text x="' + cx + '" y="' + (by - 48) + '" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="15.5" font-weight="700" fill="#2c2013">' + subFormula(cfg.f) + '</text>' +
-    '<text x="' + cx + '" y="' + (by - 32) + '" text-anchor="middle" textLength="' + (lw - 10) + '" lengthAdjust="spacingAndGlyphs" font-family="system-ui,Segoe UI,sans-serif" font-size="8" fill="#6a5636">' + cfg.n + '</text>' +
+    '<text x="' + cx + '" y="' + (by - 48) + '" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="' + ffF + '" font-weight="700" fill="#2c2013">' + subFormula(cfg.f) + '</text>' +
+    '<text x="' + cx + '" y="' + (by - 32) + '" text-anchor="middle" textLength="' + (lw - 10) + '" lengthAdjust="spacingAndGlyphs" font-family="system-ui,Segoe UI,sans-serif" font-size="' + ffN + '" fill="#6a5636">' + cfg.n + '</text>' +
     '</g>';
 
   return '<g>' + content +
@@ -1796,10 +1804,12 @@ function montarFrascosAcidos() {
   const defs = [];
   let bottles = '', names = '', id = 500;
   ACIDOS.forEach((a, i) => {
-    const cfg = { g: 'rgba(196,132,52,0.40)', c: '#e0a24e', s: '#8a5a25', t: 'liq', l: 0.85, f: a.f, n: a.n };
+    // frascos mais largos, rótulo com fórmula maior; líquido transparente (como água)
+    const cfg = { g: 'rgba(214,232,240,0.16)', c: 'rgba(150,200,225,0.5)', s: '#8a5a25',
+                  t: 'liq', l: 0.85, f: a.f, n: a.n, w2: 46, lw: 86, ff: 19, fn: 9 };
     bottles += fnFrasco(cxs[i], by, cfg, id++, defs);
-    names += '<text x="' + cxs[i] + '" y="284" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" ' +
-             'font-size="17" font-weight="700" fill="#eaf7d9">' + a.n + '</text>';
+    names += '<text x="' + cxs[i] + '" y="288" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" ' +
+             'font-size="22" font-weight="700" fill="#eaf7d9">' + a.n + '</text>';
   });
   const gLabel = '<linearGradient id="gLabel" x1="0" y1="0" x2="0" y2="1">' +
     '<stop offset="0" stop-color="rgba(255,255,255,.42)"/><stop offset="0.5" stop-color="rgba(255,255,255,0)"/>' +
