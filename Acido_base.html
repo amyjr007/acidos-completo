@@ -390,6 +390,94 @@
     0%,100% { text-shadow: 0 0 12px var(--azul-glow), 0 0 30px var(--azul-glow), 0 0 55px rgba(69,166,245,.3); }
     50%     { text-shadow: 0 0 16px var(--azul-glow), 0 0 44px var(--azul-glow), 0 0 78px rgba(69,166,245,.5); }
   }
+
+  /* ================= Minigame de identificação (dialogo1.1E + jogo) ================= */
+  #game { position: fixed; inset: 0; z-index: 44; opacity: 0; pointer-events: none;
+    transition: opacity .8s ease; }
+  #game.show { opacity: 1; }
+  #game.play { pointer-events: auto; touch-action: none; }
+  #gameSvg { width: 100%; height: 100%; display: block;
+    filter: drop-shadow(0 14px 34px rgba(0,0,0,.55)); }
+  #game.shake { animation: gameShake .5s ease; }
+  @keyframes gameShake {
+    0%,100% { transform: translate(0,0); }
+    15% { transform: translate(-9px,4px); } 30% { transform: translate(8px,-5px); }
+    45% { transform: translate(-7px,3px); } 60% { transform: translate(6px,-3px); }
+    75% { transform: translate(-4px,2px); } 90% { transform: translate(3px,-1px); }
+  }
+  /* frasco ativo do jogo (arrastável) */
+  .gm-bottle { cursor: grab; }
+  #game.grabbing .gm-bottle { cursor: grabbing; }
+  .gm-snap { animation: gmSnap .5s ease; }
+  @keyframes gmSnap {
+    0% { filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+    40% { filter: drop-shadow(0 0 12px #fff) drop-shadow(0 0 22px #eaffcf); }
+    100% { filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+  }
+  .gm-ok { animation: gmOk .6s ease; }
+  @keyframes gmOk {
+    0%,100% { filter: drop-shadow(0 0 0 rgba(166,229,52,0)); }
+    45% { filter: drop-shadow(0 0 14px var(--acid)) drop-shadow(0 0 26px var(--acid)); }
+  }
+  /* highlight da etiqueta no tutorial */
+  .tut-label-glow { fill: none; stroke: #eaffcf; stroke-width: 3; opacity: 0; rx: 5; }
+  .tut-label-glow.on { animation: tutLabel .6s ease 2; }
+  @keyframes tutLabel {
+    0%,100% { opacity: 0; }
+    50% { opacity: 1; filter: drop-shadow(0 0 8px var(--acid)); }
+  }
+  /* flash vermelho de erro */
+  #gameFlash { position: fixed; inset: 0; z-index: 45; pointer-events: none; opacity: 0;
+    background: radial-gradient(circle at 50% 45%, rgba(255,40,40,0), rgba(220,20,20,.5)); }
+  #gameFlash.red { animation: flashRed .5s ease; }
+  @keyframes flashRed { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+  /* HUD de pontuação */
+  #gameHud { position: fixed; top: 14px; left: 14px; z-index: 46; pointer-events: none;
+    display: none; align-items: center; gap: 10px;
+    background: var(--painel); color: var(--texto);
+    border: 1px solid rgba(166,229,52,.45); border-radius: 999px;
+    padding: 8px 15px; font: 800 14px system-ui, sans-serif;
+    box-shadow: 0 6px 18px rgba(0,0,0,.4); }
+  #gameHud.on { display: flex; }
+  #gameHud .pts { color: var(--acid); }
+  #gameHud .sep { opacity: .4; }
+  /* confetes */
+  #gameConfetti { position: fixed; inset: 0; z-index: 48; pointer-events: none; overflow: hidden; }
+  .confete { position: absolute; width: 9px; height: 14px; border-radius: 2px;
+    will-change: transform, opacity;
+    animation: confeteCai var(--dur,1.2s) cubic-bezier(.2,.6,.3,1) forwards;
+    filter: drop-shadow(0 0 6px rgba(166,229,52,.8)); }
+  @keyframes confeteCai {
+    0% { transform: translate(0,0) rotate(0); opacity: 1; }
+    100% { transform: translate(var(--dx,0), var(--dy,220px)) rotate(var(--rot,540deg)); opacity: 0; }
+  }
+  /* card final de pontuação */
+  #gameCard { position: fixed; inset: 0; z-index: 49; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(4,10,4,.72); }
+  #gameCard.show { display: flex; }
+  #gameCard .gc-inner {
+    width: min(90vw, 380px); text-align: center; color: var(--texto);
+    background: linear-gradient(165deg, #10240f, #0a170a);
+    border: 2px solid var(--acid); border-radius: 22px; padding: 30px 26px 26px;
+    box-shadow: 0 18px 48px rgba(0,0,0,.6), 0 0 40px rgba(166,229,52,.2);
+    font-family: system-ui, sans-serif; }
+  #gameCard .gc-tit { font-size: 24px; font-weight: 900; color: var(--acid);
+    letter-spacing: .5px; }
+  #gameCard .gc-score { font-size: 62px; font-weight: 900; line-height: 1.1; margin: 10px 0 2px;
+    color: #f2fbe4; text-shadow: 0 0 20px var(--acid-glow); }
+  #gameCard .gc-score small { font-size: 26px; opacity: .6; font-weight: 800; }
+  #gameCard .gc-sub { font-size: 15px; font-weight: 600; color: #cfe8a8; opacity: .9; }
+  #gameContinuar { margin-top: 22px; padding: 13px 40px; border: none; border-radius: 999px;
+    background: linear-gradient(145deg, #baf34f, var(--acid-2)); color: #0a1a06;
+    font-size: 17px; font-weight: 800; letter-spacing: 1px; cursor: pointer;
+    box-shadow: 0 0 22px var(--acid-glow); }
+  #gameContinuar:active { transform: scale(.95); }
+  /* botão de play em modo "JOGAR" */
+  #playBtn.jogar { width: auto; padding: 0 22px; border-radius: 999px; gap: 6px; }
+  #playText { display: none; color: #0a1a06; font-size: 16px; font-weight: 900; letter-spacing: 1px; }
+  #playBtn.jogar #playText { display: inline; }
+  #playBtn.jogar #iconPlay, #playBtn.jogar #iconPause, #playBtn.jogar #playRing { display: none; }
   /* "Ácidos" com o mesmo brilho da capa */
   .c11a-acidos {
     position: absolute; top: 14%; left: 0; right: 0; text-align: center;
@@ -656,7 +744,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.37.0</div>
+<div id="versao">v0.38.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -703,6 +791,22 @@
   <div class="c11d-frascos"></div>
 </div>
 
+<!-- Minigame de identificação (dialogo1.1E + jogo) -->
+<div id="game" aria-hidden="true">
+  <svg id="gameSvg" viewBox="0 0 600 1070" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
+</div>
+<div id="gameHud"></div>
+<div id="gameFlash"></div>
+<div id="gameConfetti"></div>
+<div id="gameCard">
+  <div class="gc-inner">
+    <div class="gc-tit">Fim do jogo!</div>
+    <div class="gc-score"></div>
+    <div class="gc-sub"></div>
+    <button id="gameContinuar">Continuar</button>
+  </div>
+</div>
+
 <!-- Título-pergunta e imagem com Ken Burns (dialogo1.2) -->
 <div id="tituloAcido"></div>
 <div id="storyImg"><div class="frame"><img alt=""><div class="cap"></div></div></div>
@@ -728,6 +832,7 @@
   </svg>
   <svg id="iconPlay" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
   <svg id="iconPause" viewBox="0 0 24 24" style="display:none"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+  <span id="playText">JOGAR</span>
 </button>
 
 <div id="quickNav"><span class="seta">&#9650;</span>Navega&ccedil;&atilde;o r&aacute;pida</div>
@@ -1495,7 +1600,13 @@ const EVENTOS = {
     { t: 3.0, fn: () => stShow('center', '"Se não tiver H na frente ou OH no final, nem for óxido, deve ser um sal"', 'st-credito st-branco st-sobe') },
     { t: 9.0, fn: () => c11dFrascos.classList.add('show') },    // frascos dos sais (fórmula + nome)
   ]),
-  'dialogo1.1E':  () => { /* eventos do diálogo 1.1E */ },
+  'dialogo1.1E': () => rodarStory([
+    { t: 0.0,  fn: iniciarCena11E },        // some tudo do 1.1D (saída dramática, some em ~2s)
+    { t: 4.0,  fn: mostrarPrateleiraJogo }, // fade in: prateleira vazia (só etiquetas) + "Substâncias Inorgânicas" no topo
+    { t: 10.0, fn: tutColocarHCl },         // frasco de HCl no centro
+    { t: 12.0, fn: tutPulsarLabel },        // pulsada rápida na etiqueta
+    { t: 13.0, fn: tutArrastarHCl },        // mãozinha arrasta o HCl pra prateleira dos ácidos (até ~14.7s)
+  ]),
   'dialogo1.2':   () => rodarStory([
     { t: 0.0,  fn: iniciarCena12 },                                          // "O que são Ácidos?" continua do 1.1
     { t: 1.0,  fn: subirTitAcido },                                          // título sobe pro topo (até t2)
@@ -1524,6 +1635,7 @@ const player = new Audio();
 player.preload = 'auto';
 let faixaAtual = -1;
 let faixaTerminou = false;  // true quando a faixa acaba: próximo play toca a próxima
+let jogarPronto = false;    // true quando o 1.1E acaba: o play vira "JOGAR"
 
 const $id = s => document.getElementById(s);
 
@@ -1531,6 +1643,9 @@ function tocarFaixa(i) {
   if (i < 0 || i >= FAIXAS.length) return;
   faixaAtual = i;
   faixaTerminou = false;
+  jogarPronto = false;
+  const pb = $id('playBtn'); pb.classList.remove('jogar'); pb.style.display = '';
+  if (typeof resetJogo === 'function') resetJogo();
   const f = FAIXAS[i];
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
@@ -1545,6 +1660,7 @@ function tocarFaixa(i) {
 //  - se a faixa terminou, toca a PRÓXIMA
 //  - caso contrário, alterna play/pause da faixa atual
 $id('playBtn').addEventListener('click', () => {
+  if (jogarPronto) { comecarJogo(); return; }
   if (faixaAtual < 0) { tocarFaixa(0); return; }
   if (faixaTerminou) {
     if (faixaAtual < FAIXAS.length - 1) tocarFaixa(faixaAtual + 1);
@@ -1572,6 +1688,11 @@ player.addEventListener('ended', () => {
   faixaTerminou = true;
   setIconePlay(false);
   marcarAnel(1);
+  // fim do tutorial 1.1E -> botão de play vira "JOGAR"
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.1E') {
+    jogarPronto = true;
+    $id('playBtn').classList.add('jogar');
+  }
 });
 
 function setIconePlay(tocando) {
@@ -1659,6 +1780,7 @@ function limparStory() {
   resetCena11B();
   resetCena11C();
   resetCena11D();
+  resetCena11E();
   resetCena12();
   tutorHand.classList.remove('show', 'tap');
   fecharSumario();
@@ -1759,36 +1881,75 @@ function fnFrasco(cx, by, cfg, id, defs) {
     stopper + label + '</g>';
 }
 
+// ---------- Dados/desenho compartilhados da estante (dialogo1.1 + minigame) ----------
+const SHELF_COLS = [92, 196, 300, 404, 508];
+const SHELF_ROWS = [255, 515, 775, 1035];      // Ácidos, Bases, Sais, Óxidos
+const SHELF_CATS = ['ÁCIDOS', 'BASES', 'SAIS', 'ÓXIDOS'];
+const _CL = 'rgba(220,234,240,0.12)';          // vidro incolor
+const SHELF_CFGS = [
+  // Ácidos — vidro âmbar, líquidos
+  [ { g:'rgba(196,132,52,0.40)', c:'#e0a24e', s:'#8a5a25', t:'liq', l:0.85, f:'HCl',     n:'Ácido Clorídrico' },
+    { g:'rgba(150,92,34,0.46)',  c:'#b9772e', s:'#6f4519', t:'liq', l:0.84, f:'H2SO4',   n:'Ácido Sulfúrico' },
+    { g:'rgba(96,52,22,0.55)',   c:'#5e3210', s:'#4a2c12', t:'liq', l:0.87, f:'HNO3',    n:'Ácido Nítrico' },
+    { g:'rgba(170,96,36,0.44)',  c:'#b5621f', s:'#7a4718', t:'liq', l:0.82, f:'H2CO3',   n:'Ácido Carbônico' },
+    { g:'rgba(196,140,58,0.40)', c:'#d99f45', s:'#8a5a25', t:'liq', l:0.85, f:'H3PO4',   n:'Ácido Fosfórico' } ],
+  // Bases — mistura de vidro âmbar e incolor
+  [ { g:'rgba(178,110,40,0.44)', c:'#c98a3f', s:'#7a4b1c', t:'liq', l:0.84, f:'NaOH',    n:'Hidróxido de Sódio' },
+    { g:'rgba(150,92,34,0.46)',  c:'#b9772e', s:'#6f4519', t:'liq', l:0.84, f:'KOH',     n:'Hidróxido de Potássio' },
+    { g:_CL,                     c:'#e7ebee', s:'#c3cdd3', t:'liq', l:0.84, f:'Ca(OH)2', n:'Hidróxido de Cálcio' },
+    { g:_CL,                     c:'#eef1f3', s:'#c3cdd3', t:'liq', l:0.82, f:'Al(OH)3', n:'Hidróxido de Alumínio' },
+    { g:_CL,                     c:'#e2e8ec', s:'#c3cdd3', t:'liq', l:0.85, f:'Mg(OH)2', n:'Hidróxido de Magnésio' } ],
+  // Sais — vidro incolor, sólidos coloridos
+  [ { g:_CL, c:'#f1f4f6', s:'#c3cdd3', t:'sol', l:0.75, f:'NaCl',  n:'Cloreto de Sódio' },
+    { g:_CL, c:'#3d80d6', s:'#c3cdd3', t:'sol', l:0.76, f:'CuSO4', n:'Sulfato de Cobre II' },
+    { g:_CL, c:'#eef1f3', s:'#c3cdd3', t:'sol', l:0.75, f:'CaCO3', n:'Carbonato de Cálcio' },
+    { g:_CL, c:'#c9dcae', s:'#c3cdd3', t:'sol', l:0.75, f:'KNO3',  n:'Nitrato de Potássio' },
+    { g:_CL, c:'#e6c23c', s:'#c3cdd3', t:'sol', l:0.76, f:'FeCl3', n:'Cloreto de Ferro III' } ],
+  // Óxidos — vidro incolor, pós coloridos
+  [ { g:_CL, c:'#bb3f1f', s:'#c3cdd3', t:'sol', l:0.75, f:'Fe2O3', n:'Óxido de Ferro III' },
+    { g:_CL, c:'#eef1f3', s:'#c3cdd3', t:'sol', l:0.75, f:'CaO',   n:'Óxido de Cálcio' },
+    { g:_CL, c:'#1e1e20', s:'#b8c2c8', t:'sol', l:0.75, f:'CuO',   n:'Óxido de Cobre II' },
+    { g:_CL, c:'#eff2f4', s:'#c3cdd3', t:'sol', l:0.75, f:'ZnO',   n:'Óxido de Zinco' },
+    { g:_CL, c:'#e4e8eb', s:'#c3cdd3', t:'sol', l:0.75, f:'Al2O3', n:'Óxido de Alumínio' } ],
+];
+const SHELF_GRADS =
+  '<linearGradient id="gPost" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7d5029"/><stop offset="0.5" stop-color="#5a3819"/><stop offset="1" stop-color="#3d260f"/></linearGradient>' +
+  '<linearGradient id="gBack" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3420"/><stop offset="1" stop-color="#2f1e0d"/></linearGradient>' +
+  '<linearGradient id="gFront" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#835529"/><stop offset="1" stop-color="#472c15"/></linearGradient>' +
+  '<linearGradient id="gLabel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,255,255,.42)"/><stop offset="0.5" stop-color="rgba(255,255,255,0)"/><stop offset="1" stop-color="rgba(90,70,40,.16)"/></linearGradient>' +
+  '<linearGradient id="gTag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efeee9"/><stop offset="1" stop-color="#c8c7bf"/></linearGradient>' +
+  '<linearGradient id="gGrupo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4f04a"/><stop offset="1" stop-color="#6dbf1d"/></linearGradient>';
+
+function boardSVG(base) {
+  return '<rect x="16" y="' + (base - 6) + '" width="568" height="30" fill="url(#gFront)"/>' +
+    '<rect x="16" y="' + (base - 6) + '" width="568" height="5" fill="#9c6c3a"/>' +
+    '<line x1="16" y1="' + (base + 23) + '" x2="584" y2="' + (base + 23) + '" stroke="rgba(0,0,0,.4)" stroke-width="2.5"/>';
+}
+// Etiqueta (placa) da categoria, centralizada no TOPO da prateleira.
+function etiquetaSVG(base, texto, cls) {
+  const bw = 172, bh = 48, bx = 300 - bw / 2, by = base - 226, cx = bx + bw / 2, cy = by + bh / 2;
+  return '<g class="' + cls + '">' +
+    '<rect x="' + bx + '" y="' + (by + 4) + '" width="' + bw + '" height="' + bh + '" rx="9" fill="rgba(0,0,0,.35)"/>' +
+    '<rect x="' + bx + '" y="' + by + '" width="' + bw + '" height="' + bh + '" rx="9" fill="url(#gTag)" stroke="#34332c" stroke-width="3"/>' +
+    '<rect x="' + (bx + 5) + '" y="' + (by + 5) + '" width="' + (bw - 10) + '" height="9" rx="4" fill="rgba(255,255,255,.45)"/>' +
+    '<text x="' + cx + '" y="' + (cy + 9) + '" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="27" font-weight="800" letter-spacing="1.5" fill="#33322b">' + texto + '</text>' +
+    '</g>';
+}
+const SHELF_WOOD_BACK =
+  '<rect x="42" y="20" width="516" height="1032" fill="url(#gBack)"/>' +
+  [128, 214, 300, 386, 472].map(x =>
+    '<line x1="' + x + '" y1="22" x2="' + x + '" y2="1050" stroke="rgba(0,0,0,.16)" stroke-width="2"/>').join('');
+const SHELF_POSTS =
+  '<rect x="0" y="10" width="46" height="1052" fill="url(#gPost)"/>' +
+  '<rect x="554" y="10" width="46" height="1052" fill="url(#gPost)"/>' +
+  '<rect x="40" y="10" width="4" height="1052" fill="rgba(0,0,0,.28)"/>' +
+  '<rect x="556" y="10" width="4" height="1052" fill="rgba(0,0,0,.28)"/>';
+const SHELF_CORNICE =
+  '<rect x="0" y="8" width="600" height="30" rx="4" fill="url(#gFront)"/>' +
+  '<rect x="0" y="8" width="600" height="6" fill="#9c6c3a"/>';
+
 function montarPrateleira() {
-  const COLS = [92, 196, 300, 404, 508];
-  const ROWS = [255, 515, 775, 1035];
-  const CL = 'rgba(220,234,240,0.12)';   // vidro incolor
-  const cfgs = [
-    // Ácidos — vidro âmbar, líquidos
-    [ { g:'rgba(196,132,52,0.40)', c:'#e0a24e', s:'#8a5a25', t:'liq', l:0.85, f:'HCl',     n:'Ácido Clorídrico' },
-      { g:'rgba(150,92,34,0.46)',  c:'#b9772e', s:'#6f4519', t:'liq', l:0.84, f:'H2SO4',   n:'Ácido Sulfúrico' },
-      { g:'rgba(96,52,22,0.55)',   c:'#5e3210', s:'#4a2c12', t:'liq', l:0.87, f:'HNO3',    n:'Ácido Nítrico' },
-      { g:'rgba(170,96,36,0.44)',  c:'#b5621f', s:'#7a4718', t:'liq', l:0.82, f:'H2CO3',   n:'Ácido Carbônico' },
-      { g:'rgba(196,140,58,0.40)', c:'#d99f45', s:'#8a5a25', t:'liq', l:0.85, f:'H3PO4',   n:'Ácido Fosfórico' } ],
-    // Bases — mistura de vidro âmbar e incolor
-    [ { g:'rgba(178,110,40,0.44)', c:'#c98a3f', s:'#7a4b1c', t:'liq', l:0.84, f:'NaOH',    n:'Hidróxido de Sódio' },
-      { g:'rgba(150,92,34,0.46)',  c:'#b9772e', s:'#6f4519', t:'liq', l:0.84, f:'KOH',     n:'Hidróxido de Potássio' },
-      { g:CL,                      c:'#e7ebee', s:'#c3cdd3', t:'liq', l:0.84, f:'Ca(OH)2', n:'Hidróxido de Cálcio' },
-      { g:CL,                      c:'#eef1f3', s:'#c3cdd3', t:'liq', l:0.82, f:'Al(OH)3', n:'Hidróxido de Alumínio' },
-      { g:CL,                      c:'#e2e8ec', s:'#c3cdd3', t:'liq', l:0.85, f:'Mg(OH)2', n:'Hidróxido de Magnésio' } ],
-    // Sais — vidro incolor, sólidos coloridos
-    [ { g:CL, c:'#f1f4f6', s:'#c3cdd3', t:'sol', l:0.75, f:'NaCl',  n:'Cloreto de Sódio' },
-      { g:CL, c:'#3d80d6', s:'#c3cdd3', t:'sol', l:0.76, f:'CuSO4', n:'Sulfato de Cobre II' },
-      { g:CL, c:'#eef1f3', s:'#c3cdd3', t:'sol', l:0.75, f:'CaCO3', n:'Carbonato de Cálcio' },
-      { g:CL, c:'#c9dcae', s:'#c3cdd3', t:'sol', l:0.75, f:'KNO3',  n:'Nitrato de Potássio' },
-      { g:CL, c:'#e6c23c', s:'#c3cdd3', t:'sol', l:0.76, f:'FeCl3', n:'Cloreto de Ferro III' } ],
-    // Óxidos — vidro incolor, pós coloridos
-    [ { g:CL, c:'#bb3f1f', s:'#c3cdd3', t:'sol', l:0.75, f:'Fe2O3', n:'Óxido de Ferro III' },
-      { g:CL, c:'#eef1f3', s:'#c3cdd3', t:'sol', l:0.75, f:'CaO',   n:'Óxido de Cálcio' },
-      { g:CL, c:'#1e1e20', s:'#b8c2c8', t:'sol', l:0.75, f:'CuO',   n:'Óxido de Cobre II' },
-      { g:CL, c:'#eff2f4', s:'#c3cdd3', t:'sol', l:0.75, f:'ZnO',   n:'Óxido de Zinco' },
-      { g:CL, c:'#e4e8eb', s:'#c3cdd3', t:'sol', l:0.75, f:'Al2O3', n:'Óxido de Alumínio' } ],
-  ];
+  const COLS = SHELF_COLS, ROWS = SHELF_ROWS, cfgs = SHELF_CFGS;
 
   const defs = [];
   const tier = [[], [], [], []];         // frascos separados por prateleira
@@ -1797,43 +1958,15 @@ function montarPrateleira() {
     for (let c = 0; c < 5; c++)
       tier[r].push(fnFrasco(COLS[c], ROWS[r], cfgs[r][c], id++, defs));
 
-  const grads =
-    '<linearGradient id="gPost" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7d5029"/><stop offset="0.5" stop-color="#5a3819"/><stop offset="1" stop-color="#3d260f"/></linearGradient>' +
-    '<linearGradient id="gBack" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3420"/><stop offset="1" stop-color="#2f1e0d"/></linearGradient>' +
-    '<linearGradient id="gFront" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#835529"/><stop offset="1" stop-color="#472c15"/></linearGradient>' +
-    '<linearGradient id="gLabel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,255,255,.42)"/><stop offset="0.5" stop-color="rgba(255,255,255,0)"/><stop offset="1" stop-color="rgba(90,70,40,.16)"/></linearGradient>' +
-    '<linearGradient id="gTag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efeee9"/><stop offset="1" stop-color="#c8c7bf"/></linearGradient>' +
-    '<linearGradient id="gGrupo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4f04a"/><stop offset="1" stop-color="#6dbf1d"/></linearGradient>';
-
-  const back = '<rect x="42" y="20" width="516" height="1032" fill="url(#gBack)"/>';
-  let planks = '';
-  [128, 214, 300, 386, 472].forEach(x =>
-    planks += '<line x1="' + x + '" y1="22" x2="' + x + '" y2="1050" stroke="rgba(0,0,0,.16)" stroke-width="2"/>');
-  const board = base =>
-    '<rect x="16" y="' + (base - 6) + '" width="568" height="30" fill="url(#gFront)"/>' +
-    '<rect x="16" y="' + (base - 6) + '" width="568" height="5" fill="#9c6c3a"/>' +
-    '<line x1="16" y1="' + (base + 23) + '" x2="584" y2="' + (base + 23) + '" stroke="rgba(0,0,0,.4)" stroke-width="2.5"/>';
+  const grads = SHELF_GRADS;
+  const back = SHELF_WOOD_BACK;
+  const board = boardSVG;
   let boards = '';
   ROWS.forEach(base => boards += board(base));
-  const posts =
-    '<rect x="0" y="10" width="46" height="1052" fill="url(#gPost)"/>' +
-    '<rect x="554" y="10" width="46" height="1052" fill="url(#gPost)"/>' +
-    '<rect x="40" y="10" width="4" height="1052" fill="rgba(0,0,0,.28)"/>' +
-    '<rect x="556" y="10" width="4" height="1052" fill="rgba(0,0,0,.28)"/>';
-  const cornice =
-    '<rect x="0" y="8" width="600" height="30" rx="4" fill="url(#gFront)"/>' +
-    '<rect x="0" y="8" width="600" height="6" fill="#9c6c3a"/>';
+  const posts = SHELF_POSTS;
+  const cornice = SHELF_CORNICE;
+  const etiqueta = etiquetaSVG;
 
-  // Etiqueta (placa) da categoria, centralizada no TOPO da prateleira.
-  const etiqueta = (base, texto, cls) => {
-    const bw = 172, bh = 48, bx = 300 - bw / 2, by = base - 226, cx = bx + bw / 2, cy = by + bh / 2;
-    return '<g class="' + cls + '">' +
-      '<rect x="' + bx + '" y="' + (by + 4) + '" width="' + bw + '" height="' + bh + '" rx="9" fill="rgba(0,0,0,.35)"/>' +
-      '<rect x="' + bx + '" y="' + by + '" width="' + bw + '" height="' + bh + '" rx="9" fill="url(#gTag)" stroke="#34332c" stroke-width="3"/>' +
-      '<rect x="' + (bx + 5) + '" y="' + (by + 5) + '" width="' + (bw - 10) + '" height="9" rx="4" fill="rgba(255,255,255,.45)"/>' +
-      '<text x="' + cx + '" y="' + (cy + 9) + '" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="27" font-weight="800" letter-spacing="1.5" fill="#33322b">' + texto + '</text>' +
-      '</g>';
-  };
   // "Grupo N": tag verde centralizada no MEIO da prateleira (some quando a categoria entra).
   const grupoTag = (base, n, cls) => {
     const bw = 140, bh = 42, bx = 300 - bw / 2, by = base - 150, cx = bx + bw / 2, cy = by + bh / 2;
@@ -1844,7 +1977,7 @@ function montarPrateleira() {
       '<text x="' + cx + '" y="' + (cy + 8) + '" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="22" font-weight="800" fill="#12250a">Grupo ' + n + '</text>' +
       '</g>';
   };
-  const CATS = ['ÁCIDOS', 'BASES', 'SAIS', 'ÓXIDOS'];
+  const CATS = SHELF_CATS;
   let tags = '<g class="pr-tags">';
   for (let r = 0; r < 4; r++)
     tags += etiqueta(ROWS[r], CATS[r], 'pr-tag pr-tag-' + r) + grupoTag(ROWS[r], r + 1, 'pr-grupo pr-grupo-' + r);
@@ -1861,7 +1994,7 @@ function montarPrateleira() {
     '</g>';
 
   const scene = '<g class="pr-scene">' +
-    back + planks + frascosGroups +
+    back + frascosGroups +
     boards + posts + cornice + tags + dim + focus +
     '</g>';
 
@@ -2141,6 +2274,286 @@ function resetCena11D() {
   c11dTitulo.classList.remove('show');
   c11dFrascos.classList.remove('show');
 }
+
+// ================= Minigame de identificação (dialogo1.1E + jogo) =================
+const gameEl = $id('game');
+const gameSvg = $id('gameSvg');
+const gameHud = $id('gameHud');
+const gameFlash = $id('gameFlash');
+const gameConfetti = $id('gameConfetti');
+const gameCard = $id('gameCard');
+
+// efeitos sonoros (separados da narração)
+const sfx = {
+  right: new Audio('audios/right.mp3'),
+  error: new Audio('audios/error.mp3'),
+  statistics: new Audio('audios/statistics.mp3'),
+};
+function playSfx(name) {
+  const a = sfx[name]; if (!a) return;
+  try { a.currentTime = 0; const p = a.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+}
+
+let gmDefs = null, gmPlaced = null, gmActive = null, gmUid = 0;
+const gmState = {
+  placed: [0, 0, 0, 0],     // frascos já na prateleira por categoria (ácidos já ganha o HCl)
+  fila: [], atual: null,
+  total: 19, feitos: 0, acertos: 0, erros: 0,
+  jogando: false, drag: null, avaliando: false,
+};
+
+// coordenadas: tela -> SVG e SVG -> tela
+function gmToSvg(cx, cy) {
+  const pt = gameSvg.createSVGPoint(); pt.x = cx; pt.y = cy;
+  return pt.matrixTransform(gameSvg.getScreenCTM().inverse());
+}
+function gmToScreen(x, y) {
+  const pt = gameSvg.createSVGPoint(); pt.x = x; pt.y = y;
+  return pt.matrixTransform(gameSvg.getScreenCTM());
+}
+
+// estante vazia: só madeira + etiquetas de categoria
+function construirEstanteJogo() {
+  gmUid = 0;
+  let boards = '';
+  SHELF_ROWS.forEach(base => boards += boardSVG(base));
+  let tags = '';
+  for (let r = 0; r < 4; r++) tags += etiquetaSVG(SHELF_ROWS[r], SHELF_CATS[r], 'gm-tag');
+  gameSvg.innerHTML =
+    '<defs id="gmDefs">' + SHELF_GRADS + '</defs>' +
+    '<g>' + SHELF_WOOD_BACK + boards + SHELF_POSTS + SHELF_CORNICE + tags + '</g>' +
+    '<g id="gmPlaced"></g>' +
+    '<g id="gmActive"></g>';
+  gmDefs = $id('gmDefs'); gmPlaced = $id('gmPlaced'); gmActive = $id('gmActive');
+  gmState.placed = [0, 0, 0, 0];
+}
+
+// markup de um frasco com base-centro na origem local (0,0); injeta o clip nos defs
+function gmMakeBottle(cfg) {
+  const defs = [];
+  const markup = fnFrasco(0, 0, cfg, 'gm' + (gmUid++), defs);
+  gmDefs.insertAdjacentHTML('beforeend', defs.join(''));
+  return markup;
+}
+// fixa um frasco na prateleira (slot da vez da categoria)
+function gmColocarFixo(cat, cfg) {
+  const slot = Math.min(gmState.placed[cat], 4);
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.setAttribute('transform', 'translate(' + SHELF_COLS[slot] + ',' + SHELF_ROWS[cat] + ')');
+  g.innerHTML = gmMakeBottle(cfg);
+  gmPlaced.appendChild(g);
+  gmState.placed[cat]++;
+}
+// posiciona o frasco ativo (instantâneo)
+function gmSetActivePos(x, y) {
+  gmActive.setAttribute('transform', 'translate(' + x + ',' + y + ')');
+  gmActive._x = x; gmActive._y = y;
+}
+// anima o frasco ativo até (x,y)
+function gmTweenTo(x, y, ms, done) {
+  const sx = gmActive._x, sy = gmActive._y, t0 = performance.now();
+  gmActive._tween = t0;
+  function step(t) {
+    if (gmActive._tween !== t0) return;                 // cancelado por outro tween
+    const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+    gmActive.setAttribute('transform', 'translate(' + (sx + (x - sx) * e) + ',' + (sy + (y - sy) * e) + ')');
+    if (k < 1) requestAnimationFrame(step);
+    else { gmActive._x = x; gmActive._y = y; gmActive._tween = 0; if (done) done(); }
+  }
+  requestAnimationFrame(step);
+}
+// cria um frasco ativo (arrastável) no centro
+function gmNovoAtivo(cat, cfg, x, y) {
+  gmActive.innerHTML = '<g class="gm-bottle">' + gmMakeBottle(cfg) +
+    '<rect class="tut-label-glow" x="-38" y="-72" width="76" height="50"/></g>';
+  gmSetActivePos(x == null ? 300 : x, y == null ? 535 : y);
+  gmState.atual = { cat, cfg };
+}
+
+// ---------- Tutorial (dialogo1.1E) ----------
+function iniciarCena11E() {
+  gameEl.classList.remove('show', 'play', 'grabbing');
+  gameCard.classList.remove('show');
+  substTitle.classList.remove('show');
+  cena11dEl.classList.add('saindo');          // some tudo do 1.1D
+  construirEstanteJogo();
+  gmState.jogando = false; gmState.atual = null;
+}
+function resetCena11E() {
+  if (!gmState.jogando) resetJogo();
+}
+function mostrarPrateleiraJogo() {
+  substTitle.style.transition = 'none';
+  substTitle.innerHTML = 'Substâncias Inorgânicas';
+  substTitle.classList.add('show', 'topo');
+  void substTitle.offsetWidth;
+  substTitle.style.transition = '';
+  gameEl.classList.add('show');
+}
+function tutColocarHCl() { gmNovoAtivo(0, SHELF_CFGS[0][0], 300, 535); }
+function tutPulsarLabel() {
+  const gl = gmActive && gmActive.querySelector('.tut-label-glow');
+  if (gl) { gl.classList.remove('on'); void gl.getBoundingClientRect(); gl.classList.add('on'); }
+}
+function tutArrastarHCl() {
+  maoMostrar(gmToScreen(300, 470));
+  gmTweenTo(SHELF_COLS[0], SHELF_ROWS[0], 1600);
+  maoMover(gmToScreen(SHELF_COLS[0], SHELF_ROWS[0] - 70), 1600);
+  setTimeout(() => {
+    gmActive.innerHTML = '';
+    gmColocarFixo(0, SHELF_CFGS[0][0]);       // HCl fica na prateleira dos ácidos
+    gmState.atual = null;
+    tutorHand.classList.remove('show');
+  }, 1750);
+}
+
+// ---------- Jogo ----------
+function embaralhar(a) {
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function montarFilaJogo() {
+  const fila = [];
+  for (let c = 1; c < 5; c++) fila.push({ cat: 0, cfg: SHELF_CFGS[0][c] });   // ácidos sem o HCl (4)
+  for (let cat = 1; cat < 4; cat++)
+    for (let c = 0; c < 5; c++) fila.push({ cat, cfg: SHELF_CFGS[cat][c] });   // bases/sais/óxidos (5 cada)
+  return embaralhar(fila);
+}
+function pontuacao() {
+  const per = 10 / gmState.total, pen = per * 0.5;
+  return Math.max(0, Math.min(10, gmState.acertos * per - gmState.erros * pen));
+}
+function atualizarHud() {
+  gameHud.innerHTML = '<span>' + gmState.feitos + '/' + gmState.total + '</span>' +
+    '<span class="sep">•</span><span class="pts">★ ' + pontuacao().toFixed(1) + '</span>';
+}
+function comecarJogo() {
+  jogarPronto = false;
+  const pb = $id('playBtn'); pb.classList.remove('jogar'); pb.style.display = 'none';
+  substTitle.classList.remove('show');
+  construirEstanteJogo();
+  gmColocarFixo(0, SHELF_CFGS[0][0]);          // HCl já na prateleira (do tutorial)
+  gmState.fila = montarFilaJogo();
+  gmState.total = 19; gmState.feitos = 0; gmState.acertos = 0; gmState.erros = 0;
+  gmState.jogando = true; gmState.avaliando = false; gmState.drag = null;
+  gameEl.classList.add('show', 'play');
+  gameCard.classList.remove('show');
+  gameHud.classList.add('on');
+  atualizarHud();
+  proximoFrasco();
+}
+function proximoFrasco() {
+  if (gmState.fila.length === 0) { finalizarJogo(); return; }
+  const it = gmState.fila.shift();
+  gmNovoAtivo(it.cat, it.cfg, 300, 535);
+  atualizarHud();
+}
+function avaliarSolta() {
+  if (!gmState.atual) return;
+  const cat = gmState.atual.cat, y = gmActive._y;
+  let row = 0, best = 1e9;
+  for (let r = 0; r < 4; r++) { const d = Math.abs(y - SHELF_ROWS[r]); if (d < best) { best = d; row = r; } }
+  gmState.avaliando = true;
+  const slot = Math.min(gmState.placed[row], 4);
+  gmTweenTo(SHELF_COLS[slot], SHELF_ROWS[row], 320);   // alinha no encaixe
+  const g = gmActive.querySelector('.gm-bottle');
+  if (g) { g.classList.remove('gm-snap'); void g.getBoundingClientRect(); g.classList.add('gm-snap'); }
+  setTimeout(() => {
+    if (row === cat && gmState.placed[cat] < 5) acertou(cat);
+    else errou();
+  }, 430);
+}
+function acertou(cat) {
+  playSfx('right');
+  const g = gmActive.querySelector('.gm-bottle');
+  if (g) g.classList.add('gm-ok');
+  const sc = gmToScreen(SHELF_COLS[Math.min(gmState.placed[cat], 4)], SHELF_ROWS[cat] - 60);
+  soltarConfete(sc.x, sc.y);
+  const cfg = gmState.atual.cfg;
+  setTimeout(() => {
+    gmActive.innerHTML = '';
+    gmColocarFixo(cat, cfg);
+    gmState.atual = null; gmState.acertos++; gmState.feitos++; gmState.avaliando = false;
+    atualizarHud();
+    proximoFrasco();
+  }, 480);
+}
+function errou() {
+  playSfx('error');
+  gameEl.classList.remove('shake'); void gameEl.getBoundingClientRect(); gameEl.classList.add('shake');
+  gameFlash.classList.remove('red'); void gameFlash.getBoundingClientRect(); gameFlash.classList.add('red');
+  gmState.erros++;
+  atualizarHud();
+  setTimeout(() => { gmTweenTo(300, 535, 380, () => { gmState.avaliando = false; }); }, 320);
+}
+function soltarConfete(sx, sy) {
+  const cores = ['#a6e534', '#baf34f', '#6dbf1d', '#eaffcf', '#d6f5a0'];
+  for (let i = 0; i < 26; i++) {
+    const c = document.createElement('div');
+    c.className = 'confete';
+    c.style.left = sx + 'px'; c.style.top = sy + 'px';
+    c.style.background = cores[i % cores.length];
+    const ang = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.2;
+    const dist = 70 + Math.random() * 130;
+    c.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+    c.style.setProperty('--dy', (Math.sin(ang) * dist + 190) + 'px');
+    c.style.setProperty('--rot', (Math.random() * 900 - 450) + 'deg');
+    c.style.setProperty('--dur', (1 + Math.random() * 0.8) + 's');
+    gameConfetti.appendChild(c);
+    setTimeout(() => c.remove(), 2100);
+  }
+}
+function finalizarJogo() {
+  gmState.jogando = false; gmState.atual = null;
+  gameEl.classList.remove('play', 'grabbing');
+  gameHud.classList.remove('on');
+  const pts = pontuacao();
+  gameCard.querySelector('.gc-score').innerHTML = pts.toFixed(1) + '<small>/10</small>';
+  gameCard.querySelector('.gc-sub').textContent =
+    gmState.acertos + ' acertos • ' + gmState.erros + (gmState.erros === 1 ? ' erro' : ' erros');
+  gameCard.classList.add('show');
+  playSfx('statistics');
+}
+function resetJogo() {
+  gmState.jogando = false; gmState.atual = null; gmState.drag = null;
+  gameEl.classList.remove('show', 'play', 'grabbing');
+  gameCard.classList.remove('show');
+  gameHud.classList.remove('on'); gameHud.innerHTML = '';
+  const pb = $id('playBtn'); pb.style.display = ''; pb.classList.remove('jogar');
+}
+
+// arraste (só ativo em #game.play)
+function gmDown(e) {
+  if (!gmState.jogando || gmState.avaliando || !gmState.atual) return;
+  const g = gmActive.querySelector('.gm-bottle'); if (!g) return;
+  const p = gmToSvg(e.clientX, e.clientY);
+  gmState.drag = { id: e.pointerId, gx: p.x - gmActive._x, gy: p.y - gmActive._y };
+  gameEl.classList.add('grabbing');
+  if (gameSvg.setPointerCapture) { try { gameSvg.setPointerCapture(e.pointerId); } catch (_) {} }
+  e.preventDefault();
+}
+function gmMove(e) {
+  if (!gmState.drag) return;
+  const p = gmToSvg(e.clientX, e.clientY);
+  gmSetActivePos(p.x - gmState.drag.gx, p.y - gmState.drag.gy);
+  e.preventDefault();
+}
+function gmUp(e) {
+  if (!gmState.drag) return;
+  gmState.drag = null;
+  gameEl.classList.remove('grabbing');
+  avaliarSolta();
+  e.preventDefault();
+}
+gameSvg.addEventListener('pointerdown', gmDown);
+gameSvg.addEventListener('pointermove', gmMove);
+gameSvg.addEventListener('pointerup', gmUp);
+gameSvg.addEventListener('pointercancel', gmUp);
+$id('gameContinuar').addEventListener('click', () => {
+  resetJogo();
+  const i = idxFaixa('dialogo1.2');
+  if (i >= 0) tocarFaixa(i);
+});
 
 // ---------- Coreografia da cena do dialogo1.2 ----------
 const tituloAcidoEl = $id('tituloAcido');
