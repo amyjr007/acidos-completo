@@ -476,9 +476,10 @@
   #gameCard .gc-sec { background: transparent; color: var(--acid);
     border: 1.5px solid rgba(166,229,52,.55) !important; }
   #gameCard .gc-btns button:active { transform: scale(.95); }
-  /* botão de play em modo "JOGAR" */
-  #playBtn.jogar { width: auto; padding: 0 22px; border-radius: 999px; gap: 6px; }
-  #playText { display: none; color: #0a1a06; font-size: 16px; font-weight: 900; letter-spacing: 1px; }
+  /* botão de play em modo "JOGAR" — redondo (igual ao play), só muda a cor */
+  #playBtn.jogar { background: linear-gradient(145deg, #6cc0ff, #2b7fd4);
+    box-shadow: 0 6px 18px rgba(69,166,245,.55); }
+  #playText { display: none; color: #06263f; font-size: 12px; font-weight: 900; letter-spacing: .2px; }
   #playBtn.jogar #playText { display: inline; }
   #playBtn.jogar #iconPlay, #playBtn.jogar #iconPause, #playBtn.jogar #playRing { display: none; }
   /* "Ácidos" com o mesmo brilho da capa */
@@ -747,7 +748,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.40.0</div>
+<div id="versao">v0.41.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1730,12 +1731,17 @@ const SUMARIO = [
   { titulo: 'Identificando as bases',       faixa: idxFaixa('dialogo1.1B') },
   { titulo: 'Identificando óxidos',         faixa: idxFaixa('dialogo1.1C') },
   { titulo: 'Identificando sais',           faixa: idxFaixa('dialogo1.1D') },
+  { titulo: 'Minigame',                     faixa: idxFaixa('dialogo1.1E'), acao: irParaMinigame },
 ];
 
 SUMARIO.forEach(item => {
   const li = document.createElement('li');
   li.textContent = item.titulo;
-  li.addEventListener('click', () => { fecharSumario(); tocarFaixa(item.faixa); });
+  li.addEventListener('click', () => {
+    fecharSumario();
+    if (typeof item.acao === 'function') item.acao();
+    else tocarFaixa(item.faixa);
+  });
   $id('sheetList').appendChild(li);
 });
 
@@ -2450,6 +2456,24 @@ function comecarJogo() {
   gameHud.classList.add('on');
   atualizarHud();
   proximoFrasco();
+}
+// navegação rápida "Minigame": pula direto pro fim do tutorial (só apertar JOGAR)
+function irParaMinigame() {
+  player.pause();
+  limparStory();
+  faixaAtual = idxFaixa('dialogo1.1E');
+  faixaTerminou = true;
+  marcarSumario();
+  substTitle.style.transition = 'none';
+  substTitle.innerHTML = 'Substâncias Inorgânicas';
+  substTitle.classList.add('show', 'topo');
+  void substTitle.offsetWidth; substTitle.style.transition = '';
+  construirEstanteJogo();
+  gmColocarFixo(0, SHELF_CFGS[0][0]);          // HCl já na prateleira (como no fim do tutorial)
+  gameEl.classList.add('show');
+  gameEl.classList.remove('play');
+  jogarPronto = true;
+  const pb = $id('playBtn'); pb.style.display = ''; pb.classList.add('jogar');
 }
 // posição de descanso do frasco ativo: logo acima da barra de navegação rápida
 function gmRestPos() {
