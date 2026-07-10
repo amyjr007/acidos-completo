@@ -747,7 +747,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.39.0</div>
+<div id="versao">v0.40.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -796,7 +796,7 @@
 
 <!-- Minigame de identificação (dialogo1.1E + jogo) -->
 <div id="game" aria-hidden="true">
-  <svg id="gameSvg" viewBox="0 0 600 1070" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
+  <svg id="gameSvg" viewBox="-53 -94 706 1259" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
 </div>
 <div id="gameHud"></div>
 <div id="gameFlash"></div>
@@ -1831,7 +1831,8 @@ function subFormula(f) {
 // Desenha 1 frasco. cx = centro X, by = base (onde apoia na prateleira).
 function fnFrasco(cx, by, cfg, id, defs) {
   const w2 = cfg.w2 || 39, nw2 = 13, sw2 = 20, r = 9;
-  const bodyTop = by - 140, shTop = by - 166, neckTop = by - 188, stTop = by - 208;
+  const hs = cfg.hs || 1;   // escala vertical do frasco (1 = padrão)
+  const bodyTop = by - 140 * hs, shTop = by - 166 * hs, neckTop = by - 188 * hs, stTop = by - 208 * hs;
   const stroke = '#2f2116';
   const sil =
     'M' + (cx - w2) + ' ' + bodyTop + ' L' + (cx - w2) + ' ' + (by - r) +
@@ -2335,9 +2336,11 @@ function construirEstanteJogo() {
 }
 
 // markup de um frasco com base-centro na origem local (0,0); injeta o clip nos defs
+// no jogo os frascos são 15% mais baixos, fórmula 10% maior e SEM nome (mais espaço)
 function gmMakeBottle(cfg) {
   const defs = [];
-  const markup = fnFrasco(0, 0, cfg, 'gm' + (gmUid++), defs);
+  const rc = Object.assign({}, cfg, { hs: 0.85, ff: 17, n: '' });
+  const markup = fnFrasco(0, 0, rc, 'gm' + (gmUid++), defs);
   gmDefs.insertAdjacentHTML('beforeend', defs.join(''));
   return markup;
 }
@@ -2448,10 +2451,23 @@ function comecarJogo() {
   atualizarHud();
   proximoFrasco();
 }
+// posição de descanso do frasco ativo: logo acima da barra de navegação rápida
+function gmRestPos() {
+  const r = $id('quickNav').getBoundingClientRect();
+  return gmToSvg(innerWidth / 2, r.top - 40);
+}
+// frasco entra de baixo (fora da tela) e sobe até o descanso
+function gmEntrarDeBaixo(cat, cfg) {
+  const rest = gmRestPos();
+  gmState.restX = rest.x; gmState.restY = rest.y;
+  const ini = gmToSvg(innerWidth / 2, innerHeight + 300);
+  gmNovoAtivo(cat, cfg, ini.x, ini.y);
+  gmTweenTo(rest.x, rest.y, 600);
+}
 function proximoFrasco() {
   if (gmState.fila.length === 0) { finalizarJogo(); return; }
   const it = gmState.fila.shift();
-  gmNovoAtivo(it.cat, it.cfg, 300, 535);
+  gmEntrarDeBaixo(it.cat, it.cfg);
   atualizarHud();
 }
 function avaliarSolta() {
@@ -2490,7 +2506,12 @@ function errou() {
   gameFlash.classList.remove('red'); void gameFlash.getBoundingClientRect(); gameFlash.classList.add('red');
   gmState.erros++;
   atualizarHud();
-  setTimeout(() => { gmTweenTo(300, 535, 380, () => { gmState.avaliando = false; }); }, 320);
+  // volta pro descanso (acima da navegação rápida) pra tentar de novo
+  setTimeout(() => {
+    const rx = gmState.restX == null ? 300 : gmState.restX;
+    const ry = gmState.restY == null ? 535 : gmState.restY;
+    gmTweenTo(rx, ry, 380, () => { gmState.avaliando = false; });
+  }, 320);
 }
 function soltarConfete(sx, sy) {
   const cores = ['#a6e534', '#baf34f', '#6dbf1d', '#eaffcf', '#d6f5a0'];
