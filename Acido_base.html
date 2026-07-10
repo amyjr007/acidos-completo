@@ -34,6 +34,8 @@
     --rosa-glow: rgba(255, 93, 177, 0.5);
     --ferrugem: #cf6a2f;
     --ferrugem-glow: rgba(207, 106, 47, 0.5);
+    --azul: #45a6f5;
+    --azul-glow: rgba(69, 166, 245, 0.5);
   }
   button { font-family: system-ui, sans-serif; }
 
@@ -374,6 +376,20 @@
     transform: scale(1.4); filter: blur(9px); opacity: 0;
   }
   #cena11d { position: fixed; inset: 0; z-index: 41; pointer-events: none; }
+  /* "Sais" azul (mesma fonte/brilho das outras categorias) */
+  .c11d-titulo {
+    position: absolute; top: 14%; left: 0; right: 0; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: 1px;
+    font-size: clamp(40px, 13vw, 76px); color: var(--azul);
+    opacity: 0; transform: translateY(24px) scale(.9);
+    transition: opacity .6s ease, transform .6s cubic-bezier(.2, .9, .25, 1.35);
+    animation: pulsarNeonAzul 3s ease-in-out infinite;
+  }
+  .c11d-titulo.show { opacity: 1; transform: none; }
+  @keyframes pulsarNeonAzul {
+    0%,100% { text-shadow: 0 0 12px var(--azul-glow), 0 0 30px var(--azul-glow), 0 0 55px rgba(69,166,245,.3); }
+    50%     { text-shadow: 0 0 16px var(--azul-glow), 0 0 44px var(--azul-glow), 0 0 78px rgba(69,166,245,.5); }
+  }
   /* "Ácidos" com o mesmo brilho da capa */
   .c11a-acidos {
     position: absolute; top: 14%; left: 0; right: 0; text-align: center;
@@ -640,7 +656,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.36.0</div>
+<div id="versao">v0.37.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -681,8 +697,9 @@
   <div class="c11c-frascos"></div>
 </div>
 
-<!-- Cena do dialogo1.1D: frascos de sais -->
+<!-- Cena do dialogo1.1D: "Sais" (azul) e frascos de sais -->
 <div id="cena11d" aria-hidden="true">
+  <div class="c11d-titulo">Sais</div>
   <div class="c11d-frascos"></div>
 </div>
 
@@ -1474,6 +1491,7 @@ const EVENTOS = {
   ]),
   'dialogo1.1D': () => rodarStory([
     { t: 0.0, fn: iniciarCena11D },                             // some tudo do 1.1C (saída dramática)
+    { t: 0.3, fn: () => c11dTitulo.classList.add('show') },     // "Sais" (azul) entra enquanto o texto anterior some
     { t: 3.0, fn: () => stShow('center', '"Se não tiver H na frente ou OH no final, nem for óxido, deve ser um sal"', 'st-credito st-branco st-sobe') },
     { t: 9.0, fn: () => c11dFrascos.classList.add('show') },    // frascos dos sais (fórmula + nome)
   ]),
@@ -2091,6 +2109,7 @@ function pulsarDois() {
 
 // ---------- Coreografia da cena do dialogo1.1D (Sais) ----------
 const cena11dEl = $id('cena11d');
+const c11dTitulo = cena11dEl.querySelector('.c11d-titulo');
 const c11dFrascos = cena11dEl.querySelector('.c11d-frascos');
 
 let frascosSaisMontados = false;
@@ -2119,6 +2138,7 @@ function iniciarCena11D() {
   if (!frascosSaisMontados) montarFrascosSais();
 }
 function resetCena11D() {
+  c11dTitulo.classList.remove('show');
   c11dFrascos.classList.remove('show');
 }
 
