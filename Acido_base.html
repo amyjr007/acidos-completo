@@ -520,7 +520,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.20.0</div>
+<div id="versao">v0.21.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1264,10 +1264,11 @@ const EVENTOS = {
   ]),
   'dialogo1': () => rodarStory([
     { t: 0.0,  fn: () => stShow('top', 'Parte 1', 'st-parte') },
-    { t: 1.2,  fn: () => stShow('center', 'O que são ácidos<br><span class="maior">inorgânicos?</span>', 'st-pergunta') },
+    { t: 1.2,  fn: () => stShow('center', 'O que são substâncias<br><span class="maior">inorgânicas?</span>', 'st-pergunta') },
     { t: 5.0,  fn: stSair },
-    { t: 10.0, fn: () => mostrarImagem('imagens/lab.png') },   // aparece centralizada
-    { t: 18.0, fn: esconderImagem },                           // sai
+    { t: 10.0, fn: () => { mostrarImg2('imagens/lab.png', { fit: 'cover', pos: '0% 50%', from: 'scale(1.06)' });
+                           kenBurns(8000, { transform: 'scale(1.06)', pos: '100% 50%' }); } },  // card + pan esq→dir
+    { t: 18.0, fn: esconderImg2 },                             // sai
     { t: 22.0, fn: () => stShow('top', 'Dois grupos de substâncias', 'st-parte') },
     { t: 24.0, fn: () => mostrarSubstTitulo('Substâncias Orgânicas') },
     { t: 26.8, fn: () => mostrarSubstDesc('Que têm o carbono como elemento principal') },
