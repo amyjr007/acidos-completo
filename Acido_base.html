@@ -407,7 +407,7 @@
   .c11a-h2o2 .aviso { margin-left: 10px; -webkit-text-fill-color: initial; }
   /* frascos das cenas (ácidos, bases, ...) — subidos na altura dos quadrados de fundo */
   .c11a-frascos, .c11b-frascos {
-    position: absolute; left: 0; right: 0; bottom: 12%;
+    position: absolute; left: 0; right: 0; bottom: calc(12% + 2.3rem);
     opacity: 0; transform: translateY(34px);
     transition: opacity .7s ease, transform .7s cubic-bezier(.2, .9, .25, 1.2);
   }
@@ -610,7 +610,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.28.0</div>
+<div id="versao">v0.29.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1858,7 +1858,7 @@ function fmtOHFormula(f) {
 }
 
 // medidas dos frascos das cenas (ácidos, bases e próximas categorias)
-const FRASCO = { w2: 57, lw: 100, lh: 58, ff: 23, fn: 11, lyoff: 62 };
+const FRASCO = { w2: 57, lw: 100, lh: 58, ff: 23, fn: 11 };   // rótulo na posição original (lyoff padrão = 26)
 const FRASCO_CXS = [62, 186, 310, 434, 558], FRASCO_BY = 250;
 const gLabelDef = '<linearGradient id="gLabel" x1="0" y1="0" x2="0" y2="1">' +
   '<stop offset="0" stop-color="rgba(255,255,255,.42)"/><stop offset="0.5" stop-color="rgba(255,255,255,0)"/>' +
