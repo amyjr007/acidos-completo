@@ -30,6 +30,8 @@
     --acid-glow: rgba(166, 229, 52, 0.45);
     --painel: rgba(11, 26, 12, 0.92);
     --texto: #eaf7d9;
+    --rosa: #ff5db1;
+    --rosa-glow: rgba(255, 93, 177, 0.5);
   }
   button { font-family: system-ui, sans-serif; }
 
@@ -355,6 +357,11 @@
 
   /* ---------- Cena do dialogo1.1A ---------- */
   #cena11a { position: fixed; inset: 0; z-index: 41; pointer-events: none; }
+  /* saída dramática (some tudo do 1.1A ao entrar no 1.1B) */
+  #cena11a.saindo {
+    transition: transform .55s cubic-bezier(.5, 0, .75, 0), filter .55s ease, opacity .55s ease;
+    transform: scale(1.4); filter: blur(9px); opacity: 0;
+  }
   /* "Ácidos" com o mesmo brilho da capa */
   .c11a-acidos {
     position: absolute; top: 14%; left: 0; right: 0; text-align: center;
@@ -365,6 +372,21 @@
     animation: pulsarNeon 3s ease-in-out infinite;
   }
   .c11a-acidos.show { opacity: 1; transform: none; }
+  /* ---------- Cena do dialogo1.1B (Bases): "Bases" em rosa, mesma fonte/brilho ---------- */
+  #cena11b { position: fixed; inset: 0; z-index: 41; pointer-events: none; }
+  .c11b-titulo {
+    position: absolute; top: 14%; left: 0; right: 0; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: 1px;
+    font-size: clamp(40px, 13vw, 76px); color: var(--rosa);
+    opacity: 0; transform: translateY(24px) scale(.9);
+    transition: opacity .6s ease, transform .6s cubic-bezier(.2, .9, .25, 1.35);
+    animation: pulsarNeonRosa 3s ease-in-out infinite;
+  }
+  .c11b-titulo.show { opacity: 1; transform: none; }
+  @keyframes pulsarNeonRosa {
+    0%,100% { text-shadow: 0 0 12px var(--rosa-glow), 0 0 30px var(--rosa-glow), 0 0 55px rgba(255,93,177,.3); }
+    50%     { text-shadow: 0 0 16px var(--rosa-glow), 0 0 44px var(--rosa-glow), 0 0 78px rgba(255,93,177,.5); }
+  }
   /* não-ácidos (H2O, H2O2) lado a lado */
   .c11a-nao {
     position: absolute; top: 31%; left: 0; right: 0;
@@ -383,21 +405,27 @@
     text-shadow: 0 0 10px rgba(255, 60, 60, .85), 0 0 24px rgba(255, 30, 30, .6);
   }
   .c11a-h2o2 .aviso { margin-left: 10px; -webkit-text-fill-color: initial; }
-  /* frascos de ácidos embaixo */
-  .c11a-frascos {
-    position: absolute; left: 0; right: 0; bottom: calc(1% + 3.4rem);
+  /* frascos das cenas (ácidos, bases, ...) — subidos na altura dos quadrados de fundo */
+  .c11a-frascos, .c11b-frascos {
+    position: absolute; left: 0; right: 0; bottom: 12%;
     opacity: 0; transform: translateY(34px);
     transition: opacity .7s ease, transform .7s cubic-bezier(.2, .9, .25, 1.2);
   }
-  .c11a-frascos.show { opacity: 1; transform: none; }
-  .c11a-frascos svg { display: block; width: 100%; height: auto; max-height: 44vh; margin: 0 auto; }
-  /* pulsada rápida com brilho no "H" de cada fórmula (t17 do dialogo1.1A) */
-  .c11a-frascos .fH { transform-box: fill-box; transform-origin: center; }
+  .c11a-frascos.show, .c11b-frascos.show { opacity: 1; transform: none; }
+  .c11a-frascos svg, .c11b-frascos svg { display: block; width: 100%; height: auto; max-height: 46vh; margin: 0 auto; }
+  /* pulsada rápida com brilho no "H" (ácidos, t17) e no "OH" (bases, t11.7) */
+  .c11a-frascos .fH, .c11b-frascos .fOH { transform-box: fill-box; transform-origin: center; }
   .c11a-frascos.pulseH .fH { animation: hPulsa .5s ease-in-out 2; }
+  .c11b-frascos.pulseOH .fOH { animation: ohPulsa .5s ease-in-out 2; }
   @keyframes hPulsa {
     0%, 100% { fill: #2c2013; }
     45%      { fill: #6dbf1d; }
     50%      { fill: #baf34f; }
+  }
+  @keyframes ohPulsa {
+    0%, 100% { fill: #2c2013; }
+    45%      { fill: #d1247e; }
+    50%      { fill: #ff5db1; }
   }
   /* descrição logo abaixo do título (não empurra o título -> 1->1.1 seamless) */
   #substDesc {
@@ -582,7 +610,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.27.0</div>
+<div id="versao">v0.28.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -609,6 +637,12 @@
     <div class="c11a-h2o2"></div>
   </div>
   <div class="c11a-frascos"></div>
+</div>
+
+<!-- Cena do dialogo1.1B: "Bases" (rosa) e frascos de bases -->
+<div id="cena11b" aria-hidden="true">
+  <div class="c11b-titulo">Bases</div>
+  <div class="c11b-frascos"></div>
 </div>
 
 <!-- Título-pergunta e imagem com Ken Burns (dialogo1.2) -->
@@ -1380,7 +1414,13 @@ const EVENTOS = {
     { t: 13.4, fn: pausaCurta },                                // pausa de 1s e volta ao normal
     { t: 17.0, fn: () => pulsarH() },                           // pulsada rápida com brilho no "H" de cada ácido
   ]),
-  'dialogo1.1B':  () => { /* eventos do diálogo 1.1B */ },
+  'dialogo1.1B': () => rodarStory([
+    { t: 0.0,  fn: iniciarCena11B },                            // some tudo do 1.1A (saída dramática)
+    { t: 0.3,  fn: () => c11bTitulo.classList.add('show') },    // "Bases" (rosa) — mesma entrada de "Ácidos"
+    { t: 7.8,  fn: () => c11bFrascos.classList.add('show') },   // frascos das bases (fórmula + nome)
+    { t: 11.7, fn: () => pulsarOH() },                          // pulsada com brilho rosa no "OH"
+    { t: 13.4, fn: () => stShow('center', '"Todas as bases terminam a fórmula com OH"', 'st-titulo2 st-branco') },
+  ]),
   'dialogo1.1C':  () => { /* eventos do diálogo 1.1C */ },
   'dialogo1.1D':  () => { /* eventos do diálogo 1.1D */ },
   'dialogo1.1E':  () => { /* eventos do diálogo 1.1E */ },
@@ -1541,6 +1581,7 @@ function limparStory() {
   esconderImagem();
   resetCena11();
   resetCena11A();
+  resetCena11B();
   resetCena12();
   tutorHand.classList.remove('show', 'tap');
   fecharSumario();
@@ -1624,13 +1665,15 @@ function fnFrasco(cx, by, cfg, id, defs) {
     '<line x1="' + (cx - sw2 + 3) + '" y1="' + (neckTop - 2) + '" x2="' + (cx + sw2 - 3) + '" y2="' + (neckTop - 2) +
     '" stroke="' + stroke + '" stroke-width="2" opacity="0.45"/>';
 
-  const lw = cfg.lw || 72, lx = cx - lw / 2, ly = by - 72, lh = 46;
+  const lw = cfg.lw || 72, lh = cfg.lh || 46, lx = cx - lw / 2;
+  const ly = by - (cfg.lyoff || 26) - lh;      // canto inferior do rótulo a cfg.lyoff acima da base
   const ffF = cfg.ff || 15.5, ffN = cfg.fn || 8;
+  const fY = ly + lh * 0.52, nY = ly + lh * 0.87;   // fórmula em cima, nome embaixo (proporcional à altura)
   const label = '<g>' +
     '<rect x="' + lx + '" y="' + ly + '" width="' + lw + '" height="' + lh + '" rx="5" fill="#efe4c6" stroke="#c9b587" stroke-width="1.5"/>' +
     '<rect x="' + lx + '" y="' + ly + '" width="' + lw + '" height="' + lh + '" rx="5" fill="url(#gLabel)"/>' +
-    '<text x="' + cx + '" y="' + (by - 48) + '" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="' + ffF + '" font-weight="700" fill="#2c2013">' + (cfg.fHTML || subFormula(cfg.f)) + '</text>' +
-    '<text x="' + cx + '" y="' + (by - 32) + '" text-anchor="middle" textLength="' + (lw - 10) + '" lengthAdjust="spacingAndGlyphs" font-family="system-ui,Segoe UI,sans-serif" font-size="' + ffN + '" fill="#6a5636">' + cfg.n + '</text>' +
+    '<text x="' + cx + '" y="' + fY + '" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="' + ffF + '" font-weight="700" fill="#2c2013">' + (cfg.fHTML || subFormula(cfg.f)) + '</text>' +
+    '<text x="' + cx + '" y="' + nY + '" text-anchor="middle" textLength="' + (lw - 10) + '" lengthAdjust="spacingAndGlyphs" font-family="system-ui,Segoe UI,sans-serif" font-size="' + ffN + '" fill="#6a5636">' + cfg.n + '</text>' +
     '</g>';
 
   return '<g>' + content +
@@ -1802,6 +1845,39 @@ const c11aFrascos = cena11aEl.querySelector('.c11a-frascos');
 // números de átomos subscritos em qualquer fórmula (usar daqui pra frente)
 function fmtFormula(f) { return f.replace(/([A-Za-z\)\]])(\d+)/g, '$1<sub>$2</sub>'); }
 
+// subscreve dígitos e destaca cada "OH" com <tspan class="fOH"> (pra pulsar no brilho rosa)
+function fmtOHFormula(f) {
+  let o = '';
+  for (let i = 0; i < f.length; i++) {
+    const ch = f[i];
+    if (ch === 'O' && f[i + 1] === 'H') { o += '<tspan class="fOH">OH</tspan>'; i++; }
+    else if (ch >= '0' && ch <= '9') { o += '<tspan baseline-shift="sub" font-size="70%">' + ch + '</tspan>'; }
+    else o += ch;
+  }
+  return o;
+}
+
+// medidas dos frascos das cenas (ácidos, bases e próximas categorias)
+const FRASCO = { w2: 57, lw: 100, lh: 58, ff: 23, fn: 11, lyoff: 62 };
+const FRASCO_CXS = [62, 186, 310, 434, 558], FRASCO_BY = 250;
+const gLabelDef = '<linearGradient id="gLabel" x1="0" y1="0" x2="0" y2="1">' +
+  '<stop offset="0" stop-color="rgba(255,255,255,.42)"/><stop offset="0.5" stop-color="rgba(255,255,255,0)"/>' +
+  '<stop offset="1" stop-color="rgba(90,70,40,.16)"/></linearGradient>';
+
+// monta a fileira de 5 frascos (fórmula + nome no rótulo da frente; sem nomes embaixo)
+function montarFrascos(el, itens, idBase) {
+  const defs = [];
+  let bottles = '', id = idBase;
+  itens.forEach((it, i) => {
+    const cfg = Object.assign({ g: 'rgba(214,232,240,0.16)', s: '#8a5a25', t: 'liq', l: 0.85,
+                                c: it.c, f: it.f, fHTML: it.fHTML, n: it.n }, FRASCO);
+    bottles += fnFrasco(FRASCO_CXS[i], FRASCO_BY, cfg, id++, defs);
+  });
+  el.innerHTML =
+    '<svg viewBox="0 0 620 256" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">' +
+    '<defs>' + gLabelDef + defs.join('') + '</defs>' + bottles + '</svg>';
+}
+
 let frascosAcidosMontados = false;
 function montarFrascosAcidos() {
   const ACIDOS = [
@@ -1811,29 +1887,17 @@ function montarFrascosAcidos() {
     { f: 'H3PO4', n: 'Ácido Fosfórico' },
     { f: 'H2CO3', n: 'Ácido Carbônico' },
   ];
-  const cxs = [62, 186, 310, 434, 558], by = 250;
-  const defs = [];
-  let bottles = '', names = '', id = 500;
-  ACIDOS.forEach((a, i) => {
-    // fórmula com o "H" inicial marcado (pra pulsar com brilho no t17)
-    const fHTML = '<tspan class="fH">H</tspan>' + subFormula(a.f.slice(1));
-    // frascos mais largos, rótulo com fórmula maior; líquido transparente (como água)
-    const cfg = { g: 'rgba(214,232,240,0.16)', c: 'rgba(150,200,225,0.5)', s: '#8a5a25',
-                  t: 'liq', l: 0.85, f: a.f, fHTML: fHTML, n: a.n, w2: 52, lw: 92, ff: 19, fn: 9 };
-    bottles += fnFrasco(cxs[i], by, cfg, id++, defs);
-    names += '<text x="' + cxs[i] + '" y="288" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" ' +
-             'font-size="22" font-weight="700" fill="#eaf7d9">' + a.n + '</text>';
-  });
-  const gLabel = '<linearGradient id="gLabel" x1="0" y1="0" x2="0" y2="1">' +
-    '<stop offset="0" stop-color="rgba(255,255,255,.42)"/><stop offset="0.5" stop-color="rgba(255,255,255,0)"/>' +
-    '<stop offset="1" stop-color="rgba(90,70,40,.16)"/></linearGradient>';
-  c11aFrascos.innerHTML =
-    '<svg viewBox="0 0 620 296" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">' +
-    '<defs>' + gLabel + defs.join('') + '</defs>' + bottles + names + '</svg>';
+  // "H" inicial marcado (pra pulsar) + líquido transparente (como água)
+  const itens = ACIDOS.map(a => ({
+    f: a.f, n: a.n, c: 'rgba(150,200,225,0.5)',
+    fHTML: '<tspan class="fH">H</tspan>' + subFormula(a.f.slice(1)),
+  }));
+  montarFrascos(c11aFrascos, itens, 500);
   frascosAcidosMontados = true;
 }
 
 function iniciarCena11A() {
+  cena11aEl.classList.remove('saindo');    // reverte a saída dramática caso volte pra cá
   // "Substâncias Inorgânicas" continua no topo (sem re-animar, vindo do 1.1)
   substTitle.style.transition = 'none';
   substTitle.innerHTML = 'Substâncias Inorgânicas';
@@ -1863,6 +1927,45 @@ function pulsarH() {
   c11aFrascos.classList.remove('pulseH');
   void c11aFrascos.offsetWidth;   // reinicia a animação
   c11aFrascos.classList.add('pulseH');
+}
+
+// ---------- Coreografia da cena do dialogo1.1B (Bases) ----------
+const cena11bEl = $id('cena11b');
+const c11bTitulo = cena11bEl.querySelector('.c11b-titulo');
+const c11bFrascos = cena11bEl.querySelector('.c11b-frascos');
+
+let frascosBasesMontados = false;
+function montarFrascosBases() {
+  const BASES = [
+    { f: 'NaOH',    n: 'Hidróxido de Sódio' },
+    { f: 'KOH',     n: 'Hidróxido de Potássio' },
+    { f: 'Ca(OH)2', n: 'Hidróxido de Cálcio' },
+    { f: 'Al(OH)3', n: 'Hidróxido de Alumínio' },
+    { f: 'Mg(OH)2', n: 'Hidróxido de Magnésio' },
+  ];
+  // líquidos variados: água (transparente), branco e vermelho
+  const cores = ['rgba(150,200,225,0.5)', 'rgba(238,242,244,0.78)', 'rgba(210,70,60,0.5)',
+                 'rgba(238,242,244,0.78)', 'rgba(150,200,225,0.5)'];
+  const itens = BASES.map((b, i) => ({ f: b.f, n: b.n, c: cores[i], fHTML: fmtOHFormula(b.f) }));
+  montarFrascos(c11bFrascos, itens, 700);
+  frascosBasesMontados = true;
+}
+
+function iniciarCena11B() {
+  // some tudo do 1.1A com saída dramática (zoom + blur + fade)
+  substTitle.classList.remove('show');
+  cena11aEl.classList.add('saindo');
+  if (!frascosBasesMontados) montarFrascosBases();
+}
+function resetCena11B() {
+  c11bTitulo.classList.remove('show');
+  c11bFrascos.classList.remove('show', 'pulseOH');
+}
+// pulsada rápida com brilho rosa no "OH" de cada base
+function pulsarOH() {
+  c11bFrascos.classList.remove('pulseOH');
+  void c11bFrascos.offsetWidth;
+  c11bFrascos.classList.add('pulseOH');
 }
 
 // ---------- Coreografia da cena do dialogo1.2 ----------
