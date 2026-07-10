@@ -639,7 +639,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.34.0</div>
+<div id="versao">v0.35.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1927,7 +1927,8 @@ function montarFrascos(el, itens, idBase) {
   const defs = [];
   let bottles = '', id = idBase;
   itens.forEach((it, i) => {
-    const cfg = Object.assign({ g: 'rgba(214,232,240,0.16)', s: '#8a5a25', t: 'liq', l: 0.85,
+    const cfg = Object.assign({ g: 'rgba(214,232,240,0.16)', s: '#8a5a25',
+                                t: it.t || 'liq', l: it.l || 0.85,
                                 c: it.c, f: it.f, fHTML: it.fHTML, n: it.n }, FRASCO);
     bottles += fnFrasco(FRASCO_CXS[i], FRASCO_BY, cfg, id++, defs);
   });
@@ -2041,10 +2042,11 @@ function montarFrascosOxidos() {
     { f: 'ZnO',   n: 'Óxido de Zinco' },
     { f: 'Al2O3', n: 'Óxido de Alumínio' },
   ];
-  // líquidos variados: vermelho, branco, escuro e transparente (água)
-  const cores = ['rgba(180,70,40,0.6)', 'rgba(238,242,244,0.78)', 'rgba(45,45,50,0.62)',
-                 'rgba(238,242,244,0.78)', 'rgba(150,200,225,0.5)'];
-  const itens = OXIDOS.map((o, i) => ({ f: o.f, n: o.n, c: cores[i], fHTML: fmtOxideFormula(o.f) }));
+  // sólidos: pós/minérios opacos (ferrugem, branco, preto, branco, cinza)
+  const cores = ['#bb3f1f', '#eef1f3', '#1e1e20', '#eff2f4', '#e4e8eb'];
+  const itens = OXIDOS.map((o, i) => ({
+    f: o.f, n: o.n, c: cores[i], t: 'sol', l: 0.72, fHTML: fmtOxideFormula(o.f),
+  }));
   montarFrascos(c11cFrascos, itens, 900);
   frascosOxidosMontados = true;
 }
