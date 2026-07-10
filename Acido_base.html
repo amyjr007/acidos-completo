@@ -610,7 +610,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.29.0</div>
+<div id="versao">v0.30.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1417,9 +1417,10 @@ const EVENTOS = {
   'dialogo1.1B': () => rodarStory([
     { t: 0.0,  fn: iniciarCena11B },                            // some tudo do 1.1A (saída dramática)
     { t: 0.3,  fn: () => c11bTitulo.classList.add('show') },    // "Bases" (rosa) — mesma entrada de "Ácidos"
+    { t: 3.5,  fn: () => stShow('center', '"Todas as bases terminam a fórmula com OH"', 'st-titulo2 st-branco') },
     { t: 7.8,  fn: () => c11bFrascos.classList.add('show') },   // frascos das bases (fórmula + nome)
+    { t: 8.0,  fn: () => pausaCurta(2000) },                    // pausa de 2s e volta o áudio
     { t: 11.7, fn: () => pulsarOH() },                          // pulsada com brilho rosa no "OH"
-    { t: 13.4, fn: () => stShow('center', '"Todas as bases terminam a fórmula com OH"', 'st-titulo2 st-branco') },
   ]),
   'dialogo1.1C':  () => { /* eventos do diálogo 1.1C */ },
   'dialogo1.1D':  () => { /* eventos do diálogo 1.1D */ },
