@@ -415,17 +415,15 @@
   .c11a-frascos svg, .c11b-frascos svg { display: block; width: 100%; height: auto; max-height: 46vh; margin: 0 auto; }
   /* pulsada rápida com brilho no "H" (ácidos, t17) e no "OH" (bases, t11.7) */
   .c11a-frascos .fH, .c11b-frascos .fOH { transform-box: fill-box; transform-origin: center; }
-  .c11a-frascos.pulseH .fH { animation: hPulsa .5s ease-in-out 2; }
-  .c11b-frascos.pulseOH .fOH { animation: ohPulsa .5s ease-in-out 2; }
+  .c11a-frascos.pulseH .fH { animation: hPulsa .55s ease-in-out 2; }
+  .c11b-frascos.pulseOH .fOH { animation: ohPulsa .55s ease-in-out 2; }
   @keyframes hPulsa {
-    0%, 100% { fill: #2c2013; }
-    45%      { fill: #6dbf1d; }
-    50%      { fill: #baf34f; }
+    0%, 100% { fill: #2c2013; transform: scale(1); }
+    50%      { fill: #baf34f; transform: scale(1.5); }
   }
   @keyframes ohPulsa {
-    0%, 100% { fill: #2c2013; }
-    45%      { fill: #d1247e; }
-    50%      { fill: #ff5db1; }
+    0%, 100% { fill: #2c2013; transform: scale(1); }
+    50%      { fill: #ff5db1; transform: scale(1.5); }
   }
   /* descrição logo abaixo do título (não empurra o título -> 1->1.1 seamless) */
   #substDesc {
@@ -610,7 +608,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.31.0</div>
+<div id="versao">v0.32.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1417,9 +1415,9 @@ const EVENTOS = {
   'dialogo1.1B': () => rodarStory([
     { t: 0.0,  fn: iniciarCena11B },                            // some tudo do 1.1A (saída dramática)
     { t: 0.3,  fn: () => c11bTitulo.classList.add('show') },    // "Bases" (rosa) — mesma entrada de "Ácidos"
-    { t: 3.5,  fn: () => stShow('center', '"Todas as bases terminam a fórmula com OH"', 'st-titulo2 st-branco') },
+    { t: 3.2,  fn: () => stShow('center', '"Todas as bases terminam a fórmula com OH"', 'st-credito st-branco') },
     { t: 7.8,  fn: () => c11bFrascos.classList.add('show') },   // frascos das bases (fórmula + nome)
-    { t: 8.0,  fn: () => pausaCurta(2000) },                    // pausa de 2s e volta o áudio
+    { t: 8.2,  fn: () => pausaCurta(2000) },                    // pausa de 2s e volta o áudio
     { t: 11.7, fn: () => pulsarOH() },                          // pulsada com brilho rosa no "OH"
   ]),
   'dialogo1.1C':  () => { /* eventos do diálogo 1.1C */ },
@@ -1529,6 +1527,7 @@ const SUMARIO = [
   { titulo: 'Introdução e tutorial do app', faixa: idxFaixa('dialogo0') },
   { titulo: 'As substâncias inorgânicas',   faixa: idxFaixa('dialogo1') },
   { titulo: 'Identificando ácidos',         faixa: idxFaixa('dialogo1.1A') },
+  { titulo: 'Identificando as bases',       faixa: idxFaixa('dialogo1.1B') },
 ];
 
 SUMARIO.forEach(item => {
