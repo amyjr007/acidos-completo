@@ -748,7 +748,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.42.0</div>
+<div id="versao">v0.43.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2411,19 +2411,23 @@ function tutPulsarLabel() {
   if (gl) { gl.classList.remove('on'); void gl.getBoundingClientRect(); gl.classList.add('on'); }
 }
 function tutArrastarHCl() {
-  // mãozinha aparece em cima do frasco (na posição de descanso) e arrasta até a prateleira
+  // 1) mãozinha aparece EM CIMA do frasco (na posição de descanso, onde o HCl veio de baixo)
   const de = gmToScreen(gmState.restX, gmState.restY);
-  maoMostrar({ x: de.x, y: de.y - 34 });
+  maoMostrar({ x: de.x, y: de.y - 48 });
+  // 2) depois de aparecer, arrasta o frasco + mãozinha juntos até o slot dos ácidos
   const alvoX = SHELF_COLS[0], alvoY = SHELF_ROWS[0];
-  gmTweenTo(alvoX, alvoY, 1600);
-  const para = gmToScreen(alvoX, alvoY);
-  maoMover({ x: para.x, y: para.y - 34 }, 1600);
+  setTimeout(() => {
+    gmTweenTo(alvoX, alvoY, 1400);
+    const para = gmToScreen(alvoX, alvoY);
+    maoMover({ x: para.x, y: para.y - 48 }, 1400);
+  }, 500);
+  // 3) fixa o HCl na prateleira e some a mãozinha
   setTimeout(() => {
     gmActive.innerHTML = '';
-    gmColocarFixo(0, SHELF_CFGS[0][0]);       // HCl fica na prateleira dos ácidos
+    gmColocarFixo(0, SHELF_CFGS[0][0]);
     gmState.atual = null;
     tutorHand.classList.remove('show');
-  }, 1750);
+  }, 2050);
 }
 
 // ---------- Jogo ----------
@@ -2439,7 +2443,7 @@ function montarFilaJogo() {
   return embaralhar(fila);
 }
 function pontuacao() {
-  const per = 10 / gmState.total, pen = per * 0.5;
+  const per = 10 / gmState.total, pen = per * 1.5;   // erro desconta o triplo do valor anterior
   return Math.max(0, Math.min(10, gmState.acertos * per - gmState.erros * pen));
 }
 function atualizarHud() {
