@@ -468,11 +468,14 @@
     color: #f2fbe4; text-shadow: 0 0 20px var(--acid-glow); }
   #gameCard .gc-score small { font-size: 26px; opacity: .6; font-weight: 800; }
   #gameCard .gc-sub { font-size: 15px; font-weight: 600; color: #cfe8a8; opacity: .9; }
-  #gameContinuar { margin-top: 22px; padding: 13px 40px; border: none; border-radius: 999px;
-    background: linear-gradient(145deg, #baf34f, var(--acid-2)); color: #0a1a06;
-    font-size: 17px; font-weight: 800; letter-spacing: 1px; cursor: pointer;
+  #gameCard .gc-btns { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  #gameCard .gc-btns button { padding: 13px 26px; border: none; border-radius: 999px;
+    font-size: 16px; font-weight: 800; letter-spacing: .5px; cursor: pointer; }
+  #gameContinuar { background: linear-gradient(145deg, #baf34f, var(--acid-2)); color: #0a1a06;
     box-shadow: 0 0 22px var(--acid-glow); }
-  #gameContinuar:active { transform: scale(.95); }
+  #gameCard .gc-sec { background: transparent; color: var(--acid);
+    border: 1.5px solid rgba(166,229,52,.55) !important; }
+  #gameCard .gc-btns button:active { transform: scale(.95); }
   /* botão de play em modo "JOGAR" */
   #playBtn.jogar { width: auto; padding: 0 22px; border-radius: 999px; gap: 6px; }
   #playText { display: none; color: #0a1a06; font-size: 16px; font-weight: 900; letter-spacing: 1px; }
@@ -744,7 +747,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.38.0</div>
+<div id="versao">v0.39.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -803,7 +806,10 @@
     <div class="gc-tit">Fim do jogo!</div>
     <div class="gc-score"></div>
     <div class="gc-sub"></div>
-    <button id="gameContinuar">Continuar</button>
+    <div class="gc-btns">
+      <button id="gameTentar" class="gc-sec">Tentar de novo</button>
+      <button id="gameContinuar">Continuar</button>
+    </div>
   </div>
 </div>
 
@@ -2549,6 +2555,7 @@ gameSvg.addEventListener('pointerdown', gmDown);
 gameSvg.addEventListener('pointermove', gmMove);
 gameSvg.addEventListener('pointerup', gmUp);
 gameSvg.addEventListener('pointercancel', gmUp);
+$id('gameTentar').addEventListener('click', () => { comecarJogo(); });
 $id('gameContinuar').addEventListener('click', () => {
   resetJogo();
   const i = idxFaixa('dialogo1.2');
