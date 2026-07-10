@@ -749,7 +749,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.46.0</div>
+<div id="versao">v0.47.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1584,6 +1584,7 @@ const EVENTOS = {
     { t: 13.0, fn: () => c11aFrascos.classList.add('show') },   // frascos (vidros) dos ácidos aparecem
     { t: 13.6, fn: pausaCurta },                                // pausa de 1s e volta ao normal
     { t: 17.0, fn: () => pulsarH() },                           // pulsada rápida com brilho no "H" de cada ácido
+    { t: 22.0, fn: pausaCurta },                                // pausa de 1s e continua
   ]),
   'dialogo1.1B': () => rodarStory([
     { t: 0.0,  fn: iniciarCena11B },                            // some tudo do 1.1A (saída dramática)
