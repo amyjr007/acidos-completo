@@ -1,6 +1,6 @@
 // Service Worker — Audiobook Ácidos
 // Bump CACHE a cada nova versão para forçar atualização no celular.
-const CACHE = 'acidos-v0.18.0';
+const CACHE = 'acidos-v0.19.0';
 
 // Arquivos essenciais (app shell) — pré-carregados na instalação.
 const CORE = [
@@ -8,10 +8,10 @@ const CORE = [
   './index.html',
   './Acido_base.html',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
-  './icon-maskable-512.png',
-  './apple-touch-icon.png',
+  './imagens/icon-192.png',
+  './imagens/icon-512.png',
+  './imagens/icon-maskable-512.png',
+  './imagens/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', e => {

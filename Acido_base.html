@@ -12,8 +12,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ácidos">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="imagens/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="imagens/icon-192.png">
 <style>
   html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; background: #10141d; touch-action: none; }
   #hint {
@@ -141,18 +141,18 @@
 
   /* ---------- Botão Play ---------- */
   #playBtn {
-    position: fixed; right: 18px; bottom: 68px; z-index: 60;
-    width: 66px; height: 66px; border-radius: 50%; border: none;
+    position: fixed; right: 18px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 60;
+    width: 53px; height: 53px; border-radius: 50%; border: none;
     background: linear-gradient(145deg, #b4f04a, var(--acid-2));
-    box-shadow: 0 8px 22px var(--acid-glow);
+    box-shadow: 0 6px 18px var(--acid-glow);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: transform .15s;
   }
   #playBtn:active { transform: scale(.92); }
-  #playBtn > svg:not(#playRing) { width: 30px; height: 30px; fill: #0a1a06; }
+  #playBtn > svg:not(#playRing) { width: 24px; height: 24px; fill: #0a1a06; }
   /* anel que marca o tempo da narração ao redor do play */
   #playRing {
-    position: absolute; left: 50%; top: 50%; width: 82px; height: 82px;
+    position: absolute; left: 50%; top: 50%; width: 66px; height: 66px;
     transform: translate(-50%, -50%) rotate(-90deg); pointer-events: none; overflow: visible;
   }
   #playRing circle { fill: none; stroke-width: 4; }
@@ -302,18 +302,20 @@
     transform: translate(0px, 492px) scale(1.75);
     transition: transform 1.5s cubic-bezier(.4, 0, .2, 1);
   }
-  /* os vidros aparecem depois (t=9) */
-  #shelfInorg .pr-frascos { opacity: 0; transition: opacity .8s ease; }
-  #shelfInorg.frascos-on .pr-frascos { opacity: 1; }
-  /* etiquetas entram uma a uma */
-  #shelfInorg .pr-tag {
+  /* cada prateleira enche junto com sua etiqueta e o "Grupo N" (uma por vez) */
+  #shelfInorg .pr-frascos { opacity: 0; transition: opacity .7s ease; }
+  #shelfInorg .pr-tag, #shelfInorg .pr-grupo {
     opacity: 0; transform: scale(.6); transform-box: fill-box; transform-origin: center;
     transition: opacity .5s ease, transform .55s cubic-bezier(.2, .9, .25, 1.4);
   }
-  #shelfInorg.tag0-on .pr-tag-0,
-  #shelfInorg.tag1-on .pr-tag-1,
-  #shelfInorg.tag2-on .pr-tag-2,
-  #shelfInorg.tag3-on .pr-tag-3 { opacity: 1; transform: none; }
+  #shelfInorg.tier0-on .pr-frascos-0,
+  #shelfInorg.tier1-on .pr-frascos-1,
+  #shelfInorg.tier2-on .pr-frascos-2,
+  #shelfInorg.tier3-on .pr-frascos-3 { opacity: 1; }
+  #shelfInorg.tier0-on .pr-tag-0, #shelfInorg.tier0-on .pr-grupo-0,
+  #shelfInorg.tier1-on .pr-tag-1, #shelfInorg.tier1-on .pr-grupo-1,
+  #shelfInorg.tier2-on .pr-tag-2, #shelfInorg.tier2-on .pr-grupo-2,
+  #shelfInorg.tier3-on .pr-tag-3, #shelfInorg.tier3-on .pr-grupo-3 { opacity: 1; transform: none; }
   /* zoom nos ácidos: escurece o resto e destaca a 1ª prateleira */
   #shelfInorg .pr-dim   { opacity: 0; transition: opacity 1.2s ease; }
   #shelfInorg.zoom .pr-dim   { opacity: .66; }
@@ -324,7 +326,7 @@
   #substTitle {
     position: fixed; left: 0; right: 0; top: 50%; z-index: 42;
     text-align: center; padding: 0 24px;
-    font-family: system-ui, sans-serif; font-weight: 900;
+    font-family: system-ui, sans-serif; font-weight: 900; line-height: 1.12;
     font-size: clamp(30px, 8.5vw, 50px);
     color: var(--acid); text-shadow: 0 0 16px var(--acid-glow);
     transform: translateY(-50%) scale(1); transform-origin: center center;
@@ -335,6 +337,15 @@
   }
   #substTitle.show { opacity: 1; }
   #substTitle.topo { top: 6%; transform: translateY(-50%) scale(.5); }
+  /* descrição logo abaixo do título (não empurra o título -> 1->1.1 seamless) */
+  #substDesc {
+    position: fixed; left: 0; right: 0; top: 61%; z-index: 42;
+    text-align: center; padding: 0 24px;
+    font-family: system-ui, sans-serif; font-weight: 600; color: #eaf7d9;
+    font-size: clamp(19px, 5.2vw, 28px); line-height: 1.3;
+    opacity: 0; pointer-events: none; transition: opacity .5s ease;
+  }
+  #substDesc.show { opacity: 1; }
 
   /* Título-pergunta "O que são Ácidos?" que continua do 1.1 e sobe no dialogo1.2 */
   #tituloAcido {
@@ -509,7 +520,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.18.0</div>
+<div id="versao">v0.19.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -526,6 +537,7 @@
 <!-- Prateleira das substâncias inorgânicas (dialogo1.1) -->
 <div id="shelfInorg" aria-hidden="true"></div>
 <div id="substTitle">Substâncias Inorgânicas</div>
+<div id="substDesc"></div>
 
 <!-- Título-pergunta e imagem com Ken Burns (dialogo1.2) -->
 <div id="tituloAcido"></div>
@@ -1257,20 +1269,19 @@ const EVENTOS = {
     { t: 10.0, fn: () => mostrarImagem('imagens/lab.png') },   // aparece centralizada
     { t: 18.0, fn: esconderImagem },                           // sai
     { t: 22.0, fn: () => stShow('top', 'Dois grupos de substâncias', 'st-parte') },
-    { t: 24.0, fn: () => stShow('center', 'Substâncias Orgânicas', 'st-titulo2') },
-    { t: 26.8, fn: () => stShow('center', 'Que têm o carbono como elemento principal', 'st-desc') },
-    { t: 30.0, fn: stSair },
-    { t: 31.0, fn: () => stShow('center', 'Substâncias Inorgânicas', 'st-titulo2') },
-    { t: 32.7, fn: () => stShow('center', 'Que reúne todas as outras substâncias na natureza', 'st-desc') },
+    { t: 24.0, fn: () => mostrarSubstTitulo('Substâncias Orgânicas') },
+    { t: 26.8, fn: () => mostrarSubstDesc('Que têm o carbono como elemento principal') },
+    { t: 30.0, fn: () => { stSair(); esconderSubstTd(); } },
+    { t: 31.0, fn: () => mostrarSubstTitulo('Substâncias Inorgânicas') },
+    { t: 32.7, fn: () => mostrarSubstDesc('Que reúne todas as outras substâncias na natureza') },
   ]),
   'dialogo1.1':   () => rodarStory([
     { t: 0.0,  fn: iniciarCena11 },                                   // título "Substâncias Inorgânicas" fica na tela
     { t: 2.0,  fn: subirCena11 },                                     // título sobe encolhendo + estante sobe de baixo (até t5)
-    { t: 9.0,  fn: () => shelfEl.classList.add('frascos-on') },       // aparecem os vidros
-    { t: 12.8, fn: () => shelfEl.classList.add('tag0-on') },          // etiqueta ÁCIDOS
-    { t: 14.0, fn: () => shelfEl.classList.add('tag1-on') },          // etiqueta BASES
-    { t: 15.0, fn: () => shelfEl.classList.add('tag2-on') },          // etiqueta SAIS
-    { t: 16.0, fn: () => shelfEl.classList.add('tag3-on') },          // etiqueta ÓXIDOS
+    { t: 12.8, fn: () => shelfEl.classList.add('tier0-on') },         // ÁCIDOS: etiqueta + Grupo 1 + só as vidrarias dos ácidos
+    { t: 14.0, fn: () => shelfEl.classList.add('tier1-on') },         // BASES  + Grupo 2
+    { t: 15.0, fn: () => shelfEl.classList.add('tier2-on') },         // SAIS   + Grupo 3
+    { t: 16.0, fn: () => shelfEl.classList.add('tier3-on') },         // ÓXIDOS + Grupo 4
     { t: 21.0, fn: () => shelfEl.classList.add('zoom') },             // zoom nos ácidos + escurece o resto
     { t: 30.0, fn: fecharCena11 },                                    // some tudo em fade out
     { t: 33.0, fn: () => stShow('center', 'O que são<br><span class="maior">Ácidos?</span>', 'st-pergunta') },
@@ -1564,14 +1575,14 @@ function montarPrateleira() {
   for (let r = 0; r < 4; r++)
     for (let c = 0; c < 5; c++)
       tier[r].push(fnFrasco(COLS[c], ROWS[r], cfgs[r][c], id++, defs));
-  const allFrascos = tier.map(t => t.join('')).join('');
 
   const grads =
     '<linearGradient id="gPost" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7d5029"/><stop offset="0.5" stop-color="#5a3819"/><stop offset="1" stop-color="#3d260f"/></linearGradient>' +
     '<linearGradient id="gBack" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3420"/><stop offset="1" stop-color="#2f1e0d"/></linearGradient>' +
     '<linearGradient id="gFront" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#835529"/><stop offset="1" stop-color="#472c15"/></linearGradient>' +
     '<linearGradient id="gLabel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,255,255,.42)"/><stop offset="0.5" stop-color="rgba(255,255,255,0)"/><stop offset="1" stop-color="rgba(90,70,40,.16)"/></linearGradient>' +
-    '<linearGradient id="gTag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efeee9"/><stop offset="1" stop-color="#c8c7bf"/></linearGradient>';
+    '<linearGradient id="gTag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efeee9"/><stop offset="1" stop-color="#c8c7bf"/></linearGradient>' +
+    '<linearGradient id="gGrupo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4f04a"/><stop offset="1" stop-color="#6dbf1d"/></linearGradient>';
 
   const back = '<rect x="42" y="20" width="516" height="1032" fill="url(#gBack)"/>';
   let planks = '';
@@ -1602,23 +1613,34 @@ function montarPrateleira() {
       '<text x="' + cx + '" y="' + (cy + 9) + '" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="27" font-weight="800" letter-spacing="1.5" fill="#33322b">' + texto + '</text>' +
       '</g>';
   };
-  const tags = '<g class="pr-tags">' +
-    etiqueta(ROWS[0], 'ÁCIDOS', 'pr-tag pr-tag-0') +
-    etiqueta(ROWS[1], 'BASES',  'pr-tag pr-tag-1') +
-    etiqueta(ROWS[2], 'SAIS',   'pr-tag pr-tag-2') +
-    etiqueta(ROWS[3], 'ÓXIDOS', 'pr-tag pr-tag-3') +
-    '</g>';
+  // "Grupo N": tag verde no canto superior direito, identificando cada prateleira.
+  const grupoTag = (base, n, cls) => {
+    const bw = 140, bh = 42, bx = 600 - 18 - bw, by = base - 221, cx = bx + bw / 2, cy = by + bh / 2;
+    return '<g class="' + cls + '">' +
+      '<rect x="' + bx + '" y="' + (by + 4) + '" width="' + bw + '" height="' + bh + '" rx="8" fill="rgba(0,0,0,.35)"/>' +
+      '<rect x="' + bx + '" y="' + by + '" width="' + bw + '" height="' + bh + '" rx="8" fill="url(#gGrupo)" stroke="#2f4d0c" stroke-width="2.5"/>' +
+      '<rect x="' + (bx + 5) + '" y="' + (by + 5) + '" width="' + (bw - 10) + '" height="8" rx="4" fill="rgba(255,255,255,.4)"/>' +
+      '<text x="' + cx + '" y="' + (cy + 8) + '" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="22" font-weight="800" fill="#12250a">Grupo ' + n + '</text>' +
+      '</g>';
+  };
+  const CATS = ['ÁCIDOS', 'BASES', 'SAIS', 'ÓXIDOS'];
+  let tags = '<g class="pr-tags">';
+  for (let r = 0; r < 4; r++)
+    tags += etiqueta(ROWS[r], CATS[r], 'pr-tag pr-tag-' + r) + grupoTag(ROWS[r], r + 1, 'pr-grupo pr-grupo-' + r);
+  tags += '</g>';
 
-  // véu escuro + cópia brilhante da 1ª prateleira (destaque no zoom dos ácidos)
-  // véu escuro simétrico em torno do centro (300,535) p/ não deslocar a origem do scale
+  // frascos separados por prateleira (cada um aparece com sua etiqueta)
+  const frascosGroups = tier.map((t, i) => '<g class="pr-frascos pr-frascos-' + i + '">' + t.join('') + '</g>').join('');
+
+  // véu escuro simétrico em torno do centro (300,535) + cópia brilhante da 1ª prateleira (zoom dos ácidos)
   const dim = '<rect class="pr-dim" x="-200" y="-200" width="1000" height="1470" fill="#05070a"/>';
   const focus = '<g class="pr-focus">' +
-    '<g>' + tier[0].join('') + '</g>' + board(ROWS[0]) + etiqueta(ROWS[0], 'ÁCIDOS', '') +
+    '<g>' + tier[0].join('') + '</g>' + board(ROWS[0]) +
+    etiqueta(ROWS[0], 'ÁCIDOS', '') + grupoTag(ROWS[0], 1, '') +
     '</g>';
 
   const scene = '<g class="pr-scene">' +
-    back + planks +
-    '<g class="pr-frascos">' + allFrascos + '</g>' +
+    back + planks + frascosGroups +
     boards + posts + cornice + tags + dim + focus +
     '</g>';
 
@@ -1628,15 +1650,31 @@ function montarPrateleira() {
   shelfMontada = true;
 }
 
-// ---------- Coreografia da cena do dialogo1.1 ----------
+// ---------- Título/descrição "Substâncias ..." (dialogo1 + 1.1) ----------
 const substTitle = $id('substTitle');
+const substDesc = $id('substDesc');
 
+// usados no dialogo1 (com fade); o título fica sempre centralizado (não é empurrado pela desc)
+function mostrarSubstTitulo(txt) {
+  substTitle.classList.remove('topo');
+  substTitle.innerHTML = txt;
+  substTitle.classList.add('show');
+}
+function mostrarSubstDesc(txt) { substDesc.innerHTML = txt; substDesc.classList.add('show'); }
+function esconderSubstTd() { substTitle.classList.remove('show'); substDesc.classList.remove('show'); }
+
+// ---------- Coreografia da cena do dialogo1.1 ----------
 function iniciarCena11() {
   if (!shelfMontada) montarPrateleira();
   shelfEl.className = '';                 // zera classes (estado inicial: cena embaixo, vazia)
-  substTitle.className = '';
-  void shelfEl.offsetWidth;               // reflow p/ transicionar a partir do estado inicial
-  substTitle.classList.add('show');       // título centralizado (continua o fim do diálogo 1)
+  substDesc.classList.remove('show');     // a descrição do diálogo 1 sai
+  // "Substâncias Inorgânicas" continua do fim do diálogo 1, no MESMO lugar/tamanho (sem transição)
+  substTitle.style.transition = 'none';
+  substTitle.classList.remove('topo');
+  substTitle.innerHTML = 'Substâncias Inorgânicas';
+  substTitle.classList.add('show');
+  void substTitle.offsetWidth;
+  substTitle.style.transition = '';
   shelfEl.classList.add('show');          // container visível; a estante ainda está embaixo
 }
 function subirCena11() {
@@ -1648,8 +1686,9 @@ function fecharCena11() {
   shelfEl.classList.remove('show');
 }
 function resetCena11() {
-  shelfEl.classList.remove('show', 'pousada', 'frascos-on', 'tag0-on', 'tag1-on', 'tag2-on', 'tag3-on', 'zoom');
+  shelfEl.classList.remove('show', 'pousada', 'tier0-on', 'tier1-on', 'tier2-on', 'tier3-on', 'zoom');
   substTitle.classList.remove('show', 'topo');
+  substDesc.classList.remove('show');
 }
 
 // ---------- Coreografia da cena do dialogo1.2 ----------
