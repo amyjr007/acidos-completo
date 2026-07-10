@@ -312,10 +312,13 @@
   #shelfInorg.tier1-on .pr-frascos-1,
   #shelfInorg.tier2-on .pr-frascos-2,
   #shelfInorg.tier3-on .pr-frascos-3 { opacity: 1; }
-  #shelfInorg.tier0-on .pr-tag-0, #shelfInorg.tier0-on .pr-grupo-0,
-  #shelfInorg.tier1-on .pr-tag-1, #shelfInorg.tier1-on .pr-grupo-1,
-  #shelfInorg.tier2-on .pr-tag-2, #shelfInorg.tier2-on .pr-grupo-2,
-  #shelfInorg.tier3-on .pr-tag-3, #shelfInorg.tier3-on .pr-grupo-3 { opacity: 1; transform: none; }
+  /* "Grupo 1..4" aparecem todos juntos (antes das categorias) */
+  #shelfInorg.grupos-on .pr-grupo { opacity: 1; transform: none; }
+  /* categorias (Ácidos, Bases...) aparecem uma por vez, no tempo de cada tier */
+  #shelfInorg.tier0-on .pr-tag-0,
+  #shelfInorg.tier1-on .pr-tag-1,
+  #shelfInorg.tier2-on .pr-tag-2,
+  #shelfInorg.tier3-on .pr-tag-3 { opacity: 1; transform: none; }
   /* zoom nos ácidos: escurece o resto e destaca a 1ª prateleira */
   #shelfInorg .pr-dim   { opacity: 0; transition: opacity 1.2s ease; }
   #shelfInorg.zoom .pr-dim   { opacity: .66; }
@@ -520,7 +523,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.21.0</div>
+<div id="versao">v0.22.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1279,10 +1282,11 @@ const EVENTOS = {
   'dialogo1.1':   () => rodarStory([
     { t: 0.0,  fn: iniciarCena11 },                                   // título "Substâncias Inorgânicas" fica na tela
     { t: 2.0,  fn: subirCena11 },                                     // título sobe encolhendo + estante sobe de baixo (até t5)
-    { t: 12.8, fn: () => shelfEl.classList.add('tier0-on') },         // ÁCIDOS: etiqueta + Grupo 1 + só as vidrarias dos ácidos
-    { t: 14.0, fn: () => shelfEl.classList.add('tier1-on') },         // BASES  + Grupo 2
-    { t: 15.0, fn: () => shelfEl.classList.add('tier2-on') },         // SAIS   + Grupo 3
-    { t: 16.0, fn: () => shelfEl.classList.add('tier3-on') },         // ÓXIDOS + Grupo 4
+    { t: 9.8,  fn: () => shelfEl.classList.add('grupos-on') },        // "Grupo 1..4" centralizados em cada prateleira
+    { t: 12.8, fn: () => shelfEl.classList.add('tier0-on') },         // ÁCIDOS (centralizado) + vidrarias dos ácidos
+    { t: 14.0, fn: () => shelfEl.classList.add('tier1-on') },         // BASES
+    { t: 15.0, fn: () => shelfEl.classList.add('tier2-on') },         // SAIS
+    { t: 16.0, fn: () => shelfEl.classList.add('tier3-on') },         // ÓXIDOS
     { t: 21.0, fn: () => shelfEl.classList.add('zoom') },             // zoom nos ácidos + escurece o resto
     { t: 30.0, fn: fecharCena11 },                                    // some tudo em fade out
     { t: 33.0, fn: () => stShow('center', 'O que são<br><span class="maior">Ácidos?</span>', 'st-pergunta') },
@@ -1604,9 +1608,9 @@ function montarPrateleira() {
     '<rect x="0" y="8" width="600" height="30" rx="4" fill="url(#gFront)"/>' +
     '<rect x="0" y="8" width="600" height="6" fill="#9c6c3a"/>';
 
-  // Etiqueta (placa) da categoria, montada no canto superior esquerdo da prateleira.
+  // Etiqueta (placa) da categoria, centralizada na prateleira, logo abaixo do "Grupo N".
   const etiqueta = (base, texto, cls) => {
-    const bx = 18, bw = 172, bh = 48, by = base - 224, cx = bx + bw / 2, cy = by + bh / 2;
+    const bw = 172, bh = 48, bx = 300 - bw / 2, by = base - 182, cx = bx + bw / 2, cy = by + bh / 2;
     return '<g class="' + cls + '">' +
       '<rect x="' + bx + '" y="' + (by + 4) + '" width="' + bw + '" height="' + bh + '" rx="9" fill="rgba(0,0,0,.35)"/>' +
       '<rect x="' + bx + '" y="' + by + '" width="' + bw + '" height="' + bh + '" rx="9" fill="url(#gTag)" stroke="#34332c" stroke-width="3"/>' +
@@ -1614,9 +1618,9 @@ function montarPrateleira() {
       '<text x="' + cx + '" y="' + (cy + 9) + '" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="27" font-weight="800" letter-spacing="1.5" fill="#33322b">' + texto + '</text>' +
       '</g>';
   };
-  // "Grupo N": tag verde no canto superior direito, identificando cada prateleira.
+  // "Grupo N": tag verde centralizada no topo da prateleira (aparece antes da categoria).
   const grupoTag = (base, n, cls) => {
-    const bw = 140, bh = 42, bx = 600 - 18 - bw, by = base - 221, cx = bx + bw / 2, cy = by + bh / 2;
+    const bw = 140, bh = 42, bx = 300 - bw / 2, by = base - 226, cx = bx + bw / 2, cy = by + bh / 2;
     return '<g class="' + cls + '">' +
       '<rect x="' + bx + '" y="' + (by + 4) + '" width="' + bw + '" height="' + bh + '" rx="8" fill="rgba(0,0,0,.35)"/>' +
       '<rect x="' + bx + '" y="' + by + '" width="' + bw + '" height="' + bh + '" rx="8" fill="url(#gGrupo)" stroke="#2f4d0c" stroke-width="2.5"/>' +
@@ -1687,7 +1691,7 @@ function fecharCena11() {
   shelfEl.classList.remove('show');
 }
 function resetCena11() {
-  shelfEl.classList.remove('show', 'pousada', 'tier0-on', 'tier1-on', 'tier2-on', 'tier3-on', 'zoom');
+  shelfEl.classList.remove('show', 'pousada', 'grupos-on', 'tier0-on', 'tier1-on', 'tier2-on', 'tier3-on', 'zoom');
   substTitle.classList.remove('show', 'topo');
   substDesc.classList.remove('show');
 }
