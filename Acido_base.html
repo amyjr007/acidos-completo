@@ -582,7 +582,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.26.0</div>
+<div id="versao">v0.27.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1373,7 +1373,7 @@ const EVENTOS = {
   'dialogo1.1A': () => rodarStory([
     { t: 0.0,  fn: iniciarCena11A },                            // "Substâncias Inorgânicas" continua no topo; "Vamos começar?" sai em fade
     { t: 2.0,  fn: () => c11aAcidos.classList.add('show') },    // "Ácidos" com o brilho da capa
-    { t: 6.3,  fn: pausaCurta },                                // pausa de 1s e volta o áudio
+    { t: 6.4,  fn: pausaCurta },                                // pausa de 1s e volta o áudio
     { t: 7.0,  fn: () => c11aH2O.classList.add('show') },       // H2O
     { t: 7.8,  fn: () => c11aH2O2.classList.add('show') },      // H2O2 vermelho neon + aviso
     { t: 13.0, fn: () => c11aFrascos.classList.add('show') },   // frascos (vidros) dos ácidos aparecem
