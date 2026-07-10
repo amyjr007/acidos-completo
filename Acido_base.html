@@ -345,6 +345,45 @@
   }
   #substTitle.show { opacity: 1; }
   #substTitle.topo { top: 6%; transform: translateY(-50%) scale(.5); }
+
+  /* ---------- Cena do dialogo1.1A ---------- */
+  #cena11a { position: fixed; inset: 0; z-index: 41; pointer-events: none; }
+  /* "Ácidos" com o mesmo brilho da capa */
+  .c11a-acidos {
+    position: absolute; top: 14%; left: 0; right: 0; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: 1px;
+    font-size: clamp(40px, 13vw, 76px); color: var(--acid);
+    opacity: 0; transform: translateY(24px) scale(.9);
+    transition: opacity .6s ease, transform .6s cubic-bezier(.2, .9, .25, 1.35);
+    animation: pulsarNeon 3s ease-in-out infinite;
+  }
+  .c11a-acidos.show { opacity: 1; transform: none; }
+  /* não-ácidos (H2O, H2O2) do lado esquerdo */
+  .c11a-nao {
+    position: absolute; top: 31%; left: 7%;
+    display: flex; flex-direction: column; gap: 12px;
+    font-family: 'Courier New', monospace; font-weight: 800;
+  }
+  .c11a-nao > div {
+    font-size: clamp(26px, 8vw, 44px); color: #eaf7d9; white-space: nowrap;
+    opacity: 0; transform: translateX(-22px);
+    transition: opacity .5s ease, transform .5s cubic-bezier(.2, .9, .25, 1.3);
+  }
+  .c11a-nao > div.show { opacity: 1; transform: none; }
+  .c11a-nao sub { font-size: .62em; }
+  .c11a-h2o2 {
+    color: #ff4141;
+    text-shadow: 0 0 10px rgba(255, 60, 60, .85), 0 0 24px rgba(255, 30, 30, .6);
+  }
+  .c11a-h2o2 .aviso { margin-left: 10px; -webkit-text-fill-color: initial; }
+  /* frascos de ácidos embaixo */
+  .c11a-frascos {
+    position: absolute; left: 0; right: 0; bottom: 1%;
+    opacity: 0; transform: translateY(34px);
+    transition: opacity .7s ease, transform .7s cubic-bezier(.2, .9, .25, 1.2);
+  }
+  .c11a-frascos.show { opacity: 1; transform: none; }
+  .c11a-frascos svg { display: block; width: 100%; height: auto; max-height: 44vh; margin: 0 auto; }
   /* descrição logo abaixo do título (não empurra o título -> 1->1.1 seamless) */
   #substDesc {
     position: fixed; left: 0; right: 0; top: 61%; z-index: 42;
@@ -528,7 +567,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.23.0</div>
+<div id="versao">v0.24.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -546,6 +585,16 @@
 <div id="shelfInorg" aria-hidden="true"></div>
 <div id="substTitle">Substâncias Inorgânicas</div>
 <div id="substDesc"></div>
+
+<!-- Cena do dialogo1.1A: "Ácidos", não-ácidos (H2O/H2O2) e frascos de ácidos -->
+<div id="cena11a" aria-hidden="true">
+  <div class="c11a-acidos">Ácidos</div>
+  <div class="c11a-nao">
+    <div class="c11a-h2o"></div>
+    <div class="c11a-h2o2"></div>
+  </div>
+  <div class="c11a-frascos"></div>
+</div>
 
 <!-- Título-pergunta e imagem com Ken Burns (dialogo1.2) -->
 <div id="tituloAcido"></div>
@@ -1232,6 +1281,11 @@ const FAIXAS = [
   { id: 'dialogo0.1',   arquivo: 'audios/dialogo0.1.mp3',   titulo: 'Diálogo 0.1' },
   { id: 'dialogo1',     arquivo: 'audios/dialogo1.mp3',     titulo: 'Diálogo 1' },
   { id: 'dialogo1.1',   arquivo: 'audios/dialogo1.1.mp3',   titulo: 'Diálogo 1.1' },
+  { id: 'dialogo1.1A',  arquivo: 'audios/dialogo1.1A.mp3',  titulo: 'Diálogo 1.1A' },
+  { id: 'dialogo1.1B',  arquivo: 'audios/dialogo1.1B.mp3',  titulo: 'Diálogo 1.1B' },
+  { id: 'dialogo1.1C',  arquivo: 'audios/dialogo1.1C.mp3',  titulo: 'Diálogo 1.1C' },
+  { id: 'dialogo1.1D',  arquivo: 'audios/dialogo1.1D.mp3',  titulo: 'Diálogo 1.1D' },
+  { id: 'dialogo1.1E',  arquivo: 'audios/dialogo1.1E.mp3',  titulo: 'Diálogo 1.1E' },
   { id: 'dialogo1.2',   arquivo: 'audios/dialogo1.2.mp3',   titulo: 'Diálogo 1.2' },
   { id: 'dialogo1.3',   arquivo: 'audios/dialogo1.3.mp3',   titulo: 'Diálogo 1.3' },
   { id: 'dialogo1.3A',  arquivo: 'audios/Dialogo1.3A.mp3',  titulo: 'Diálogo 1.3A' },
@@ -1301,6 +1355,17 @@ const EVENTOS = {
     { t: 47.0, fn: stSair },
     { t: 49.0, fn: () => stShow('center', 'Vamos começar?', 'st-titulo2') },
   ]),
+  'dialogo1.1A': () => rodarStory([
+    { t: 0.0, fn: iniciarCena11A },                             // "Substâncias Inorgânicas" continua no topo; "Vamos começar?" sai em fade
+    { t: 2.0, fn: () => c11aAcidos.classList.add('show') },     // "Ácidos" com o brilho da capa
+    { t: 7.0, fn: () => c11aH2O.classList.add('show') },        // H2O à esquerda
+    { t: 7.8, fn: () => c11aH2O2.classList.add('show') },       // H2O2 vermelho neon + aviso
+    { t: 9.7, fn: () => c11aFrascos.classList.add('show') },    // frascos dos ácidos inorgânicos
+  ]),
+  'dialogo1.1B':  () => { /* eventos do diálogo 1.1B */ },
+  'dialogo1.1C':  () => { /* eventos do diálogo 1.1C */ },
+  'dialogo1.1D':  () => { /* eventos do diálogo 1.1D */ },
+  'dialogo1.1E':  () => { /* eventos do diálogo 1.1E */ },
   'dialogo1.2':   () => rodarStory([
     { t: 0.0,  fn: iniciarCena12 },                                          // "O que são Ácidos?" continua do 1.1
     { t: 1.0,  fn: subirTitAcido },                                          // título sobe pro topo (até t2)
@@ -1399,11 +1464,12 @@ const sheet = $id('sheet');
 const sheetOverlay = $id('sheetOverlay');
 
 // Sumário da navegação rápida: cada item pula para o INÍCIO de uma faixa.
-// 'faixa' é o índice em FAIXAS. Edite/adicione itens aqui.
+// Referencia a faixa pelo 'id' (robusto a inserções na FAIXAS).
+const idxFaixa = id => FAIXAS.findIndex(f => f.id === id);
 const SUMARIO = [
-  { titulo: 'Introdução e tutorial do app', faixa: 0 },  // início do dialogo0
-  { titulo: 'As substâncias inorgânicas',   faixa: 2 },  // início do dialogo1
-  { titulo: 'Definição de Arrhenius',       faixa: 5 },  // início do dialogo1.3
+  { titulo: 'Introdução e tutorial do app', faixa: idxFaixa('dialogo0') },
+  { titulo: 'As substâncias inorgânicas',   faixa: idxFaixa('dialogo1') },
+  { titulo: 'Definição de Arrhenius',       faixa: idxFaixa('dialogo1.3') },
 ];
 
 SUMARIO.forEach(item => {
@@ -1456,6 +1522,7 @@ function limparStory() {
   stSair();          // saída animada dos textos (não some do nada)
   esconderImagem();
   resetCena11();
+  resetCena11A();
   resetCena12();
   tutorHand.classList.remove('show', 'tap');
   fecharSumario();
@@ -1562,13 +1629,13 @@ function montarPrateleira() {
     [ { g:'rgba(196,132,52,0.40)', c:'#e0a24e', s:'#8a5a25', t:'liq', l:0.85, f:'HCl',     n:'Ácido Clorídrico' },
       { g:'rgba(150,92,34,0.46)',  c:'#b9772e', s:'#6f4519', t:'liq', l:0.84, f:'H2SO4',   n:'Ácido Sulfúrico' },
       { g:'rgba(96,52,22,0.55)',   c:'#5e3210', s:'#4a2c12', t:'liq', l:0.87, f:'HNO3',    n:'Ácido Nítrico' },
-      { g:'rgba(170,96,36,0.44)',  c:'#b5621f', s:'#7a4718', t:'liq', l:0.82, f:'CH3COOH', n:'Ácido Acético' },
+      { g:'rgba(170,96,36,0.44)',  c:'#b5621f', s:'#7a4718', t:'liq', l:0.82, f:'H2CO3',   n:'Ácido Carbônico' },
       { g:'rgba(196,140,58,0.40)', c:'#d99f45', s:'#8a5a25', t:'liq', l:0.85, f:'H3PO4',   n:'Ácido Fosfórico' } ],
     // Bases — mistura de vidro âmbar e incolor
     [ { g:'rgba(178,110,40,0.44)', c:'#c98a3f', s:'#7a4b1c', t:'liq', l:0.84, f:'NaOH',    n:'Hidróxido de Sódio' },
       { g:'rgba(150,92,34,0.46)',  c:'#b9772e', s:'#6f4519', t:'liq', l:0.84, f:'KOH',     n:'Hidróxido de Potássio' },
       { g:CL,                      c:'#e7ebee', s:'#c3cdd3', t:'liq', l:0.84, f:'Ca(OH)2', n:'Hidróxido de Cálcio' },
-      { g:'rgba(196,140,58,0.40)', c:'#d9b877', s:'#8a5a25', t:'liq', l:0.82, f:'NH3(aq)', n:'Amônia Aquosa' },
+      { g:CL,                      c:'#eef1f3', s:'#c3cdd3', t:'liq', l:0.82, f:'Al(OH)3', n:'Hidróxido de Alumínio' },
       { g:CL,                      c:'#e2e8ec', s:'#c3cdd3', t:'liq', l:0.85, f:'Mg(OH)2', n:'Hidróxido de Magnésio' } ],
     // Sais — vidro incolor, sólidos coloridos
     [ { g:CL, c:'#f1f4f6', s:'#c3cdd3', t:'sol', l:0.75, f:'NaCl',  n:'Cloreto de Sódio' },
@@ -1704,6 +1771,62 @@ function resetCena11() {
   shelfEl.classList.remove('show', 'pousada', 'grupos-on', 'tier0-on', 'tier1-on', 'tier2-on', 'tier3-on', 'zoom');
   substTitle.classList.remove('show', 'topo');
   substDesc.classList.remove('show');
+}
+
+// ---------- Coreografia da cena do dialogo1.1A ----------
+const cena11aEl = $id('cena11a');
+const c11aAcidos = cena11aEl.querySelector('.c11a-acidos');
+const c11aH2O = cena11aEl.querySelector('.c11a-h2o');
+const c11aH2O2 = cena11aEl.querySelector('.c11a-h2o2');
+const c11aFrascos = cena11aEl.querySelector('.c11a-frascos');
+
+// números de átomos subscritos em qualquer fórmula (usar daqui pra frente)
+function fmtFormula(f) { return f.replace(/([A-Za-z\)\]])(\d+)/g, '$1<sub>$2</sub>'); }
+
+let frascosAcidosMontados = false;
+function montarFrascosAcidos() {
+  const ACIDOS = [
+    { f: 'HCl',   n: 'Ácido Clorídrico' },
+    { f: 'H2SO4', n: 'Ácido Sulfúrico' },
+    { f: 'HNO3',  n: 'Ácido Nítrico' },
+    { f: 'H3PO4', n: 'Ácido Fosfórico' },
+    { f: 'H2CO3', n: 'Ácido Carbônico' },
+  ];
+  const cxs = [62, 186, 310, 434, 558], by = 250;
+  const defs = [];
+  let bottles = '', names = '', id = 500;
+  ACIDOS.forEach((a, i) => {
+    const cfg = { g: 'rgba(196,132,52,0.40)', c: '#e0a24e', s: '#8a5a25', t: 'liq', l: 0.85, f: a.f, n: a.n };
+    bottles += fnFrasco(cxs[i], by, cfg, id++, defs);
+    names += '<text x="' + cxs[i] + '" y="284" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" ' +
+             'font-size="17" font-weight="700" fill="#eaf7d9">' + a.n + '</text>';
+  });
+  const gLabel = '<linearGradient id="gLabel" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0" stop-color="rgba(255,255,255,.42)"/><stop offset="0.5" stop-color="rgba(255,255,255,0)"/>' +
+    '<stop offset="1" stop-color="rgba(90,70,40,.16)"/></linearGradient>';
+  c11aFrascos.innerHTML =
+    '<svg viewBox="0 0 620 296" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">' +
+    '<defs>' + gLabel + defs.join('') + '</defs>' + bottles + names + '</svg>';
+  frascosAcidosMontados = true;
+}
+
+function iniciarCena11A() {
+  // "Substâncias Inorgânicas" continua no topo (sem re-animar, vindo do 1.1)
+  substTitle.style.transition = 'none';
+  substTitle.innerHTML = 'Substâncias Inorgânicas';
+  substTitle.classList.add('show', 'topo');
+  void substTitle.offsetWidth;
+  substTitle.style.transition = '';
+  // fórmulas com números subscritos
+  c11aH2O.innerHTML = fmtFormula('H2O');
+  c11aH2O2.innerHTML = fmtFormula('H2O2') + '<span class="aviso">⚠️</span>';
+  if (!frascosAcidosMontados) montarFrascosAcidos();
+}
+function resetCena11A() {
+  c11aAcidos.classList.remove('show');
+  c11aH2O.classList.remove('show');
+  c11aH2O2.classList.remove('show');
+  c11aFrascos.classList.remove('show');
 }
 
 // ---------- Coreografia da cena do dialogo1.2 ----------
