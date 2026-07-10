@@ -520,7 +520,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.19.0</div>
+<div id="versao">v0.20.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1322,9 +1322,9 @@ function tocarFaixa(i) {
   faixaAtual = i;
   faixaTerminou = false;
   const f = FAIXAS[i];
-  player.src = f.arquivo;
-  player.currentTime = 0;
-  player.play();
+  player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
+  const pr = player.play();
+  if (pr && pr.catch) pr.catch(() => {});
   marcarSumario();
   limparStory();
   if (typeof EVENTOS[f.id] === 'function') EVENTOS[f.id]();
