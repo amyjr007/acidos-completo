@@ -803,7 +803,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.73.0</div>
+<div id="versao">v0.74.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3259,9 +3259,12 @@ function rodarStory(cues) {
   limparStory();
   storyCues = cues.map(c => ({ t: c.t, fn: c.fn, feito: false }));
   const tick = () => {
+    storyRAF = requestAnimationFrame(tick);   // reagenda ANTES (resiliente a erro num cue)
     const ct = player.currentTime;
-    for (const c of storyCues) if (!c.feito && ct >= c.t) { c.feito = true; c.fn(); }
-    storyRAF = requestAnimationFrame(tick);
+    for (const c of storyCues) if (!c.feito && ct >= c.t) {
+      c.feito = true;
+      try { c.fn(); } catch (e) { console.error('Erro no cue t=' + c.t, e); }
+    }
   };
   storyRAF = requestAnimationFrame(tick);
 }
