@@ -749,7 +749,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.56.0</div>
+<div id="versao">v0.57.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -928,6 +928,34 @@ for (let i = -5; i <= 5; i++) {
   tile.position.set(i * 3.8, 6, -27.9);
   scene.add(tile);
 }
+
+// ---------- Parede lateral iluminada + quadro branco (sentido +X; ~28 da mesa, igual aos azulejos) ----------
+// parede perpendicular ao eixo X, virada para -X (para a mesa/câmera)
+const paredeX = new THREE.Mesh(new THREE.PlaneGeometry(120, 60), toonMat(0x162512));
+paredeX.position.set(28, 20, 6);
+paredeX.rotation.y = -Math.PI / 2;
+paredeX.receiveShadow = true;
+scene.add(paredeX);
+
+// quadro: moldura escura atrás + tela branca na frente (fog off pra ficar bem branco/iluminado)
+const molduraQ = new THREE.Mesh(new THREE.PlaneGeometry(30, 21),
+  new THREE.MeshBasicMaterial({ color: 0x20301a, fog: false }));
+molduraQ.position.set(27.75, 10.8, 5.6);
+molduraQ.rotation.y = -Math.PI / 2;
+scene.add(molduraQ);
+
+const quadroBranco = new THREE.Mesh(new THREE.PlaneGeometry(26, 17),
+  new THREE.MeshBasicMaterial({ color: 0xf7f9f1, fog: false, side: THREE.DoubleSide }));
+quadroBranco.position.set(27.5, 10.8, 5.6);
+quadroBranco.rotation.y = -Math.PI / 2;
+scene.add(quadroBranco);
+
+// spot que ilumina a parede/quadro (aponta pra +X, não atrapalha a cena principal que olha -Z)
+const spotQuadro = new THREE.SpotLight(0xfff3d8, 2.4, 130, Math.PI / 4.5, 0.55, 1.1);
+spotQuadro.position.set(8, 22, 6);
+spotQuadro.target.position.set(28, 12, 6);
+scene.add(spotQuadro);
+scene.add(spotQuadro.target);
 
 // ---------- Vidro e líquidos ----------
 const glassMat = new THREE.MeshPhongMaterial({
