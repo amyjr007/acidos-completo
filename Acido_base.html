@@ -808,7 +808,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.78.1</div>
+<div id="versao">v0.79.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1195,7 +1195,7 @@ scene.add(waterBeaker);
 // ---------- 3 béqueres com etiquetas ----------
 const reagents = [
   { name: 'HCl', parts: [{ t: 'HCl' }], pos: [1.8, 0.3, 1.5] },
-  { name: 'H₂S', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'S' }], pos: [4.6, 0.3, 1.5] },
+  { name: 'H₂CO₃', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'CO' }, { t: '3', sub: true }], pos: [4.6, 0.3, 1.5] },
   { name: 'H₃PO₄', parts: [{ t: 'H' }, { t: '3', sub: true }, { t: 'PO' }, { t: '4', sub: true }], pos: [7.4, 0.3, 1.5] },
 ];
 
@@ -1367,10 +1367,14 @@ function pipetaEnche() { encherPipeta(); setTimeout(pipetaVaiPraAgua, 1500); }  
 function pipetaVaiPraAgua() { tweenPipPos(pipette.position.x, 3.5, 700, () => tweenPipPos(-3.5, 3.5, 1200)); }  // sobe reto e desloca pra água
 function pipetaExpele() { pipTargetFill = 0; }   // o loop de animação drena e solta gotas na água
 
-// ---- 2ª demonstração (H2S, dialogo1.3A) ----
-function mostrarH2S() {
-  fade3D(reagents[1].beaker, 1, 800);                       // H2S aparece
-  tweenPipPos(4.6, 3.4, 700, () => tweenPipPos(4.6, 1.35, 900));   // pipeta vai e mergulha no H2S
+// ---- 2ª demonstração (H₂CO₃ - ácido carbônico, dialogo1.3A) ----
+function mostrarH2CO3() {
+  const r = reagents[1];
+  if (r.label) r.label.visible = false;    // aparece SEM etiqueta (a fórmula entra no fim do 1.3A)
+  fade3D(r.beaker, 1, 800);                // copo aparece em fade in
+}
+function pipetaVaiMergulhaH2CO3() {
+  tweenPipPos(4.6, 3.4, 500, () => tweenPipPos(4.6, 1.35, 600));   // pipeta vai e mergulha no ácido
 }
 function pipetaEncheSemMover() { encherPipeta(); }           // só enche (o movimento é um cue separado)
 
@@ -1683,7 +1687,8 @@ function animate() {
 
   waterBeaker.children.forEach(c => {
     if (c.geometry && c.geometry.type === 'CircleGeometry' && c.material.opacity > 0.7) {
-      c.position.y = 3.4 * 0.62 + 0.06 + Math.sin(t * 2) * 0.015;
+      // balanço só pra CIMA: mantém folga sobre a tampa do líquido (evita z-fighting/piscar)
+      c.position.y = 3.4 * 0.62 + 0.07 + (Math.sin(t * 2) * 0.5 + 0.5) * 0.02;
     }
   });
 
@@ -2028,13 +2033,15 @@ const EVENTOS = {
   ]),
   'dialogo1.3A':  () => rodarStory([
     { t: 0.0,  fn: iniciarCena13A },                               // some só os H+ (o "Ácido" fica) + câmera pra pos6
-    { t: 1.0,  fn: mostrarH2S },                                   // H2S aparece + pipeta vai e mergulha
-    { t: 4.0,  fn: pipetaEncheSemMover },                          // enche a pipeta
-    { t: 5.6,  fn: pipetaVaiPraAgua },                             // sobe e vai pra cima da água
-    { t: 7.0,  fn: () => { pipetaExpele(); irParaCamera(CAM_7, true, 1500); } },  // expele + aproxima (pos7)
-    { t: 8.0,  fn: mostrarHmais },                                 // os mesmos H+ na água
-    { t: 11.0, fn: () => irParaCamera(CAM_6, true, 1500) },        // volta pra pos6
-    { t: 11.2, fn: () => mostrarRotuloAcido(4.6) },                // "Ácido" em cima do H2S
+    { t: 1.0,  fn: mostrarH2CO3 },                                 // copo (sem etiqueta) aparece em fade in
+    { t: 4.0,  fn: pipetaVaiMergulhaH2CO3 },                       // pipeta vai e mergulha no ácido
+    { t: 5.0,  fn: pipetaEncheSemMover },                          // enche a pipeta (~5s -> 6s)
+    { t: 6.2,  fn: pipetaVaiPraAgua },                             // sobe e vai pra cima da água
+    { t: 8.0,  fn: () => { pipetaExpele(); irParaCamera(CAM_7, true, 1500); } },  // expele (até ~10s) + aproxima (pos7)
+    { t: 12.4, fn: mostrarHmais },                                 // os mesmos H+ na água
+    { t: 15.5, fn: () => irParaCamera(CAM_6, true, 1500) },        // volta pra pos6
+    { t: 21.0, fn: () => stShow('top', 'Ácido Carbônico', 'st-titulo2') },  // nome escrito na tela
+    { t: 23.8, fn: () => mostrarEtiqueta(1) },                     // etiqueta com a fórmula (H₂CO₃) em fade in
   ]),
   'dialogo1.3B':  () => rodarStory([
     { t: 0.0, fn: iniciarCena13B },                                 // fade out "Ácido" + H+ da solução
