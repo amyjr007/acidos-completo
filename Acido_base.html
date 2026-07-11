@@ -633,7 +633,7 @@
 
   /* Título "Definição de Arrhenius" que sobe de baixo e continua no dialogo1.3 */
   #tituloDef {
-    position: fixed; left: 0; right: 0; top: 13%; z-index: 42;
+    position: fixed; left: 0; right: 0; top: 5%; z-index: 42;
     text-align: center; padding: 0 24px;
     font-family: system-ui, sans-serif; font-weight: 900; color: var(--acid);
     text-shadow: 0 0 16px var(--acid-glow);
@@ -646,7 +646,7 @@
 
   /* Definição digitada (dialogo1.3) */
   #defTexto {
-    position: fixed; left: 50%; top: 53%; z-index: 41;
+    position: fixed; left: 50%; top: 30%; z-index: 41;
     transform: translate(-50%, -50%); text-align: center;
     width: min(88vw, 620px); box-sizing: border-box; padding: 0 6px;
     font-family: system-ui, sans-serif; font-weight: 700; color: #eaf7d9;
@@ -754,7 +754,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.62.0</div>
+<div id="versao">v0.63.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1695,7 +1695,7 @@ const EVENTOS = {
   'dialogo1.2':   () => rodarStory([
     // ----- abertura nova: some tudo -> câmera vai pro quadro -> "Ácido" verde no topo -----
     { t: 2.0,  fn: limparTela12 },                                           // some tudo da tela
-    { t: 5.0,  fn: () => irParaCamera({ theta: -1.565, phi: 1.534, dist: 7.99, target: [15.94, 11.16, 5.76] }, true, 2000) },  // câmera sai da posição atual e chega no quadro em ~7s
+    { t: 5.0,  fn: () => irParaCamera(CAM_2, true, 2000) },                 // câmera vai pra posição 2 (quadro), chega em ~7s
     { t: 7.0,  fn: () => stShow('top', 'Ácido', 'st-titulo2') },  // "Ácido" verde acid (tema) no topo, sobre o slide
     // ----- cena antiga (re-cronometrada) -----
     { t: 13.0, fn: () => stShow('center', '"Azedo"', 'st-titulo2') },        // sentido de "ácido" = azedo
@@ -1727,8 +1727,11 @@ let jogarPronto = false;    // true quando o 1.1E acaba: o play vira "JOGAR"
 
 const $id = s => document.getElementById(s);
 
-// câmera padrão (vista de fundo do lab, antes da virada pro quadro no 1.2)
-const CAM_PADRAO = { theta: -0.012, phi: 1.534, dist: 9.03, target: [0.32, 10.93, 0.42] };
+// posições de câmera nomeadas
+const CAM_1 = { theta: -0.012, phi: 1.534, dist: 9.03,  target: [0.32, 10.93, 0.42] };   // posição 1 — vista padrão do lab
+const CAM_2 = { theta: -1.565, phi: 1.534, dist: 7.99,  target: [15.94, 11.16, 5.76] };  // posição 2 — quadro/slide
+const CAM_3 = { theta: 0.043,  phi: 1.534, dist: 21.93, target: [-0.84, 1.91, -1.62] };  // posição 3
+const CAM_PADRAO = CAM_1;
 
 function tocarFaixa(i) {
   if (i < 0 || i >= FAIXAS.length) return;
