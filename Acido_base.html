@@ -687,6 +687,19 @@
   #tutorHand.tap .mao { animation: maoTap .45s ease; }
   @keyframes maoTap { 0%, 100% { transform: scale(1); } 42% { transform: scale(.68); } }
 
+  /* ---------- Mãozinha de OK (dialogo1.3) ---------- */
+  #okHand {
+    position: fixed; left: 50%; top: 56%; z-index: 80; pointer-events: none;
+    font-size: 66px; opacity: 0; transform: translate(-50%, -50%) scale(0);
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .55));
+  }
+  #okHand.show { animation: okPop .55s cubic-bezier(.2, .9, .25, 1.5) forwards; }
+  @keyframes okPop {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(-18deg); }
+    60%  { opacity: 1; transform: translate(-50%, -50%) scale(1.22) rotate(6deg); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
+  }
+
   /* ---------- Painel de coordenadas da câmera (tecla C) ---------- */
   #camCoords {
     position: fixed; top: 62px; left: 14px; z-index: 95;
@@ -754,7 +767,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.63.0</div>
+<div id="versao">v0.64.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -837,6 +850,9 @@
 
 <!-- Mãozinha do tutorial (dialogo0.1) -->
 <div id="tutorHand"><span class="mao">&#128070;</span></div>
+
+<!-- Mãozinha de OK (dialogo1.3, fim da demonstração) -->
+<div id="okHand">&#128077;</div>
 
 <button id="playBtn" aria-label="Reproduzir / pausar narração">
   <svg id="playRing" viewBox="0 0 82 82" aria-hidden="true">
@@ -1009,12 +1025,13 @@ const glassMat = new THREE.MeshPhongMaterial({
 
 function makeBeaker(radius, height, liquidColor, liquidLevel, liquidOpacity = 0.65) {
   const g = new THREE.Group();
+  const gm = glassMat.clone();   // vidro por-instância (permite fade individual)
 
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius * 0.96, height, 40, 1, true), glassMat);
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius * 0.96, height, 40, 1, true), gm);
   body.position.y = height / 2;
   g.add(body);
 
-  const bottom = new THREE.Mesh(new THREE.CircleGeometry(radius * 0.96, 40), glassMat);
+  const bottom = new THREE.Mesh(new THREE.CircleGeometry(radius * 0.96, 40), gm);
   bottom.rotation.x = -Math.PI / 2;
   bottom.position.y = 0.02;
   g.add(bottom);
@@ -1125,6 +1142,7 @@ reagents.forEach(r => {
   b.position.set(...r.pos);
   b.traverse(o => { if (o.isMesh) o.castShadow = true; });
   scene.add(b);
+  r.beaker = b;
 });
 
 // sombra fake suave sob os béqueres (cartoon)
@@ -1134,9 +1152,10 @@ function softShadow(x, z, r) {
   m.rotation.x = -Math.PI / 2;
   m.position.set(x, 0.31, z);
   scene.add(m);
+  return m;
 }
 softShadow(-3.5, 1.5, 2.0);
-reagents.forEach(r => softShadow(r.pos[0], r.pos[2], 1.4));
+reagents.forEach(r => { r.shadow = softShadow(r.pos[0], r.pos[2], 1.4); });
 
 // ---------- Pipeta ----------
 const PLANE_Z = 1.5;
@@ -1216,6 +1235,102 @@ function dropFloorY(x) {
   if (Math.abs(x - (-3.5)) < 1.4) return WATER_SURF; // água
   for (const r of reagents) if (Math.abs(x - r.pos[0]) < 0.95) return ACID_SURF;
   return 0.36; // bancada
+}
+
+// ================= Demonstração da ionização (dialogo1.3) =================
+// fade in/out de um objeto 3D respeitando a opacidade base de cada material
+function fade3D(obj, dir, ms, onEnd) {
+  const mats = [];
+  obj.traverse(o => {
+    if (!o.material) return;
+    (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => {
+      if (m.userData._baseOp == null) m.userData._baseOp = m.opacity;
+      m.transparent = true;
+      if (mats.indexOf(m) < 0) mats.push(m);
+    });
+  });
+  obj.visible = true;
+  const t0 = performance.now();
+  (function step(now) {
+    const k = Math.min(1, (now - t0) / ms);
+    mats.forEach(m => { m.opacity = m.userData._baseOp * (dir ? k : 1 - k); });
+    if (k < 1) requestAnimationFrame(step);
+    else { mats.forEach(m => { m.opacity = m.userData._baseOp * dir; }); if (!dir) obj.visible = false; if (onEnd) onEnd(); }
+  })(t0);
+}
+// esconde os 3 ácidos da bancada (+ sombras) e a pipeta
+function esconderAcidosBancada() {
+  reagents.forEach(r => { if (r.beaker) r.beaker.visible = false; if (r.shadow) r.shadow.visible = false; });
+  pipette.visible = false;
+}
+// restaura tudo (usado ao voltar pra antes da virada de câmera)
+function mostrarAcidosBancada() {
+  reagents.forEach(r => {
+    if (r.beaker) { r.beaker.visible = true; r.beaker.traverse(o => { if (o.material && o.material.userData._baseOp != null) o.material.opacity = o.material.userData._baseOp; }); }
+    if (r.shadow) r.shadow.visible = true;
+  });
+  pipette.visible = true; pipette.traverse(o => { if (o.material && o.material.userData._baseOp != null) o.material.opacity = o.material.userData._baseOp; });
+  resetDemo13();
+}
+// fade in só do HCl + pipeta, nas posições atuais (dialogo1.3, t21)
+function mostrarHClPipeta() {
+  const hcl = reagents[0];
+  pipette.position.set(1.8, 3.3, PLANE_Z);
+  pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
+  if (hcl.shadow) fade3D(hcl.shadow, 1, 700);
+  fade3D(hcl.beaker, 1, 800);
+  fade3D(pipette, 1, 800);
+}
+// tweens da pipeta
+function tweenPipPos(x, y, ms, onEnd) {
+  const sx = pipette.position.x, sy = pipette.position.y, t0 = performance.now();
+  (function step(now) {
+    const k = Math.min(1, (now - t0) / ms), e = k < .5 ? 4*k*k*k : 1 - Math.pow(-2*k+2, 3)/2;
+    pipette.position.x = sx + (x - sx) * e; pipette.position.y = sy + (y - sy) * e;
+    if (k < 1) requestAnimationFrame(step); else if (onEnd) onEnd();
+  })(t0);
+}
+function tweenPipFill(to, ms, onEnd) {
+  const from = pipFill, t0 = performance.now();
+  (function step(now) {
+    const k = Math.min(1, (now - t0) / ms);
+    pipFill = from + (to - from) * k; pipTargetFill = pipFill;
+    if (k < 1) requestAnimationFrame(step); else if (onEnd) onEnd();
+  })(t0);
+}
+// mergulha (t24) -> enche (t25.6) -> sobe e vai pra água -> expele (t29)
+function pipetaMergulha() { tweenPipPos(1.8, 1.35, 1100); }
+function pipetaEnche() { pipLiquid.material.color.setHex(0xdcedf7); tweenPipFill(0.72, 1300, () => setTimeout(pipetaVaiPraAgua, 200)); }
+function pipetaVaiPraAgua() { tweenPipPos(1.8, 3.5, 700, () => tweenPipPos(-3.5, 3.5, 1200)); }
+function pipetaExpele() { pipTargetFill = 0; }   // o loop de animação drena e solta gotas na água
+
+// H+ flutuando na água (t34)
+const hmaisSprites = [];
+let hmaisTex = null;
+function mostrarHmais() {
+  if (!hmaisTex) {
+    const cv = document.createElement('canvas'); cv.width = 256; cv.height = 256;
+    const x = cv.getContext('2d');
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.shadowColor = 'rgba(166,229,52,0.9)'; x.shadowBlur = 24; x.fillStyle = '#c6ff5a';
+    x.font = 'bold 150px system-ui, sans-serif'; x.fillText('H', 108, 152);
+    x.font = 'bold 92px system-ui, sans-serif'; x.fillText('+', 202, 98);
+    hmaisTex = new THREE.CanvasTexture(cv);
+  }
+  for (let i = 0; i < 6; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: hmaisTex, transparent: true, opacity: 0, depthTest: false, fog: false }));
+    const sc = 0.8 + Math.random() * 0.5; s.scale.set(sc, sc, sc);
+    s.position.set(-3.5 + (Math.random() - 0.5) * 1.8, WATER_SURF + 0.15 + Math.random() * 0.35, 1.5 + (Math.random() - 0.5) * 0.9);
+    s.userData = { phase: Math.random() * 6.28, base: s.position.y };
+    scene.add(s); hmaisSprites.push(s);
+  }
+}
+function limparHmais() { hmaisSprites.forEach(s => scene.remove(s)); hmaisSprites.length = 0; }
+function resetDemo13() {
+  limparHmais();
+  drops.forEach(d => scene.remove(d.mesh)); drops.length = 0;
+  pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
+  pipette.position.set(1.8, 3.3, PLANE_Z);
 }
 
 // arraste da pipeta (restrito ao plano dos vidros)
@@ -1478,6 +1593,12 @@ function animate() {
     }
   }
 
+  // H+ flutuando na água (fade in + bobbing)
+  for (const s of hmaisSprites) {
+    if (s.material.opacity < 0.95) s.material.opacity = Math.min(0.95, s.material.opacity + dt * 1.2);
+    s.position.y = s.userData.base + Math.sin(t * 1.5 + s.userData.phase) * 0.18;
+  }
+
   renderer.render(scene, camera);
 }
 animate();
@@ -1696,7 +1817,7 @@ const EVENTOS = {
     // ----- abertura nova: some tudo -> câmera vai pro quadro -> "Ácido" verde no topo -----
     { t: 2.0,  fn: limparTela12 },                                           // some tudo da tela
     { t: 5.0,  fn: () => irParaCamera(CAM_2, true, 2000) },                 // câmera vai pra posição 2 (quadro), chega em ~7s
-    { t: 7.0,  fn: () => stShow('top', 'Ácido', 'st-titulo2') },  // "Ácido" verde acid (tema) no topo, sobre o slide
+    { t: 7.0,  fn: () => { stShow('top', 'Ácido', 'st-titulo2'); esconderAcidosBancada(); } },  // "Ácido" no topo + esconde ácidos/pipeta ao chegar na pos2
     // ----- cena antiga (re-cronometrada) -----
     { t: 13.0, fn: () => stShow('center', '"Azedo"', 'st-titulo2') },        // sentido de "ácido" = azedo
     { t: 14.7, fn: stSair },                                                 // some o "Azedo"
@@ -1710,8 +1831,16 @@ const EVENTOS = {
     { t: 46.0, fn: subirDefinicao },                                        // imagem sobe e sai, empurrada por "Definição de Arrhenius" (PLACEHOLDER - confirmar tempo)
   ]),
   'dialogo1.3':   () => rodarStory([
-    { t: 0.0, fn: iniciarCena13 },                                  // "Definição de Arrhenius" continua no topo
-    { t: 1.6, fn: () => digitarDef(DEF_ARRHENIUS, 1.6, 10.0) },     // digita a definição (H+ sobrescrito) até t10
+    { t: 0.0,  fn: iniciarCena13 },                                 // "Definição de Arrhenius" continua no topo
+    { t: 1.6,  fn: () => digitarDef(DEF_ARRHENIUS, 1.6, 10.0) },    // digita a definição (H+ sobrescrito) até t10
+    { t: 15.0, fn: () => { esconderAcidosBancada(); irParaCamera(CAM_3, true, 2000); } },  // câmera pra posição 3 (bancada)
+    { t: 21.0, fn: mostrarHClPipeta },                              // HCl + pipeta em fade in (posições atuais)
+    { t: 24.0, fn: pipetaMergulha },                               // pipeta mergulha no ácido
+    { t: 25.6, fn: pipetaEnche },                                  // enche (depois sobe e vai pra cima da água)
+    { t: 29.0, fn: pipetaExpele },                                 // expele o líquido na água
+    { t: 32.0, fn: () => irParaCamera(CAM_4, true, 1500) },        // câmera pra posição 4 (close na água)
+    { t: 34.0, fn: mostrarHmais },                                 // H+ (potência) flutuando na água
+    { t: 35.8, fn: () => { maoOk(); playSfx('funfare'); } },       // mãozinha de OK + funfare (applause quando o arquivo existir)
   ]),
   'dialogo1.3A':  () => { /* eventos do diálogo 1.3A */ },
   'dialogo1.3B':  () => { /* eventos do diálogo 1.3B */ },
@@ -1731,6 +1860,7 @@ const $id = s => document.getElementById(s);
 const CAM_1 = { theta: -0.012, phi: 1.534, dist: 9.03,  target: [0.32, 10.93, 0.42] };   // posição 1 — vista padrão do lab
 const CAM_2 = { theta: -1.565, phi: 1.534, dist: 7.99,  target: [15.94, 11.16, 5.76] };  // posição 2 — quadro/slide
 const CAM_3 = { theta: 0.043,  phi: 1.534, dist: 21.93, target: [-0.84, 1.91, -1.62] };  // posição 3
+const CAM_4 = { theta: -0.04,  phi: 1.534, dist: 14.6,  target: [-3.07, 2.56, -3.39] };  // posição 4 (água, close)
 const CAM_PADRAO = CAM_1;
 
 function tocarFaixa(i) {
@@ -1740,8 +1870,8 @@ function tocarFaixa(i) {
   jogarPronto = false;
   const pb = $id('playBtn'); pb.classList.remove('jogar'); pb.style.display = '';
   if (typeof resetJogo === 'function') resetJogo();
-  // volta pra vista padrão se for um diálogo ANTERIOR à virada de câmera (1.2)
-  if (i < idxFaixa('dialogo1.2')) irParaCamera(CAM_PADRAO, false);
+  // volta pra vista padrão (e restaura os ácidos) se for um diálogo ANTERIOR à virada de câmera (1.2)
+  if (i < idxFaixa('dialogo1.2')) { irParaCamera(CAM_PADRAO, false); if (typeof mostrarAcidosBancada === 'function') mostrarAcidosBancada(); }
   const f = FAIXAS[i];
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
@@ -1885,6 +2015,7 @@ function limparStory() {
   resetCena11E();
   resetCena12();
   tutorHand.classList.remove('show', 'tap');
+  $id('okHand').classList.remove('show');
   fecharSumario();
 }
 
@@ -2391,6 +2522,8 @@ const sfx = {
   right: new Audio('audios/right.mp3'),
   error: new Audio('audios/error.mp3'),
   statistics: new Audio('audios/statistics.mp3'),
+  funfare: new Audio('audios/funfare.mp3'),
+  // applause: new Audio('audios/applause.mp3'),   // (arquivo ainda não existe)
 };
 function playSfx(name) {
   const a = sfx[name]; if (!a) return;
@@ -2570,6 +2703,7 @@ function irParaMinigame() {
   player.pause();
   limparStory();
   irParaCamera(CAM_PADRAO, false);             // vista padrão (o minigame é anterior à virada)
+  mostrarAcidosBancada();
   faixaAtual = idxFaixa('dialogo1.1E');
   faixaTerminou = true;
   marcarSumario();
@@ -2803,12 +2937,19 @@ function subirDefinicao() {
 }
 // início do 1.3: título "Definição de Arrhenius" já no topo (continua do 1.2), sem re-animar
 function iniciarCena13() {
+  if (typeof resetDemo13 === 'function') resetDemo13();   // limpa pipeta/H+/gotas pra replay
+  $id('okHand').classList.remove('show');
   tituloDefEl.style.transition = 'none';
   tituloDefEl.classList.add('show', 'subiu');
   void tituloDefEl.offsetWidth;
   tituloDefEl.style.transition = '';
   defTextoEl.classList.remove('show');
   defTextoEl.innerHTML = '';
+}
+// mãozinha de OK (fim da demonstração do 1.3)
+function maoOk() {
+  const el = $id('okHand');
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
 }
 // H+ vira sobrescrito; caret pisca enquanto digita
 function montarDef(s, digitando) {
