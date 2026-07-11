@@ -749,7 +749,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.55.0</div>
+<div id="versao">v0.56.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2518,9 +2518,22 @@ function proximoFrasco() {
   gmEntrarDeBaixo(it.cat, it.cfg);
   atualizarHud();
 }
+function voltarAoDescanso() {
+  gmState.avaliando = true;
+  const rx = gmState.restX == null ? 300 : gmState.restX;
+  const ry = gmState.restY == null ? 535 : gmState.restY;
+  gmTweenTo(rx, ry, 340, () => { gmState.avaliando = false; });
+}
 function avaliarSolta() {
   if (!gmState.atual) return;
   const cat = gmState.atual.cat, y = gmActive._y;
+  // soltou FORA de qualquer prateleira? (acima da 1ª ou na área de descanso embaixo)
+  // -> volta pra posição inicial, SEM punição (não conta como óxidos)
+  const ry = gmState.restY == null ? 1250 : gmState.restY;
+  const trayCut = (SHELF_ROWS[3] + ry) / 2;      // meio do caminho entre óxidos e o descanso
+  const topCut = SHELF_ROWS[0] - 150;
+  if (y > trayCut || y < topCut) { voltarAoDescanso(); return; }
+  // dentro de uma prateleira: encaixa na mais próxima e avalia
   let row = 0, best = 1e9;
   for (let r = 0; r < 4; r++) { const d = Math.abs(y - SHELF_ROWS[r]); if (d < best) { best = d; row = r; } }
   gmState.avaliando = true;
