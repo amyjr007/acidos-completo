@@ -754,7 +754,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.61.0</div>
+<div id="versao">v0.62.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -942,15 +942,54 @@ paredeX.rotation.y = -Math.PI / 2;
 paredeX.receiveShadow = true;
 scene.add(paredeX);
 
-// quadro: moldura escura atrás + tela branca na frente (fog off pra ficar bem branco/iluminado)
+// textura de "slide" (tema verde do app + detalhes de fundo estilo PowerPoint)
+function slideTexture() {
+  const cv = document.createElement('canvas');
+  cv.width = 1024; cv.height = 680;
+  const x = cv.getContext('2d');
+  // fundo do tema (gradiente verde escuro, igual à capa)
+  const g = x.createLinearGradient(0, 0, 0, 680);
+  g.addColorStop(0, '#0c1c0b'); g.addColorStop(0.55, '#0a160a'); g.addColorStop(1, '#050f06');
+  x.fillStyle = g; x.fillRect(0, 0, 1024, 680);
+  // brilho radial (acid) no topo
+  const rg = x.createRadialGradient(512, 130, 20, 512, 130, 560);
+  rg.addColorStop(0, 'rgba(166,229,52,0.18)'); rg.addColorStop(1, 'rgba(166,229,52,0)');
+  x.fillStyle = rg; x.fillRect(0, 0, 1024, 680);
+  // moldura interna fina (acid)
+  x.strokeStyle = 'rgba(166,229,52,0.55)'; x.lineWidth = 6;
+  x.strokeRect(26, 26, 972, 628);
+  // barra de destaque embaixo (acid)
+  const bb = x.createLinearGradient(0, 0, 1024, 0);
+  bb.addColorStop(0, '#6dbf1d'); bb.addColorStop(1, '#a6e534');
+  x.fillStyle = bb; x.fillRect(70, 592, 884, 12);
+  // hexágonos (moléculas) decorativos nos cantos
+  function hexa(cx, cy, r) {
+    x.beginPath();
+    for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3, px = cx + r * Math.cos(a), py = cy + r * Math.sin(a); i ? x.lineTo(px, py) : x.moveTo(px, py); }
+    x.closePath(); x.stroke();
+  }
+  x.strokeStyle = 'rgba(166,229,52,0.22)'; x.lineWidth = 4;
+  hexa(118, 150, 46); hexa(178, 214, 34); hexa(912, 520, 46); hexa(852, 470, 32);
+  // equações químicas esmaecidas (fundo)
+  x.fillStyle = 'rgba(150,214,60,0.14)'; x.font = "bold 30px 'Courier New', monospace";
+  x.fillText('HCl → H⁺ + Cl⁻', 90, 470);
+  x.fillText('H₂SO₄ → 2H⁺ + SO₄²⁻', 90, 512);
+  x.fillStyle = 'rgba(150,214,60,0.12)';
+  x.fillText('pH < 7', 810, 200);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.anisotropy = 8;
+  return tex;
+}
+
+// quadro-slide: moldura escura atrás + slide (tema) na frente
 const molduraQ = new THREE.Mesh(new THREE.PlaneGeometry(30, 21),
-  new THREE.MeshBasicMaterial({ color: 0x20301a, fog: false }));
+  new THREE.MeshBasicMaterial({ color: 0x16250f, fog: false }));
 molduraQ.position.set(27.75, 10.8, 5.6);
 molduraQ.rotation.y = -Math.PI / 2;
 scene.add(molduraQ);
 
 const quadroBranco = new THREE.Mesh(new THREE.PlaneGeometry(26, 17),
-  new THREE.MeshBasicMaterial({ color: 0xa8946a, fog: false, side: THREE.DoubleSide }));  // bege escuro
+  new THREE.MeshBasicMaterial({ map: slideTexture(), fog: false, side: THREE.DoubleSide }));
 quadroBranco.position.set(27.5, 10.8, 5.6);
 quadroBranco.rotation.y = -Math.PI / 2;
 scene.add(quadroBranco);
@@ -1657,7 +1696,7 @@ const EVENTOS = {
     // ----- abertura nova: some tudo -> câmera vai pro quadro -> "Ácido" verde no topo -----
     { t: 2.0,  fn: limparTela12 },                                           // some tudo da tela
     { t: 5.0,  fn: () => irParaCamera({ theta: -1.565, phi: 1.534, dist: 7.99, target: [15.94, 11.16, 5.76] }, true, 2000) },  // câmera sai da posição atual e chega no quadro em ~7s
-    { t: 7.0,  fn: () => stShow('top', 'Ácido', 'st-titulo2 st-verdeescuro') },  // "Ácido" verde escuro no topo (nova posição = novo fundo)
+    { t: 7.0,  fn: () => stShow('top', 'Ácido', 'st-titulo2') },  // "Ácido" verde acid (tema) no topo, sobre o slide
     // ----- cena antiga (re-cronometrada) -----
     { t: 13.0, fn: () => stShow('center', '"Azedo"', 'st-titulo2') },        // sentido de "ácido" = azedo
     { t: 14.7, fn: stSair },                                                 // some o "Azedo"
