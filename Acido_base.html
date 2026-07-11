@@ -767,7 +767,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.66.0</div>
+<div id="versao">v0.67.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1351,6 +1351,18 @@ function mostrarRotuloAcido(x) {
   (function step(now) { const k = Math.min(1, (now - t0) / 500); rotuloAcidoSprite.material.opacity = 0.98 * k; if (k < 1) requestAnimationFrame(step); })(t0);
 }
 function limparRotuloAcido() { if (rotuloAcidoSprite) rotuloAcidoSprite.visible = false; }
+function esconderRotuloFade() {
+  if (!rotuloAcidoSprite || !rotuloAcidoSprite.visible) return;
+  const from = rotuloAcidoSprite.material.opacity, t0 = performance.now();
+  (function step(now) { const k = Math.min(1, (now - t0) / 500); rotuloAcidoSprite.material.opacity = from * (1 - k); if (k < 1) requestAnimationFrame(step); else rotuloAcidoSprite.visible = false; })(t0);
+}
+function esconderHmaisFade() { hmaisSprites.forEach(s => s.userData.fadeOut = true); }
+
+// demonstração interativa (dialogo1.3B): o usuário enche e derrama a pipeta
+let demoInterativo = { ativo: false, encheu: false, derramou: false };
+function pipetaVaiParaH3PO4() {
+  tweenPipPos(7.4, 3.4, 1000, () => { demoInterativo.ativo = true; });   // libera a interação ao chegar
+}
 
 function resetDemo13() {
   limparHmais(); limparRotuloAcido();
@@ -1619,11 +1631,31 @@ function animate() {
     }
   }
 
-  // H+ flutuando DENTRO da solução (fade in + bobbing suave)
-  for (const s of hmaisSprites) {
-    if (s.material.opacity < 0.95) s.material.opacity = Math.min(0.95, s.material.opacity + dt * 1.2);
+  // H+ flutuando DENTRO da solução (fade in/out + bobbing suave)
+  for (let i = hmaisSprites.length - 1; i >= 0; i--) {
+    const s = hmaisSprites[i];
+    if (s.userData.fadeOut) {
+      s.material.opacity -= dt * 1.6;
+      if (s.material.opacity <= 0) { scene.remove(s); hmaisSprites.splice(i, 1); continue; }
+    } else if (s.material.opacity < 0.95) {
+      s.material.opacity = Math.min(0.95, s.material.opacity + dt * 1.2);
+    }
     s.position.y = s.userData.base + Math.sin(t * 1.3 + s.userData.phase) * s.userData.amp;
     s.position.x += Math.sin(t * 0.7 + s.userData.phase) * dt * 0.12;
+  }
+
+  // demonstração interativa (1.3B): detecta encher e derramar a pipeta
+  if (demoInterativo.ativo) {
+    const fid = (typeof FAIXAS !== 'undefined' && FAIXAS[faixaAtual]) ? FAIXAS[faixaAtual].id : '';
+    if (fid === 'dialogo1.3B' || fid === 'dialogo1.3B1') {
+      if (!demoInterativo.encheu && pipFill > 0.55) {
+        demoInterativo.encheu = true;
+        if (typeof onEncheuPipeta === 'function') onEncheuPipeta();
+      } else if (demoInterativo.encheu && !demoInterativo.derramou && pipFill < 0.05 && Math.abs(pipette.position.x - (-3.5)) < 1.6) {
+        demoInterativo.derramou = true; demoInterativo.ativo = false;
+        if (typeof onDerramouPipeta === 'function') onDerramouPipeta();
+      }
+    }
   }
 
   renderer.render(scene, camera);
@@ -1881,9 +1913,17 @@ const EVENTOS = {
     { t: 11.0, fn: () => irParaCamera(CAM_6, true, 1500) },        // volta pra pos6
     { t: 11.2, fn: () => mostrarRotuloAcido(4.6) },                // "Ácido" em cima do H2S
   ]),
-  'dialogo1.3B':  () => { /* eventos do diálogo 1.3B */ },
-  'dialogo1.3B1': () => { /* eventos do diálogo 1.3B1 */ },
-  'dialogo1.3B2': () => { /* eventos do diálogo 1.3B2 */ },
+  'dialogo1.3B':  () => rodarStory([
+    { t: 0.0, fn: iniciarCena13B },                                 // fade out "Ácido" + H+ da solução
+    { t: 1.0, fn: () => { fade3D(reagents[2].beaker, 1, 800); irParaCamera(CAM_8, true, 1500); } },  // H3PO4 aparece + câmera pos8
+    { t: 9.0, fn: pipetaVaiParaH3PO4 },                             // pipeta vai pra cima do H3PO4 (libera a interação)
+  ]),
+  'dialogo1.3B1': () => { /* toca ao encher a pipeta; sem coreografia */ },
+  'dialogo1.3B2': () => rodarStory([
+    { t: 0.0, fn: () => { irParaCamera(CAM_7, true, 1500); mostrarHmais(); } },  // câmera pos9 (=pos7) + H+ ao mesmo tempo
+    { t: 5.0, fn: () => irParaCamera(CAM_8, true, 1500) },          // volta pra posição anterior (pos8)
+    { t: 6.0, fn: () => mostrarRotuloAcido(7.4) },                  // "Ácido" em cima do H3PO4
+  ]),
 };
 
 const player = new Audio();
@@ -1901,7 +1941,8 @@ const CAM_3 = { theta: 0.043,  phi: 1.534, dist: 21.93, target: [-0.84, 1.91, -1
 const CAM_4 = { theta: -0.04,  phi: 1.534, dist: 14.6,  target: [-3.07, 2.56, -3.39] };  // posição 4 (água, close)
 const CAM_5 = { theta: -0.003, phi: 1.534, dist: 19.36, target: [-1.11, 3.25, -3.23] };  // posição 5
 const CAM_6 = { theta: -0.062, phi: 1.534, dist: 24.75, target: [1.04, 2.67, -2.98] };   // posição 6
-const CAM_7 = { theta: 0.008,  phi: 1.534, dist: 16.04, target: [-3.13, 2.95, -3.21] };  // posição 7
+const CAM_7 = { theta: 0.008,  phi: 1.534, dist: 16.04, target: [-3.13, 2.95, -3.21] };  // posição 7 (=posição 9)
+const CAM_8 = { theta: -0.013, phi: 1.534, dist: 28.01, target: [1.71, 2.85, -2.97] };   // posição 8
 const CAM_PADRAO = CAM_1;
 
 function tocarFaixa(i) {
@@ -3015,6 +3056,17 @@ function iniciarCena13A() {
   pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;   // pipeta vazia (continua do 1.3)
   irParaCamera(CAM_6, true, 1500);
 }
+// início da 3ª demonstração (dialogo1.3B) — interativa
+function iniciarCena13B() {
+  esconderRotuloFade();                     // "Ácido" some em fade
+  esconderHmaisFade();                      // H+ da solução somem em fade
+  pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
+  demoInterativo = { ativo: false, encheu: false, derramou: false };
+}
+// usuário encheu a pipeta -> toca 1.3B1
+function onEncheuPipeta() { const i = idxFaixa('dialogo1.3B1'); if (i >= 0) tocarFaixa(i); }
+// usuário derramou tudo na água -> toca 1.3B2
+function onDerramouPipeta() { const i = idxFaixa('dialogo1.3B2'); if (i >= 0) tocarFaixa(i); }
 // H+ vira sobrescrito; caret pisca enquanto digita
 function montarDef(s, digitando) {
   let h = s.split('H+').join('H<sup>+</sup>');
