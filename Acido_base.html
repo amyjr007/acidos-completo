@@ -16,6 +16,20 @@
 <link rel="icon" type="image/png" href="imagens/icon-192.png">
 <style>
   html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; background: #10141d; touch-action: none; }
+
+  /* Puxar-pra-atualizar */
+  #pullRefresh {
+    position: fixed; top: -58px; left: 50%; margin-left: -23px; z-index: 120;
+    width: 46px; height: 46px; border-radius: 50%;
+    background: rgba(11, 26, 12, 0.95); border: 1px solid rgba(166, 229, 52, 0.55);
+    display: flex; align-items: center; justify-content: center;
+    color: #a6e534; font-size: 24px; opacity: 0; pointer-events: none;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .5);
+  }
+  #pullRefresh.show { opacity: 1; }
+  #pullRefresh.ready { color: #fff; border-color: #fff; box-shadow: 0 0 14px rgba(166, 229, 52, .6); }
+  #pullRefresh.loading .pr-spin { animation: prSpin .8s linear infinite; }
+  @keyframes prSpin { to { transform: rotate(360deg); } }
   #hint {
     position: absolute; bottom: 86px; left: 50%; transform: translateX(-50%);
     color: #eaf7d9; font-family: system-ui, sans-serif; font-size: 13px;
@@ -736,6 +750,9 @@
 <body>
 <div id="hint"></div>
 
+<!-- Puxar-pra-atualizar (força buscar a versão nova) -->
+<div id="pullRefresh"><span class="pr-spin">&#10227;</span></div>
+
 <!-- ==================== CAPA ==================== -->
 <div id="cover">
 
@@ -786,7 +803,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.69.0</div>
+<div id="versao">v0.70.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3210,9 +3227,46 @@ function rodarStory(cues) {
 }
 
 // ---------- PWA: registra o service worker ----------
+let swReg = null;
 if ('serviceWorker' in navigator) {
-  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(r => { swReg = r; r.update(); }).catch(() => {});
+  });
 }
+
+// ---------- Puxar-pra-atualizar ----------
+async function atualizarApp() {
+  try { if (swReg) await swReg.update(); } catch (e) {}
+  // recarrega buscando a versão nova (SW: HTML é network-first)
+  location.reload();
+}
+(function () {
+  const pr = document.getElementById('pullRefresh');
+  let startY = null, pulling = false;
+  addEventListener('touchstart', e => {
+    // só começa perto do topo e com 1 dedo
+    startY = (e.touches.length === 1 && e.touches[0].clientY < 70) ? e.touches[0].clientY : null;
+    pulling = false;
+  }, { passive: true });
+  addEventListener('touchmove', e => {
+    if (startY == null) return;
+    const dy = e.touches[0].clientY - startY;
+    if (dy > 10) {
+      pulling = true;
+      pr.classList.add('show');
+      pr.style.transform = 'translateY(' + Math.min(dy, 130) + 'px)';
+      pr.classList.toggle('ready', dy > 80);
+    }
+  }, { passive: true });
+  addEventListener('touchend', () => {
+    if (pulling) {
+      if (pr.classList.contains('ready')) { pr.classList.add('loading'); atualizarApp(); return; }
+      pr.classList.remove('show', 'ready');
+      pr.style.transform = '';
+    }
+    startY = null; pulling = false;
+  });
+})();
 </script>
 </body>
 </html>
