@@ -749,7 +749,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.54.0</div>
+<div id="versao">v0.55.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1609,8 +1609,9 @@ const EVENTOS = {
   'dialogo1.1D': () => rodarStory([
     { t: 0.0, fn: iniciarCena11D },                             // some tudo do 1.1C (saída dramática)
     { t: 0.3, fn: () => c11dTitulo.classList.add('show') },     // "Sais" (azul) entra enquanto o texto anterior some
-    { t: 3.0, fn: () => stShow('center', '"Se não tiver H na frente ou OH no final, nem for óxido, deve ser um sal"', 'st-credito st-branco st-sobe') },
-    { t: 9.0, fn: () => c11dFrascos.classList.add('show') },    // frascos dos sais (fórmula + nome)
+    { t: 3.0,  fn: () => stShow('center', '"Se não tiver H na frente ou OH no final, nem for óxido, deve ser um sal"', 'st-credito st-branco st-sobe') },
+    { t: 11.0, fn: () => c11dFrascos.classList.add('show') },   // frascos dos sais (fórmula + nome)
+    { t: 22.0, fn: () => stShow('bottom', 'Não são óxidos', 'st-credito st-branco') },  // legenda embaixo dos frascos
   ]),
   'dialogo1.1E': () => rodarStory([
     { t: 0.0,  fn: iniciarCena11E },        // some tudo do 1.1D (saída dramática, some em ~2s)
@@ -2369,14 +2370,16 @@ function gmSetActivePos(x, y) {
   gmActive.setAttribute('transform', 'translate(' + x + ',' + y + ')');
   gmActive._x = x; gmActive._y = y;
 }
-// anima o frasco ativo até (x,y)
-function gmTweenTo(x, y, ms, done) {
+// anima o frasco ativo até (x,y); onStep(cx,cy) roda a cada quadro (pra mãozinha seguir)
+function gmTweenTo(x, y, ms, done, onStep) {
   const sx = gmActive._x, sy = gmActive._y, t0 = performance.now();
   gmActive._tween = t0;
   function step(t) {
     if (gmActive._tween !== t0) return;                 // cancelado por outro tween
     const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3);
-    gmActive.setAttribute('transform', 'translate(' + (sx + (x - sx) * e) + ',' + (sy + (y - sy) * e) + ')');
+    const cx = sx + (x - sx) * e, cy = sy + (y - sy) * e;
+    gmActive.setAttribute('transform', 'translate(' + cx + ',' + cy + ')');
+    if (onStep) onStep(cx, cy);
     if (k < 1) requestAnimationFrame(step);
     else { gmActive._x = x; gmActive._y = y; gmActive._tween = 0; if (done) done(); }
   }
@@ -2415,24 +2418,32 @@ function tutPulsarLabel() {
   const gl = gmActive && gmActive.querySelector('.tut-label-glow');
   if (gl) { gl.classList.remove('on'); void gl.getBoundingClientRect(); gl.classList.add('on'); }
 }
+const HAND_DY = -46;   // deslocamento da mãozinha em relação à base do frasco (na tela)
+function tutPoeMao(cx, cy) {
+  const s = gmToScreen(cx, cy);
+  tutorHand.style.left = s.x + 'px';
+  tutorHand.style.top = (s.y + HAND_DY) + 'px';
+}
 function tutArrastarHCl() {
-  // 1) mãozinha aparece EM CIMA do frasco (na posição de descanso, onde o HCl veio de baixo)
+  // 1) mãozinha aparece EM CIMA do frasco (posição de descanso, onde o HCl veio de baixo)
   const de = gmToScreen(gmState.restX, gmState.restY);
-  maoMostrar({ x: de.x, y: de.y - 48 });
-  // 2) depois de aparecer, arrasta o frasco + mãozinha juntos até o slot dos ácidos
+  maoMostrar({ x: de.x, y: de.y + HAND_DY });
+  // 2) "pega" o frasco e arrasta: a mão segue o frasco QUADRO A QUADRO (arraste real)
   const alvoX = SHELF_COLS[0], alvoY = SHELF_ROWS[0];
   setTimeout(() => {
-    gmTweenTo(alvoX, alvoY, 1400);
-    const para = gmToScreen(alvoX, alvoY);
-    maoMover({ x: para.x, y: para.y - 48 }, 1400);
-  }, 500);
+    maoClique();                                   // simula a pegada
+    tutorHand.style.transition = 'none';           // mão travada pra seguir o frasco sem lag
+    gmTweenTo(alvoX, alvoY, 1500,
+      () => { tutorHand.style.transition = ''; },   // restaura ao fim
+      (cx, cy) => tutPoeMao(cx, cy));               // acompanha cada quadro
+  }, 550);
   // 3) fixa o HCl na prateleira e some a mãozinha
   setTimeout(() => {
     gmActive.innerHTML = '';
     gmColocarFixo(0, SHELF_CFGS[0][0]);
     gmState.atual = null;
     tutorHand.classList.remove('show');
-  }, 2050);
+  }, 2200);
 }
 
 // ---------- Jogo ----------
