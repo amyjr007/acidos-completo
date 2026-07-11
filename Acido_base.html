@@ -267,6 +267,11 @@
     font-size: clamp(30px, 8.5vw, 50px); font-weight: 900;
     color: var(--acid); text-shadow: 0 0 16px var(--acid-glow);
   }
+  /* "Ácido" verde escuro no topo (sobre o quadro branco, dialogo1.2) */
+  .st-verdeescuro {
+    color: #0f4d18;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, .35), 0 0 2px rgba(255, 255, 255, .5);
+  }
   /* mesmo tamanho de "Vamos começar?", porém em branco */
   .st-branco {
     color: #f2fbe4;
@@ -749,7 +754,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.57.0</div>
+<div id="versao">v0.58.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1496,7 +1501,7 @@ camBox.addEventListener('click', () => copiar(camBox.dataset.trecho || ''));
 
 // Move a câmera para uma posição salva (usar nos EVENTOS dos diálogos).
 // suave = true anima; caso contrário, salta direto.
-function irParaCamera(pos, suave = true) {
+function irParaCamera(pos, suave = true, dur = 1100) {
   const alvo = { theta: pos.theta, phi: pos.phi, dist: pos.dist,
                  tx: pos.target[0], ty: pos.target[1], tz: pos.target[2] };
   if (!suave) {
@@ -1504,7 +1509,7 @@ function irParaCamera(pos, suave = true) {
     target.set(alvo.tx, alvo.ty, alvo.tz); updateCamera(); return;
   }
   const ini = { theta, phi, dist, tx: target.x, ty: target.y, tz: target.z };
-  const t0 = performance.now(), dur = 1100;
+  const t0 = performance.now();
   (function passo(now) {
     let k = Math.min(1, (now - t0) / dur);
     k = k < .5 ? 4*k*k*k : 1 - Math.pow(-2*k+2, 3) / 2; // easeInOutCubic
@@ -1649,8 +1654,11 @@ const EVENTOS = {
     { t: 13.0, fn: tutArrastarHCl },        // mãozinha arrasta o HCl pra prateleira dos ácidos (até ~14.7s)
   ]),
   'dialogo1.2':   () => rodarStory([
-    { t: 0.0,  fn: iniciarCena12 },                                          // "O que são Ácidos?" continua do 1.1
-    { t: 1.0,  fn: subirTitAcido },                                          // título sobe pro topo (até t2)
+    // ----- abertura nova: some tudo -> câmera vai pro quadro -> "Ácido" verde no topo -----
+    { t: 2.0,  fn: limparTela12 },                                           // some tudo da tela
+    { t: 5.0,  fn: () => irParaCamera({ theta: -1.565, phi: 1.534, dist: 7.99, target: [15.94, 11.16, 5.76] }, true, 2000) },  // câmera sai da posição atual e chega no quadro em ~7s
+    { t: 7.0,  fn: () => stShow('top', 'Ácido', 'st-titulo2 st-verdeescuro') },  // "Ácido" verde escuro no topo (nova posição = novo fundo)
+    // ----- cena antiga (mantida; timing a ajustar) -----
     { t: 3.0,  fn: () => stShow('center', '"Azedo"', 'st-titulo2') },        // sentido de "ácido" = azedo
     { t: 4.7,  fn: stSair },
     { t: 4.8,  fn: () => { mostrarImg2('imagens/everyday_acids.png', { fit: 'cover', pos: '0% 50%', from: 'scale(1.08)' });
@@ -2686,6 +2694,16 @@ function iniciarCena12() {
   tituloAcidoEl.classList.add('show');
 }
 function subirTitAcido() { tituloAcidoEl.classList.add('topo'); }
+
+// "some tudo da tela" no início do dialogo1.2 (antes da câmera ir pro quadro)
+function limparTela12() {
+  resetJogo();                                       // esconde minigame/prateleira do 1.1E
+  substTitle.classList.remove('show', 'topo', 'jogo');
+  tituloAcidoEl.classList.remove('show');
+  stSair();
+  esconderImagem();
+  esconderImg2();
+}
 
 // Imagem com Ken Burns. opts: { fit, pos, origin, from, cap }
 function mostrarImg2(src, opts) {
