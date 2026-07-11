@@ -767,7 +767,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.65.0</div>
+<div id="versao">v0.66.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1296,9 +1296,17 @@ function tweenPipFill(to, ms, onEnd) {
 }
 // mergulha (t24) -> enche (t25.6) -> sobe e vai pra água -> expele (t29)
 function pipetaMergulha() { tweenPipPos(1.8, 1.35, 1100); }
-function pipetaEnche() { pipLiquid.material.color.setHex(0xdcedf7); tweenPipFill(0.72, 1300, () => setTimeout(pipetaVaiPraAgua, 200)); }
-function pipetaVaiPraAgua() { tweenPipPos(1.8, 3.5, 700, () => tweenPipPos(-3.5, 3.5, 1200)); }
+function encherPipeta() { pipLiquid.material.color.setHex(0xdcedf7); tweenPipFill(0.72, 1300); }
+function pipetaEnche() { encherPipeta(); setTimeout(pipetaVaiPraAgua, 1500); }   // 1.3: enche e já vai pra água
+function pipetaVaiPraAgua() { tweenPipPos(pipette.position.x, 3.5, 700, () => tweenPipPos(-3.5, 3.5, 1200)); }  // sobe reto e desloca pra água
 function pipetaExpele() { pipTargetFill = 0; }   // o loop de animação drena e solta gotas na água
+
+// ---- 2ª demonstração (H2S, dialogo1.3A) ----
+function mostrarH2S() {
+  fade3D(reagents[1].beaker, 1, 800);                       // H2S aparece
+  tweenPipPos(4.6, 3.4, 700, () => tweenPipPos(4.6, 1.35, 900));   // pipeta vai e mergulha no H2S
+}
+function pipetaEncheSemMover() { encherPipeta(); }           // só enche (o movimento é um cue separado)
 
 // H+ flutuando na água (t34)
 const hmaisSprites = [];
@@ -1326,7 +1334,7 @@ function limparHmais() { hmaisSprites.forEach(s => scene.remove(s)); hmaisSprite
 
 // rótulo "Ácido" flutuando acima do frasco de HCl (dialogo1.3, t41.7)
 let rotuloAcidoSprite = null;
-function mostrarRotuloAcido() {
+function mostrarRotuloAcido(x) {
   if (!rotuloAcidoSprite) {
     const cv = document.createElement('canvas'); cv.width = 512; cv.height = 200;
     const x = cv.getContext('2d');
@@ -1337,7 +1345,7 @@ function mostrarRotuloAcido() {
     rotuloAcidoSprite.scale.set(3.4, 1.33, 1);
     scene.add(rotuloAcidoSprite);
   }
-  rotuloAcidoSprite.position.set(1.8, 3.75, 1.5);   // acima do frasco de HCl
+  rotuloAcidoSprite.position.set(x == null ? 1.8 : x, 3.75, 1.5);   // acima do frasco
   rotuloAcidoSprite.material.opacity = 0; rotuloAcidoSprite.visible = true;
   const t0 = performance.now();
   (function step(now) { const k = Math.min(1, (now - t0) / 500); rotuloAcidoSprite.material.opacity = 0.98 * k; if (k < 1) requestAnimationFrame(step); })(t0);
@@ -1863,7 +1871,16 @@ const EVENTOS = {
     { t: 39.0, fn: () => { irParaCamera(CAM_5, true, 1500); $id('okHand').classList.remove('show'); } },  // câmera pra posição 5 (mãozinha some)
     { t: 41.7, fn: mostrarRotuloAcido },                           // "Ácido" aparece acima do frasco de HCl
   ]),
-  'dialogo1.3A':  () => { /* eventos do diálogo 1.3A */ },
+  'dialogo1.3A':  () => rodarStory([
+    { t: 0.0,  fn: iniciarCena13A },                               // some H+ e "Ácido" + câmera pra pos6
+    { t: 1.0,  fn: mostrarH2S },                                   // H2S aparece + pipeta vai e mergulha
+    { t: 4.0,  fn: pipetaEncheSemMover },                          // enche a pipeta
+    { t: 5.6,  fn: pipetaVaiPraAgua },                             // sobe e vai pra cima da água
+    { t: 7.0,  fn: () => { pipetaExpele(); irParaCamera(CAM_7, true, 1500); } },  // expele + aproxima (pos7)
+    { t: 8.0,  fn: mostrarHmais },                                 // os mesmos H+ na água
+    { t: 11.0, fn: () => irParaCamera(CAM_6, true, 1500) },        // volta pra pos6
+    { t: 11.2, fn: () => mostrarRotuloAcido(4.6) },                // "Ácido" em cima do H2S
+  ]),
   'dialogo1.3B':  () => { /* eventos do diálogo 1.3B */ },
   'dialogo1.3B1': () => { /* eventos do diálogo 1.3B1 */ },
   'dialogo1.3B2': () => { /* eventos do diálogo 1.3B2 */ },
@@ -1883,6 +1900,8 @@ const CAM_2 = { theta: -1.565, phi: 1.534, dist: 7.99,  target: [15.94, 11.16, 5
 const CAM_3 = { theta: 0.043,  phi: 1.534, dist: 21.93, target: [-0.84, 1.91, -1.62] };  // posição 3
 const CAM_4 = { theta: -0.04,  phi: 1.534, dist: 14.6,  target: [-3.07, 2.56, -3.39] };  // posição 4 (água, close)
 const CAM_5 = { theta: -0.003, phi: 1.534, dist: 19.36, target: [-1.11, 3.25, -3.23] };  // posição 5
+const CAM_6 = { theta: -0.062, phi: 1.534, dist: 24.75, target: [1.04, 2.67, -2.98] };   // posição 6
+const CAM_7 = { theta: 0.008,  phi: 1.534, dist: 16.04, target: [-3.13, 2.95, -3.21] };  // posição 7
 const CAM_PADRAO = CAM_1;
 
 function tocarFaixa(i) {
@@ -2987,6 +3006,14 @@ function iniciarCena13() {
 function maoOk() {
   const el = $id('okHand');
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+}
+// início da 2ª demonstração (dialogo1.3A): some H+ e "Ácido"; câmera vai pra pos6
+function iniciarCena13A() {
+  limparHmais();
+  limparRotuloAcido();
+  $id('okHand').classList.remove('show');
+  pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;   // pipeta vazia (continua do 1.3)
+  irParaCamera(CAM_6, true, 1500);
 }
 // H+ vira sobrescrito; caret pisca enquanto digita
 function montarDef(s, digitando) {
