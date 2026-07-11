@@ -803,7 +803,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.70.0</div>
+<div id="versao">v0.71.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1482,6 +1482,18 @@ const target = new THREE.Vector3(0.32, 10.93, 0.42);
 let theta = -0.012, phi = 1.534, dist = 9.03;
 const MIN_D = 5, MAX_D = 40;
 let camLocked = true;  // câmera travada por padrão; tecla L libera/trava
+let freeCam = false;   // modo dev de câmera livre (toque no selo de versão)
+// "segurar 2s" no modo livre -> mostra/copia coordenadas
+let holdTimer = null, holdX = 0, holdY = 0;
+function holdStart(e) {
+  holdX = e.clientX; holdY = e.clientY;
+  clearTimeout(holdTimer);
+  holdTimer = setTimeout(() => { holdTimer = null; mostrarCoordenadas(); }, 2000);
+}
+function holdMaybeCancel(e) {
+  if (holdTimer && Math.hypot(e.clientX - holdX, e.clientY - holdY) > 12) { clearTimeout(holdTimer); holdTimer = null; }
+}
+function holdClear() { clearTimeout(holdTimer); holdTimer = null; }
 
 function updateCamera() {
   phi = Math.max(0.15, Math.min(Math.PI / 2 - 0.02, phi));
@@ -1501,6 +1513,19 @@ let lastPinch = 0, lastMid = null, lastAngle = null;
 renderer.domElement.addEventListener('pointerdown', e => {
   renderer.domElement.setPointerCapture(e.pointerId);
   hideHint();
+
+  if (freeCam) {   // modo livre: sem pipeta; 1 dedo gira, 2 dedos pan, pinça zoom
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      lastPinch = Math.hypot(a.x - b.x, a.y - b.y);
+      lastMid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      holdClear();
+    } else {
+      holdStart(e);
+    }
+    return;
+  }
 
   if (!pipDrag) {
     const part = raycastPipette(e);
@@ -1550,7 +1575,12 @@ renderer.domElement.addEventListener('pointermove', e => {
   if (camLocked) return;  // câmera travada: ignora movimento
 
   if (pointers.size === 1) {
-    if (prev.button === 2 || prev.shift) {
+    if (freeCam) {
+      holdMaybeCancel(e);
+      theta -= dx * 0.006;
+      phi -= dy * 0.006;
+      updateCamera();
+    } else if (prev.button === 2 || prev.shift) {
       pan(dx, dy);
       updateCamera();
     } else if (e.pointerType === 'mouse') {
@@ -1558,7 +1588,7 @@ renderer.domElement.addEventListener('pointermove', e => {
       phi -= dy * 0.006;
       updateCamera();
     }
-    // toque com 1 dedo não move a câmera (reservado pra pipeta)
+    // toque com 1 dedo não move a câmera (reservado pra pipeta) — exceto no modo livre
   } else if (pointers.size === 2) {
     const [a, b] = [...pointers.values()];
     const pinch = Math.hypot(a.x - b.x, a.y - b.y);
@@ -1566,7 +1596,7 @@ renderer.domElement.addEventListener('pointermove', e => {
     const ang = Math.atan2(b.y - a.y, b.x - a.x);
     if (lastPinch > 0) dist *= lastPinch / pinch;
     if (lastMid) pan(mid.x - lastMid.x, mid.y - lastMid.y);
-    if (lastAngle !== null) {
+    if (!freeCam && lastAngle !== null) {   // no modo livre 2 dedos = só pan (sem rotação)
       let da = ang - lastAngle;
       if (da > Math.PI) da -= 2 * Math.PI;
       if (da < -Math.PI) da += 2 * Math.PI;
@@ -1580,6 +1610,7 @@ renderer.domElement.addEventListener('pointermove', e => {
 });
 
 function endPointer(e) {
+  holdClear();
   if (pipDrag && e.pointerId === pipDrag.id) {
     if (pipDrag.part === 'bulb' || pipDrag.part === 'tip') endBulbPress(pipDrag);
     pipDrag = null;
@@ -1761,10 +1792,19 @@ addEventListener('keydown', e => {
 });
 camBox.addEventListener('click', () => copiar(camBox.dataset.trecho || ''));
 
-// Dev: pré-visualizar posição da câmera (toque no selo de versão pra abrir/fechar)
+// Dev: câmera livre (toque no selo de versão) — 1 dedo gira, 2 dedos pan, pinça zoom, segurar 2s copia
 const camDevBox = document.getElementById('camDev');
-document.getElementById('versao').addEventListener('click', () => { camDevBox.hidden = !camDevBox.hidden; });
-document.getElementById('camDevClose').addEventListener('click', () => { camDevBox.hidden = true; });
+function abrirCamLivre() {
+  freeCam = true; camLocked = false;
+  camDevBox.hidden = false;
+  showMsg('Câmera livre: 1 dedo gira · 2 dedos pan · pinça zoom · segure 2s copia');
+}
+function fecharCamLivre() {
+  freeCam = false; camLocked = true;
+  camDevBox.hidden = true; camBox.hidden = true; holdClear();
+}
+document.getElementById('versao').addEventListener('click', () => { freeCam ? fecharCamLivre() : abrirCamLivre(); });
+document.getElementById('camDevClose').addEventListener('click', fecharCamLivre);
 document.getElementById('camDevGo').addEventListener('click', () => {
   const s = document.getElementById('camDevIn').value;
   const num = k => { const m = s.match(new RegExp(k + '\\s*:\\s*(-?[\\d.]+)')); return m ? parseFloat(m[1]) : null; };
