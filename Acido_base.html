@@ -221,7 +221,7 @@
   #versao {
     position: fixed; left: 10px; bottom: 8px; z-index: 105;
     font: 600 11px system-ui, sans-serif; color: rgba(166, 229, 52, 0.6);
-    letter-spacing: .5px; pointer-events: none; user-select: none;
+    letter-spacing: .5px; user-select: none; cursor: pointer;
     text-shadow: 0 0 6px rgba(0, 0, 0, .6);
   }
 
@@ -712,6 +712,25 @@
   #camCoords .tit { color: var(--acid); font-weight: 800; }
   #camCoords .snip { color: #eaf7d9; }
   #camCoords .rodape { color: rgba(166, 229, 52, .75); font-size: 11px; }
+
+  /* Dev: caixa pra pré-visualizar posição da câmera */
+  #camDev {
+    position: fixed; left: 10px; bottom: 34px; z-index: 106; width: min(84vw, 340px);
+    background: rgba(6, 16, 6, 0.97); border: 1px solid rgba(166, 229, 52, 0.5);
+    border-radius: 12px; padding: 10px; box-shadow: 0 6px 20px rgba(0, 0, 0, .55);
+  }
+  #camDevIn {
+    width: 100%; box-sizing: border-box; height: 62px; resize: none;
+    background: #0b160b; color: #eaf7d9; border: 1px solid rgba(166, 229, 52, .35);
+    border-radius: 8px; padding: 7px; font: 600 12px 'Courier New', monospace;
+  }
+  .camDev-row { display: flex; gap: 8px; margin-top: 8px; }
+  .camDev-row button {
+    flex: 1; padding: 9px; border-radius: 999px; border: none; cursor: pointer;
+    font: 800 13px system-ui, sans-serif;
+  }
+  #camDevGo { background: linear-gradient(145deg, #baf34f, var(--acid-2)); color: #0a1a06; }
+  #camDevClose { background: transparent; color: var(--acid); border: 1px solid rgba(166,229,52,.45); }
 </style>
 </head>
 <body>
@@ -767,10 +786,16 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.68.0</div>
+<div id="versao">v0.69.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
+
+<!-- Dev: pré-visualizar posição da câmera (toque no selo de versão pra abrir) -->
+<div id="camDev" hidden>
+  <textarea id="camDevIn" placeholder="cole irParaCamera({ theta:.., phi:.., dist:.., target:[..,..,..] })"></textarea>
+  <div class="camDev-row"><button id="camDevGo">Ir</button><button id="camDevClose">Fechar</button></div>
+</div>
 
 <!-- ==================== PÁGINA 1 — UI ==================== -->
 <button id="homeBtn" title="Voltar à capa">
@@ -1719,6 +1744,22 @@ addEventListener('keydown', e => {
 });
 camBox.addEventListener('click', () => copiar(camBox.dataset.trecho || ''));
 
+// Dev: pré-visualizar posição da câmera (toque no selo de versão pra abrir/fechar)
+const camDevBox = document.getElementById('camDev');
+document.getElementById('versao').addEventListener('click', () => { camDevBox.hidden = !camDevBox.hidden; });
+document.getElementById('camDevClose').addEventListener('click', () => { camDevBox.hidden = true; });
+document.getElementById('camDevGo').addEventListener('click', () => {
+  const s = document.getElementById('camDevIn').value;
+  const num = k => { const m = s.match(new RegExp(k + '\\s*:\\s*(-?[\\d.]+)')); return m ? parseFloat(m[1]) : null; };
+  const th = num('theta'), ph = num('phi'), di = num('dist');
+  const tm = s.match(/target\s*:\s*\[\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)/);
+  if (th != null && ph != null && di != null && tm) {
+    irParaCamera({ theta: th, phi: ph, dist: di, target: [parseFloat(tm[1]), parseFloat(tm[2]), parseFloat(tm[3])] }, true, 900);
+  } else {
+    showMsg('Cole um irParaCamera({...}) válido');
+  }
+});
+
 // Move a câmera para uma posição salva (usar nos EVENTOS dos diálogos).
 // suave = true anima; caso contrário, salta direto.
 function irParaCamera(pos, suave = true, dur = 1100) {
@@ -1940,7 +1981,7 @@ const CAM_1 = { theta: -0.012, phi: 1.534, dist: 9.03,  target: [0.32, 10.93, 0.
 const CAM_2 = { theta: -1.565, phi: 1.534, dist: 7.99,  target: [15.94, 11.16, 5.76] };  // posição 2 — quadro/slide
 const CAM_3 = { theta: 0.043,  phi: 1.534, dist: 21.93, target: [-0.84, 1.91, -1.62] };  // posição 3
 const CAM_4 = { theta: -0.04,  phi: 1.534, dist: 14.6,  target: [-3.07, 2.56, -3.39] };  // posição 4 (água, close)
-const CAM_5 = { theta: -0.003, phi: 1.534, dist: 19.36, target: [-1.11, 3.25, -3.23] };  // posição 5
+const CAM_5 = { theta: 0.013,  phi: 1.534, dist: 19.36, target: [-0.41, 5.18, 0.84] };   // posição 5
 const CAM_6 = { theta: -0.062, phi: 1.534, dist: 24.75, target: [1.04, 2.67, -2.98] };   // posição 6
 const CAM_7 = { theta: 0.008,  phi: 1.534, dist: 16.04, target: [-3.13, 2.95, -3.21] };  // posição 7 (=posição 9)
 const CAM_8 = { theta: -0.013, phi: 1.534, dist: 28.01, target: [1.71, 2.85, -2.97] };   // posição 8
