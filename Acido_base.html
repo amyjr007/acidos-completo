@@ -767,7 +767,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.67.0</div>
+<div id="versao">v0.68.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -991,9 +991,10 @@ function desenharSlide(txt, k, caret) {
   const shown = (txt || '').slice(0, k == null ? (txt ? txt.length : 0) : k);
   if (shown) {
     x.fillStyle = '#eaf7d9'; x.textAlign = 'center'; x.textBaseline = 'middle';
-    x.font = '600 46px system-ui, Segoe UI, sans-serif';
+    x.font = '600 34px system-ui, Segoe UI, sans-serif';
     x.shadowColor = 'rgba(0,0,0,0.5)'; x.shadowBlur = 6;
-    const lines = _slideWrap(x, shown, 840), lh = 60, y0 = 340 - (lines.length - 1) * lh / 2;
+    // largura estreita: o celular em pé só mostra a faixa central do quadro (~30%)
+    const lines = _slideWrap(x, shown, 320), lh = 46, y0 = 300 - (lines.length - 1) * lh / 2;
     lines.forEach((ln, i) => x.fillText(ln + (caret && i === lines.length - 1 ? ' ▏' : ''), 512, y0 + i * lh));
     x.shadowBlur = 0;
   }
