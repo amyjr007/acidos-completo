@@ -767,7 +767,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.64.0</div>
+<div id="versao">v0.65.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -884,8 +884,7 @@ const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 20
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled = false;   // sem efeitos de sombra
 document.body.appendChild(renderer.domElement);
 
 // ---------- Iluminação (estilo cartoon suave) ----------
@@ -958,44 +957,51 @@ paredeX.rotation.y = -Math.PI / 2;
 paredeX.receiveShadow = true;
 scene.add(paredeX);
 
-// textura de "slide" (tema verde do app + detalhes de fundo estilo PowerPoint)
-function slideTexture() {
-  const cv = document.createElement('canvas');
-  cv.width = 1024; cv.height = 680;
-  const x = cv.getContext('2d');
-  // fundo do tema (gradiente verde escuro, igual à capa)
+// ---- slide redesenhável: decorações do tema + definição "escrita" no quadro ----
+const slideCv = document.createElement('canvas');
+slideCv.width = 1024; slideCv.height = 680;
+const slideCtx = slideCv.getContext('2d');
+let slideTex = null;
+function _slideWrap(x, text, maxW) {
+  const words = text.split(' '); const lines = []; let line = '';
+  for (const w of words) {
+    const test = line ? line + ' ' + w : w;
+    if (x.measureText(test).width > maxW && line) { lines.push(line); line = w; } else line = test;
+  }
+  lines.push(line);
+  return lines;
+}
+// txt = definição completa; k = quantos caracteres mostrar (typing); caret = mostrar cursor
+function desenharSlide(txt, k, caret) {
+  const x = slideCtx;
   const g = x.createLinearGradient(0, 0, 0, 680);
   g.addColorStop(0, '#0c1c0b'); g.addColorStop(0.55, '#0a160a'); g.addColorStop(1, '#050f06');
   x.fillStyle = g; x.fillRect(0, 0, 1024, 680);
-  // brilho radial (acid) no topo
-  const rg = x.createRadialGradient(512, 130, 20, 512, 130, 560);
-  rg.addColorStop(0, 'rgba(166,229,52,0.18)'); rg.addColorStop(1, 'rgba(166,229,52,0)');
+  const rg = x.createRadialGradient(512, 120, 20, 512, 120, 560);
+  rg.addColorStop(0, 'rgba(166,229,52,0.16)'); rg.addColorStop(1, 'rgba(166,229,52,0)');
   x.fillStyle = rg; x.fillRect(0, 0, 1024, 680);
-  // moldura interna fina (acid)
-  x.strokeStyle = 'rgba(166,229,52,0.55)'; x.lineWidth = 6;
-  x.strokeRect(26, 26, 972, 628);
-  // barra de destaque embaixo (acid)
+  x.strokeStyle = 'rgba(166,229,52,0.55)'; x.lineWidth = 6; x.strokeRect(26, 26, 972, 628);
   const bb = x.createLinearGradient(0, 0, 1024, 0);
   bb.addColorStop(0, '#6dbf1d'); bb.addColorStop(1, '#a6e534');
-  x.fillStyle = bb; x.fillRect(70, 592, 884, 12);
-  // hexágonos (moléculas) decorativos nos cantos
-  function hexa(cx, cy, r) {
-    x.beginPath();
-    for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3, px = cx + r * Math.cos(a), py = cy + r * Math.sin(a); i ? x.lineTo(px, py) : x.moveTo(px, py); }
-    x.closePath(); x.stroke();
+  x.fillStyle = bb; x.fillRect(70, 602, 884, 10);
+  function hexa(cx, cy, r) { x.beginPath(); for (let i = 0; i < 6; i++) { const a = Math.PI/6 + i*Math.PI/3, px = cx+r*Math.cos(a), py = cy+r*Math.sin(a); i ? x.lineTo(px, py) : x.moveTo(px, py); } x.closePath(); x.stroke(); }
+  x.strokeStyle = 'rgba(166,229,52,0.18)'; x.lineWidth = 4;
+  hexa(92, 116, 40); hexa(146, 172, 28); hexa(936, 560, 40);
+  // definição escrita no quadro
+  const shown = (txt || '').slice(0, k == null ? (txt ? txt.length : 0) : k);
+  if (shown) {
+    x.fillStyle = '#eaf7d9'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.font = '600 46px system-ui, Segoe UI, sans-serif';
+    x.shadowColor = 'rgba(0,0,0,0.5)'; x.shadowBlur = 6;
+    const lines = _slideWrap(x, shown, 840), lh = 60, y0 = 340 - (lines.length - 1) * lh / 2;
+    lines.forEach((ln, i) => x.fillText(ln + (caret && i === lines.length - 1 ? ' ▏' : ''), 512, y0 + i * lh));
+    x.shadowBlur = 0;
   }
-  x.strokeStyle = 'rgba(166,229,52,0.22)'; x.lineWidth = 4;
-  hexa(118, 150, 46); hexa(178, 214, 34); hexa(912, 520, 46); hexa(852, 470, 32);
-  // equações químicas esmaecidas (fundo)
-  x.fillStyle = 'rgba(150,214,60,0.14)'; x.font = "bold 30px 'Courier New', monospace";
-  x.fillText('HCl → H⁺ + Cl⁻', 90, 470);
-  x.fillText('H₂SO₄ → 2H⁺ + SO₄²⁻', 90, 512);
-  x.fillStyle = 'rgba(150,214,60,0.12)';
-  x.fillText('pH < 7', 810, 200);
-  const tex = new THREE.CanvasTexture(cv);
-  tex.anisotropy = 8;
-  return tex;
+  if (slideTex) slideTex.needsUpdate = true;
 }
+desenharSlide('', 0, false);
+slideTex = new THREE.CanvasTexture(slideCv);
+slideTex.anisotropy = 8;
 
 // quadro-slide: moldura escura atrás + slide (tema) na frente
 const molduraQ = new THREE.Mesh(new THREE.PlaneGeometry(30, 21),
@@ -1005,7 +1011,7 @@ molduraQ.rotation.y = -Math.PI / 2;
 scene.add(molduraQ);
 
 const quadroBranco = new THREE.Mesh(new THREE.PlaneGeometry(26, 17),
-  new THREE.MeshBasicMaterial({ map: slideTexture(), fog: false, side: THREE.DoubleSide }));
+  new THREE.MeshBasicMaterial({ map: slideTex, fog: false, side: THREE.DoubleSide }));
 quadroBranco.position.set(27.5, 10.8, 5.6);
 quadroBranco.rotation.y = -Math.PI / 2;
 scene.add(quadroBranco);
@@ -1145,17 +1151,7 @@ reagents.forEach(r => {
   r.beaker = b;
 });
 
-// sombra fake suave sob os béqueres (cartoon)
-function softShadow(x, z, r) {
-  const m = new THREE.Mesh(new THREE.CircleGeometry(r, 32),
-    new THREE.MeshBasicMaterial({ color: 0x0b0e15, transparent: true, opacity: 0.35 }));
-  m.rotation.x = -Math.PI / 2;
-  m.position.set(x, 0.31, z);
-  scene.add(m);
-  return m;
-}
-softShadow(-3.5, 1.5, 2.0);
-reagents.forEach(r => { r.shadow = softShadow(r.pos[0], r.pos[2], 1.4); });
+// (sombras fake removidas — sem efeitos de sombra)
 
 // ---------- Pipeta ----------
 const PLANE_Z = 1.5;
@@ -1317,17 +1313,39 @@ function mostrarHmais() {
     x.font = 'bold 92px system-ui, sans-serif'; x.fillText('+', 202, 98);
     hmaisTex = new THREE.CanvasTexture(cv);
   }
-  for (let i = 0; i < 6; i++) {
+  // dentro da solução: entre ~0.7 e ~2.2 de altura (a água vai de 0.3 até WATER_SURF)
+  for (let i = 0; i < 7; i++) {
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: hmaisTex, transparent: true, opacity: 0, depthTest: false, fog: false }));
-    const sc = 0.8 + Math.random() * 0.5; s.scale.set(sc, sc, sc);
-    s.position.set(-3.5 + (Math.random() - 0.5) * 1.8, WATER_SURF + 0.15 + Math.random() * 0.35, 1.5 + (Math.random() - 0.5) * 0.9);
-    s.userData = { phase: Math.random() * 6.28, base: s.position.y };
+    const sc = 0.55 + Math.random() * 0.35; s.scale.set(sc, sc, sc);
+    s.position.set(-3.5 + (Math.random() - 0.5) * 2.0, 0.7 + Math.random() * (WATER_SURF - 1.0), 1.5 + (Math.random() - 0.5) * 1.4);
+    s.userData = { phase: Math.random() * 6.28, base: s.position.y, amp: 0.06 + Math.random() * 0.08 };
     scene.add(s); hmaisSprites.push(s);
   }
 }
 function limparHmais() { hmaisSprites.forEach(s => scene.remove(s)); hmaisSprites.length = 0; }
+
+// rótulo "Ácido" flutuando acima do frasco de HCl (dialogo1.3, t41.7)
+let rotuloAcidoSprite = null;
+function mostrarRotuloAcido() {
+  if (!rotuloAcidoSprite) {
+    const cv = document.createElement('canvas'); cv.width = 512; cv.height = 200;
+    const x = cv.getContext('2d');
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.shadowColor = 'rgba(166,229,52,0.9)'; x.shadowBlur = 22; x.fillStyle = '#a6e534';
+    x.font = 'bold 120px system-ui, sans-serif'; x.fillText('Ácido', 256, 112);
+    rotuloAcidoSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, opacity: 0, depthTest: false, fog: false }));
+    rotuloAcidoSprite.scale.set(3.4, 1.33, 1);
+    scene.add(rotuloAcidoSprite);
+  }
+  rotuloAcidoSprite.position.set(1.8, 3.75, 1.5);   // acima do frasco de HCl
+  rotuloAcidoSprite.material.opacity = 0; rotuloAcidoSprite.visible = true;
+  const t0 = performance.now();
+  (function step(now) { const k = Math.min(1, (now - t0) / 500); rotuloAcidoSprite.material.opacity = 0.98 * k; if (k < 1) requestAnimationFrame(step); })(t0);
+}
+function limparRotuloAcido() { if (rotuloAcidoSprite) rotuloAcidoSprite.visible = false; }
+
 function resetDemo13() {
-  limparHmais();
+  limparHmais(); limparRotuloAcido();
   drops.forEach(d => scene.remove(d.mesh)); drops.length = 0;
   pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
   pipette.position.set(1.8, 3.3, PLANE_Z);
@@ -1593,10 +1611,11 @@ function animate() {
     }
   }
 
-  // H+ flutuando na água (fade in + bobbing)
+  // H+ flutuando DENTRO da solução (fade in + bobbing suave)
   for (const s of hmaisSprites) {
     if (s.material.opacity < 0.95) s.material.opacity = Math.min(0.95, s.material.opacity + dt * 1.2);
-    s.position.y = s.userData.base + Math.sin(t * 1.5 + s.userData.phase) * 0.18;
+    s.position.y = s.userData.base + Math.sin(t * 1.3 + s.userData.phase) * s.userData.amp;
+    s.position.x += Math.sin(t * 0.7 + s.userData.phase) * dt * 0.12;
   }
 
   renderer.render(scene, camera);
@@ -1832,15 +1851,17 @@ const EVENTOS = {
   ]),
   'dialogo1.3':   () => rodarStory([
     { t: 0.0,  fn: iniciarCena13 },                                 // "Definição de Arrhenius" continua no topo
-    { t: 1.6,  fn: () => digitarDef(DEF_ARRHENIUS, 1.6, 10.0) },    // digita a definição (H+ sobrescrito) até t10
+    { t: 1.6,  fn: () => digitarDefQuadro(1.6, 10.0) },            // "escreve" a definição NO QUADRO (fixa na posição 2)
     { t: 15.0, fn: () => { esconderAcidosBancada(); irParaCamera(CAM_3, true, 2000); } },  // câmera pra posição 3 (bancada)
     { t: 21.0, fn: mostrarHClPipeta },                              // HCl + pipeta em fade in (posições atuais)
     { t: 24.0, fn: pipetaMergulha },                               // pipeta mergulha no ácido
     { t: 25.6, fn: pipetaEnche },                                  // enche (depois sobe e vai pra cima da água)
     { t: 29.0, fn: pipetaExpele },                                 // expele o líquido na água
     { t: 32.0, fn: () => irParaCamera(CAM_4, true, 1500) },        // câmera pra posição 4 (close na água)
-    { t: 34.0, fn: mostrarHmais },                                 // H+ (potência) flutuando na água
+    { t: 34.0, fn: mostrarHmais },                                 // H+ (potência) flutuando dentro da solução
     { t: 35.8, fn: () => { maoOk(); playSfx('funfare'); } },       // mãozinha de OK + funfare (applause quando o arquivo existir)
+    { t: 39.0, fn: () => { irParaCamera(CAM_5, true, 1500); $id('okHand').classList.remove('show'); } },  // câmera pra posição 5 (mãozinha some)
+    { t: 41.7, fn: mostrarRotuloAcido },                           // "Ácido" aparece acima do frasco de HCl
   ]),
   'dialogo1.3A':  () => { /* eventos do diálogo 1.3A */ },
   'dialogo1.3B':  () => { /* eventos do diálogo 1.3B */ },
@@ -1861,6 +1882,7 @@ const CAM_1 = { theta: -0.012, phi: 1.534, dist: 9.03,  target: [0.32, 10.93, 0.
 const CAM_2 = { theta: -1.565, phi: 1.534, dist: 7.99,  target: [15.94, 11.16, 5.76] };  // posição 2 — quadro/slide
 const CAM_3 = { theta: 0.043,  phi: 1.534, dist: 21.93, target: [-0.84, 1.91, -1.62] };  // posição 3
 const CAM_4 = { theta: -0.04,  phi: 1.534, dist: 14.6,  target: [-3.07, 2.56, -3.39] };  // posição 4 (água, close)
+const CAM_5 = { theta: -0.003, phi: 1.534, dist: 19.36, target: [-1.11, 3.25, -3.23] };  // posição 5
 const CAM_PADRAO = CAM_1;
 
 function tocarFaixa(i) {
@@ -2886,6 +2908,7 @@ function limparTela12() {
   stSair();
   esconderImagem();
   esconderImg2();
+  if (typeof desenharSlide === 'function') desenharSlide('', 0, false);   // quadro sem a definição
 }
 
 // Imagem com Ken Burns. opts: { fit, pos, origin, from, cap }
@@ -2929,6 +2952,19 @@ let typeRAF = null;
 const DEF_ARRHENIUS =
   '"Ácidos são substâncias moleculares que, quando dissolvidas em água, ' +
   'liberam como único cátion o íon H+"';
+// versão pro quadro 3D (H+ como sobrescrito unicode)
+const DEF_QUADRO = DEF_ARRHENIUS.replace(/H\+/g, 'H⁺');
+// "digita" a definição direto no quadro 3D (fica fixa na posição 2 quando a câmera move)
+function digitarDefQuadro(t0, t1) {
+  if (typeRAF) cancelAnimationFrame(typeRAF);
+  const n = DEF_QUADRO.length;
+  const tick = () => {
+    const p = Math.max(0, Math.min(1, (player.currentTime - t0) / (t1 - t0)));
+    desenharSlide(DEF_QUADRO, Math.round(p * n), p < 1);
+    typeRAF = p < 1 ? requestAnimationFrame(tick) : null;
+  };
+  tick();
+}
 
 // fim do 1.2: imagem sobe e sai, empurrada pelo título que vem de baixo
 function subirDefinicao() {
@@ -2938,6 +2974,7 @@ function subirDefinicao() {
 // início do 1.3: título "Definição de Arrhenius" já no topo (continua do 1.2), sem re-animar
 function iniciarCena13() {
   if (typeof resetDemo13 === 'function') resetDemo13();   // limpa pipeta/H+/gotas pra replay
+  if (typeof desenharSlide === 'function') desenharSlide('', 0, false);   // limpa a definição do quadro
   $id('okHand').classList.remove('show');
   tituloDefEl.style.transition = 'none';
   tituloDefEl.classList.add('show', 'subiu');
