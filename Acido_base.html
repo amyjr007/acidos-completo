@@ -713,6 +713,11 @@
     60%  { opacity: 1; transform: translate(-50%, -50%) scale(1.22) rotate(6deg); }
     100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
   }
+  #okHand.fade-out { animation: okFade .5s ease forwards; }
+  @keyframes okFade {
+    from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    to   { opacity: 0; transform: translate(-50%, -50%) scale(.85); }
+  }
 
   /* ---------- Painel de coordenadas da câmera (tecla C) ---------- */
   #camCoords {
@@ -803,7 +808,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.76.0</div>
+<div id="versao">v0.78.1</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1178,6 +1183,7 @@ function addLabel(group, parts, radius, height) {
   );
   plane.position.set(0, height * 0.5, radius + 0.03);
   group.add(plane);
+  return plane;
 }
 
 // ---------- Béquer principal com água ----------
@@ -1195,7 +1201,7 @@ const reagents = [
 
 reagents.forEach(r => {
   const b = makeBeaker(1.1, 2.6, 0xe6f2fa, 0.5, 0.14);
-  addLabel(b, r.parts, 1.1, 2.6);
+  r.label = addLabel(b, r.parts, 1.1, 2.6);   // etiqueta da fórmula (pode ser escondida/revelada)
   b.position.set(...r.pos);
   b.traverse(o => { if (o.isMesh) o.castShadow = true; });
   scene.add(b);
@@ -1317,13 +1323,22 @@ function mostrarAcidosBancada() {
     if (r.shadow) r.shadow.visible = true;
   });
   pipette.visible = true; pipette.traverse(o => { if (o.material && o.material.userData._baseOp != null) o.material.opacity = o.material.userData._baseOp; });
+  reagents.forEach(r => { if (r.label) r.label.visible = true; });   // etiquetas de fórmula voltam nas cenas anteriores
   resetDemo13();
+}
+// revela a etiqueta da fórmula do copo (fade in) — ex.: HCl no dialogo1.3R
+function mostrarEtiqueta(idx, ms = 600) {
+  const lbl = reagents[idx] && reagents[idx].label;
+  if (!lbl) return;
+  lbl.visible = true;
+  fade3D(lbl, 1, ms);
 }
 // fade in só do HCl + pipeta, nas posições atuais (dialogo1.3, t21)
 function mostrarHClPipeta() {
   const hcl = reagents[0];
   pipette.position.set(1.8, 3.3, PLANE_Z);
   pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
+  if (hcl.label) hcl.label.visible = false;   // aparece SEM etiqueta (a fórmula entra só no 1.3R)
   if (hcl.shadow) fade3D(hcl.shadow, 1, 700);
   fade3D(hcl.beaker, 1, 800);
   fade3D(pipette, 1, 800);
@@ -1863,6 +1878,7 @@ const FAIXAS = [
   { id: 'dialogo1.1E',  arquivo: 'audios/dialogo1.1E.mp3',  titulo: 'Diálogo 1.1E' },
   { id: 'dialogo1.2',   arquivo: 'audios/dialogo1.2.mp3',   titulo: 'Diálogo 1.2' },
   { id: 'dialogo1.3',   arquivo: 'audios/dialogo1.3.mp3',   titulo: 'Diálogo 1.3' },
+  { id: 'dialogo1.3R',  arquivo: 'audios/dialogo1.3R.mp3',  titulo: 'Diálogo 1.3R', auto: true },
   { id: 'dialogo1.3A',  arquivo: 'audios/Dialogo1.3A.mp3',  titulo: 'Diálogo 1.3A' },
   { id: 'dialogo1.3B',  arquivo: 'audios/dialogo1.3B.mp3',  titulo: 'Diálogo 1.3B' },
   { id: 'dialogo1.3B1', arquivo: 'audios/dialogo1.3B1.mp3', titulo: 'Diálogo 1.3B1' },
@@ -1994,17 +2010,21 @@ const EVENTOS = {
   ]),
   'dialogo1.3':   () => rodarStory([
     { t: 0.0,  fn: iniciarCena13 },                                 // "Definição de Arrhenius" continua no topo
-    { t: 1.6,  fn: () => digitarDefQuadro(1.6, 10.0) },            // "escreve" a definição NO QUADRO (fixa na posição 2)
-    { t: 15.0, fn: () => { esconderAcidosBancada(); irParaCamera(CAM_3, true, 2000); } },  // câmera pra posição 3 (bancada)
-    { t: 21.0, fn: mostrarHClPipeta },                              // HCl + pipeta em fade in (posições atuais)
-    { t: 24.0, fn: pipetaMergulha },                               // pipeta mergulha no ácido
-    { t: 25.6, fn: pipetaEnche },                                  // enche (depois sobe e vai pra cima da água)
-    { t: 29.0, fn: pipetaExpele },                                 // expele o líquido na água
-    { t: 32.0, fn: () => irParaCamera(CAM_4, true, 1500) },        // câmera pra posição 4 (close na água)
-    { t: 34.0, fn: mostrarHmais },                                 // H+ (potência) flutuando dentro da solução
-    { t: 35.8, fn: () => { maoOk(); playSfx('funfare'); } },       // mãozinha de OK + funfare (applause quando o arquivo existir)
-    { t: 39.0, fn: () => { irParaCamera(CAM_5, true, 1500); $id('okHand').classList.remove('show'); } },  // câmera pra posição 5 (mãozinha some)
-    { t: 41.7, fn: mostrarRotuloAcido },                           // "Ácido" aparece acima do frasco de HCl
+    { t: 1.0,  fn: () => digitarDefQuadro(1.0, 8.5) },             // "escreve" a definição NO QUADRO (1s -> 8.5s)
+    { t: 15.0, fn: () => { esconderAcidosBancada(); irParaCamera(CAM_3, true, 3800); } },  // some ácidos + câmera pos3 (acaba ~18.8s)
+    { t: 23.3, fn: mostrarHClPipeta },                              // HCl (sem etiqueta) + pipeta em fade in
+    { t: 26.0, fn: pipetaMergulha },                               // pipeta mergulha no ácido
+    { t: 29.0, fn: pipetaEnche },                                  // enche (depois sobe e vai pra cima da água)
+    { t: 33.0, fn: pipetaExpele },                                 // expele o líquido na água
+    { t: 36.0, fn: () => irParaCamera(CAM_4, true, 1500) },        // câmera pra posição 4 (close na água)
+    { t: 39.0, fn: mostrarHmais },                                 // H+ (potência) flutuando dentro da solução
+    { t: 45.0, fn: () => { maoOk(); playSfx('funfare'); } },       // mãozinha de OK + efeito sonoro
+  ]),
+  'dialogo1.3R':  () => rodarStory([
+    { t: 0.0, fn: esconderMaoOk },                                          // mãozinha some em fade out
+    { t: 2.0, fn: () => stShow('top', 'Ácido Clorídrico', 'st-titulo2') },  // nome escrito na tela
+    { t: 3.0, fn: () => irParaCamera({ theta: 0.024, phi: 1.438, dist: 25.13, target: [-1.18, 2.56, -3.54] }, true, 1500) },  // câmera enquadra o copo de HCl
+    { t: 4.7, fn: () => mostrarEtiqueta(0) },                                // etiqueta com a fórmula no copo de HCl
   ]),
   'dialogo1.3A':  () => rodarStory([
     { t: 0.0,  fn: iniciarCena13A },                               // some só os H+ (o "Ácido" fica) + câmera pra pos6
@@ -2058,6 +2078,7 @@ function tocarFaixa(i) {
   // volta pra vista padrão (e restaura os ácidos) se for um diálogo ANTERIOR à virada de câmera (1.2)
   if (i < idxFaixa('dialogo1.2')) { irParaCamera(CAM_PADRAO, false); if (typeof mostrarAcidosBancada === 'function') mostrarAcidosBancada(); }
   const f = FAIXAS[i];
+  pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
   if (pr && pr.catch) pr.catch(() => {});
@@ -2113,11 +2134,15 @@ player.addEventListener('ended', () => {
   faixaTerminou = true;
   setIconePlay(false);
   marcarAnel(1);
+  $id('playBtn').style.display = '';   // volta o botão (caso a faixa que acabou o tivesse escondido)
   // fim do tutorial 1.1E -> botão de play vira "JOGAR"
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.1E') {
     jogarPronto = true;
     $id('playBtn').classList.add('jogar');
   }
+  // próxima faixa marcada como automática: começa sozinha ~1s após terminar esta
+  const prox = FAIXAS[faixaAtual + 1];
+  if (prox && prox.auto) { const alvo = faixaAtual + 1; setTimeout(() => { if (faixaAtual === alvo - 1) tocarFaixa(alvo); }, 1000); return; }
 });
 
 function setIconePlay(tocando) {
@@ -3155,6 +3180,10 @@ function subirDefinicao() {
 // início do 1.3: título "Definição de Arrhenius" já no topo (continua do 1.2), sem re-animar
 function iniciarCena13() {
   if (typeof resetDemo13 === 'function') resetDemo13();   // limpa pipeta/H+/gotas pra replay
+  // garante o estado inicial da cena mesmo ao PULAR direto pra cá (timestamp 8):
+  // câmera no quadro (pos2) e ácidos escondidos — no fluxo normal (vindo do 1.2) já está assim
+  esconderAcidosBancada();
+  irParaCamera(CAM_2, false);
   if (typeof desenharSlide === 'function') desenharSlide('', 0, false);   // limpa a definição do quadro
   $id('okHand').classList.remove('show');
   tituloDefEl.style.transition = 'none';
@@ -3167,7 +3196,13 @@ function iniciarCena13() {
 // mãozinha de OK (fim da demonstração do 1.3)
 function maoOk() {
   const el = $id('okHand');
-  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  el.classList.remove('fade-out', 'show'); void el.offsetWidth; el.classList.add('show');
+}
+// mãozinha some em fade out (início do 1.3R)
+function esconderMaoOk() {
+  const el = $id('okHand');
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('fade-out');
+  el.addEventListener('animationend', () => el.classList.remove('fade-out'), { once: true });
 }
 // início da 2ª demonstração (dialogo1.3A): some H+ e "Ácido"; câmera vai pra pos6
 function iniciarCena13A() {
