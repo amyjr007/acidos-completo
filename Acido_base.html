@@ -749,7 +749,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.51.0</div>
+<div id="versao">v0.52.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1601,9 +1601,10 @@ const EVENTOS = {
     { t: 1.0,  fn: () => c11cTitulo.classList.add('show') },    // "Óxidos" (marrom ferrugem)
     { t: 5.0,  fn: () => stShow('center', '"Se o composto tiver só <span class="dest">dois elementos</span> e o oxigênio tiver do lado direito então é óxido"', 'st-credito st-branco st-sobe') },
     { t: 13.8, fn: () => c11cFrascos.classList.add('show') },   // frascos dos óxidos (fórmula + nome)
-    { t: 12.0, fn: () => pausaCurta(2000) },                    // pausa de 2s e volta ao normal
-    { t: 14.0, fn: () => pulsarDois() },                        // pulsa o trecho "dois elementos"
+    { t: 12.0, fn: () => pausaCurta(1000) },                    // pausa de 1s e volta ao normal
+    { t: 14.8, fn: () => pausaCurta(2000) },                    // outra pausa de 2s e volta
     { t: 16.8, fn: () => pulsarO() },                           // brilho/pulso no oxigênio dos frascos
+    { t: 17.0, fn: () => pulsarDois() },                        // ênfase no trecho "dois elementos"
   ]),
   'dialogo1.1D': () => rodarStory([
     { t: 0.0, fn: iniciarCena11D },                             // some tudo do 1.1C (saída dramática)
