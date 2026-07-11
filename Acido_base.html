@@ -749,7 +749,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.48.0</div>
+<div id="versao">v0.49.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1591,8 +1591,9 @@ const EVENTOS = {
     { t: 0.3,  fn: () => c11bTitulo.classList.add('show') },    // "Bases" (rosa) — mesma entrada de "Ácidos"
     { t: 3.2,  fn: () => stShow('center', '"Todas as bases <span class="dest">terminam a fórmula com OH</span>"', 'st-credito st-branco st-sobe') },
     { t: 7.8,  fn: () => c11bFrascos.classList.add('show') },   // frascos das bases (fórmula + nome)
-    { t: 10.0, fn: () => pausaCurta(2000) },                    // pausa de 2s e volta o áudio
+    { t: 10.1, fn: () => pausaCurta(2000) },                    // pausa de 2s e volta o áudio
     { t: 12.0, fn: () => pulsarOH() },                          // pulsada com brilho rosa no "OH"
+    { t: 12.6, fn: () => pausaCurta(2000) },                    // outra pausa de 2s e volta
     { t: 15.5, fn: () => pulsarDois() },                        // ênfase no trecho "terminam a fórmula com OH"
   ]),
   'dialogo1.1C': () => rodarStory([
