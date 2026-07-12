@@ -829,7 +829,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.95.0</div>
+<div id="versao">v0.96.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1569,10 +1569,12 @@ function restaurarOpacidade(obj) {
     (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { if (m.userData._baseOp != null) m.opacity = m.userData._baseOp; });
   });
 }
-// no 1.4 (t18): somem em fade as etiquetas dos ácidos, os nomes e o béquer de água (mesmo tempo)
-function esconderEtiquetasEAgua() {
-  reagents.forEach(r => { if (r.label && r.label.visible) fade3D(r.label, 0, 700); });
-  fade3D(waterBeaker, 0, 700);
+// no 1.4 (t18): somem em fade os 3 béqueres de ácido, com etiquetas e nomes (a água FICA — virou ácida com os H+)
+function esconderCoposAcidosFade() {
+  reagents.forEach(r => {
+    if (r.label && r.label.visible) fade3D(r.label, 0, 700);
+    if (r.beaker) fade3D(r.beaker, 0, 700);
+  });
   nomesAcido.slice().forEach(s => {
     const t0 = animNow(), base = s.material.opacity;
     (function step() {
@@ -1585,28 +1587,29 @@ function esconderEtiquetasEAgua() {
 }
 
 // ---- Papel de tornassol azul (dialogo1.4A) — arrastável ----
-const AZUL_TORNASSOL = 0x4a5fd0, VERMELHO_TORNASSOL = 0xcf3535, LITMUS_X = WATER_X, LITMUS_Y = 1.3;   // onde estava o béquer de água
+const AZUL_TORNASSOL = 0x4a5fd0, VERMELHO_TORNASSOL = 0xcf3535, LITMUS_X = AC_X[1], LITMUS_Y = 1.3;   // na posição do H2CO3
+const LITMUS_HH = 1.2, LITMUS_W = 0.5;   // meia-altura e largura da tira (+20%)
 const litmusBloco = new THREE.Group(); litmusBloco.visible = false; scene.add(litmusBloco);
 let litmusAtivo = false, litmusDrag = null, litmusVermelhoUsado = false;
 let papel = null, papelUsado = null;
 
 const quedaTiras = [];   // tiras caindo (gravidade)
-// se a tira está mergulhada num béquer de ÁCIDO, retorna a superfície (a água já sumiu na cena)
+// a tira mergulhada na ÁGUA (que virou ácida com os H+) fica vermelha; os ácidos sumiram
 function coposMergulho(x, y) {
-  for (const bx of AC_X) if (Math.abs(x - bx) < 1.1 && (y - 1.0) < ACID_SURF) return ACID_SURF;
+  if (Math.abs(x - WATER_X) < 1.5 && (y - LITMUS_HH) < WATER_SURF) return WATER_SURF;
   return null;
 }
-// tira em segmentos: só os que ficam ABAIXO da superfície do ácido viram vermelho
+// tira em segmentos: só os que ficam ABAIXO da superfície do líquido viram vermelho
 function criarTira(x, y) {
   const g = new THREE.Group();
-  const N = 8, segH = 2.0 / N;
+  const N = 8, segH = (LITMUS_HH * 2) / N;
   g._segs = [];
   for (let i = 0; i < N; i++) {
-    const s = new THREE.Mesh(new THREE.BoxGeometry(0.42, segH * 0.96, 0.07), toonMat(AZUL_TORNASSOL));
-    s.position.y = -1.0 + segH * (i + 0.5);   // de -1 (base) a +1 (topo)
+    const s = new THREE.Mesh(new THREE.BoxGeometry(LITMUS_W, segH * 0.96, 0.084), toonMat(AZUL_TORNASSOL));
+    s.position.y = -LITMUS_HH + segH * (i + 0.5);   // da base ao topo
     g.add(s); g._segs.push(s);
   }
-  const hit = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.6, 0.9), hitMat.clone());
+  const hit = new THREE.Mesh(new THREE.BoxGeometry(LITMUS_W + 0.9, LITMUS_HH * 2 + 0.5, 0.9), hitMat.clone());
   hit.name = 'litmus'; g.add(hit);
   g.position.set(x, y, PLANE_Z); g.rotation.z = 0.1;
   scene.add(g);
@@ -1619,8 +1622,8 @@ function novaTiraAtiva() { papel = criarTira(LITMUS_X, LITMUS_Y); }
 function mostrarBlocoTornassol() {
   while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]);
   for (let i = 0; i < 7; i++) {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(0.42, 2.0, 0.06), toonMat(AZUL_TORNASSOL));
-    m.position.set(LITMUS_X + (i - 3) * 0.05, LITMUS_Y, PLANE_Z - 0.28 + i * 0.04); m.rotation.z = 0.1;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(LITMUS_W, LITMUS_HH * 2, 0.072), toonMat(AZUL_TORNASSOL));
+    m.position.set(LITMUS_X + (i - 3) * 0.06, LITMUS_Y, PLANE_Z - 0.28 + i * 0.04); m.rotation.z = 0.1;
     litmusBloco.add(m);
   }
   litmusBloco.visible = true; litmusVermelhoUsado = false;
@@ -1651,16 +1654,18 @@ function limparTornassol() {
   litmusBloco.visible = false;
   while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]);
 }
-// solta a tira: mergulhada num béquer -> parte de contato fica vermelha (1ª vez toca 1.4B);
-// no ar -> cai (gravidade). Em ambos vira a "anterior" e nasce uma nova no bloco.
+// a parte que tocou o líquido fica vermelha; a 1ª tira que fica vermelha dispara o 1.4B
+function tornarVermelho(g, surf) {
+  if (g._vermelho) return;
+  pintarContato(g, surf); g._vermelho = true;
+  if (!litmusVermelhoUsado) { litmusVermelhoUsado = true; if (typeof onPapelVermelho === 'function') onPapelVermelho(); }
+}
+// solta a tira: mergulhada -> vermelha na hora; no ar -> cai (gravidade) e, se cair no líquido, vira vermelha.
+// Em ambos vira a "anterior" (dissolve ao pegar outra) e nasce uma nova no bloco.
 function soltarPapel(g) {
   const surf = coposMergulho(g.position.x, g.position.y);
-  if (surf != null) {
-    pintarContato(g, surf);
-    if (!litmusVermelhoUsado) { litmusVermelhoUsado = true; if (typeof onPapelVermelho === 'function') onPapelVermelho(); }
-  } else {
-    g._vy = 0; quedaTiras.push(g);
-  }
+  if (surf != null) tornarVermelho(g, surf);
+  else { g._vy = 0; quedaTiras.push(g); }
   papelUsado = g; papel = null;
   novaTiraAtiva();
 }
@@ -2004,9 +2009,11 @@ function animate() {
     }
   }
 
-  // gravidade das tiras de tornassol soltas no ar (caem e pousam na mesa)
+  // gravidade das tiras de tornassol soltas no ar (caem; se caírem no líquido, ficam vermelhas)
   for (let i = quedaTiras.length - 1; i >= 0; i--) {
     const g = quedaTiras[i];
+    const surf = coposMergulho(g.position.x, g.position.y);
+    if (surf != null && !g._vermelho) { tornarVermelho(g, surf); quedaTiras.splice(i, 1); continue; }   // caiu no líquido
     g._vy = (g._vy || 0) - 12 * dt;
     g.position.y += g._vy * dt;
     g.rotation.z += 3 * dt;               // tomba levemente ao cair
@@ -2358,7 +2365,7 @@ const EVENTOS = {
   'dialogo1.4':   () => rodarStory([
     { t: 0.0,  fn: iniciarCena14 },                                          // ácidos escuros voltam ao normal (fade) + pipeta some
     { t: 13.0, fn: () => irParaCamera(CAM_7, true, 1500) },                  // aproxima da água (mostra os H+)
-    { t: 18.0, fn: () => { irParaCamera(CAM_8, true, 1500); esconderHmaisFade(); esconderEtiquetasEAgua(); } },  // volta pra bancada + H+ somem + etiquetas/nomes/água somem (fade)
+    { t: 18.0, fn: () => { irParaCamera(CAM_8, true, 1500); esconderHmaisFade(); esconderCoposAcidosFade(); } },  // volta pra bancada + H+ somem + os 3 ácidos somem (fade); a água fica
     { t: 26.8, fn: () => mostrarIndicador('"Indicadores<br>ácido-base"') },  // 2 linhas
   ]),
   'dialogo1.4A':  () => rodarStory([
