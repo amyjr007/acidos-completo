@@ -808,7 +808,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.84.0</div>
+<div id="versao">v0.85.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1575,7 +1575,7 @@ function endBulbPress(drag) {
       tweenPipFill(1, 900);                // enche até o topo (não precisa segurar)
       showMsg('Pipeta cheia de ' + (c.name === 'água' ? 'água' : 'ácido') + '!');
     } else {
-      showMsg(tipSobreCopoBloqueado() ? 'Esse ácido já foi analisado — use o ácido novo (à direita)' : 'Mergulhe a ponta no ácido e toque na pipeta');
+      showMsg(tipSobreCopoBloqueado() ? 'Esse ácido já foi analisado — use o ácido novo (à direita)' : 'Mergulhe a ponta no ácido e aperte a bolinha');
     }
     return;
   }
@@ -1645,7 +1645,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
         offX: planePoint.x - pipette.position.x,
         offY: planePoint.y - pipette.position.y
       };
-      startBulbPress(pipDrag);   // tocar em qualquer parte da pipeta (bola/tubo/ponta) enche/derrama
+      if (part === 'bulb') startBulbPress(pipDrag);   // só a bolinha (pêra) enche/derrama; tubo/ponta = arrastar
       return;
     }
   } else {
@@ -1720,7 +1720,8 @@ renderer.domElement.addEventListener('pointermove', e => {
 function endPointer(e) {
   holdClear();
   if (pipDrag && e.pointerId === pipDrag.id) {
-    endBulbPress(pipDrag);   // qualquer parte da pipeta
+    if (pipDrag.part === 'bulb') endBulbPress(pipDrag);
+    else if (!pipDrag.moved) showMsg(pipFill > 0.1 ? 'Aperte a bolinha pra soltar o líquido' : 'Aperte a bolinha pra encher');
     pipDrag = null;
     return;
   }
