@@ -829,7 +829,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.91.0</div>
+<div id="versao">v0.92.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1561,7 +1561,7 @@ function clarearCoposFade(ms = 1500) {
 }
 
 // ---- Papel de tornassol azul (dialogo1.4A) — arrastável ----
-const AZUL_TORNASSOL = 0x4a5fd0, VERMELHO_TORNASSOL = 0xcf3535, LITMUS_X = 3.0, LITMUS_Y = 0.8;   // mais pra baixo e à esquerda do H2CO3
+const AZUL_TORNASSOL = 0x4a5fd0, VERMELHO_TORNASSOL = 0xcf3535, LITMUS_X = 2.35, LITMUS_Y = -1.0;   // bloquinho na mesa (esq/baixo do H2CO3)
 const litmusBloco = new THREE.Group(); litmusBloco.visible = false; scene.add(litmusBloco);
 let litmusAtivo = false, litmusDrag = null, litmusVermelhoUsado = false;
 let papel = null, papelUsado = null;
@@ -1986,7 +1986,7 @@ function animate() {
     g._vy = (g._vy || 0) - 12 * dt;
     g.position.y += g._vy * dt;
     g.rotation.z += 3 * dt;               // tomba levemente ao cair
-    if (g.position.y <= 0.95) { g.position.y = 0.95; quedaTiras.splice(i, 1); }   // pousou na mesa
+    if (g.position.y <= LITMUS_Y) { g.position.y = LITMUS_Y; quedaTiras.splice(i, 1); }   // pousou na mesa
   }
 
   // H+ flutuando DENTRO da solução (fade in/out + bobbing suave)
