@@ -808,7 +808,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.85.1</div>
+<div id="versao">v0.85.2</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1518,7 +1518,7 @@ let demoInterativo = { ativo: false, encheu: false, derramou: false };
 // pipeta reaparece pronta pra ser movida (t13) e libera a interação
 function pipetaProntaH3PO4() {
   pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
-  pipette.position.set(AC_X[2], 4.2, PLANE_Z);   // acima do H3PO4
+  pipette.position.set(WATER_X, 4.2, PLANE_Z);   // acima da água
   fade3D(pipette, 1, 700);
   demoInterativo.ativo = true;
 }
@@ -2132,7 +2132,7 @@ const EVENTOS = {
   'dialogo1.3B':  () => rodarStory([
     { t: 0.0,  fn: iniciarCena13B },                                // fade out H+ + pipeta; escurece HCl/H2CO3
     { t: 0.0,  fn: () => { reagents[2].label.visible = false; fade3D(reagents[2].beaker, 1, 800); irParaCamera(CAM_8, true, 1500); } },  // H3PO4 aparece (sem etiqueta) + câmera pos8
-    { t: 13.0, fn: pipetaProntaH3PO4 },                             // pipeta reaparece pronta pra ser movida (libera a interação)
+    { t: 5.7,  fn: pipetaProntaH3PO4 },                             // pipeta reaparece (acima da água) pronta pra ser movida (libera a interação)
   ]),
   'dialogo1.3B1': () => { /* toca ao encher a pipeta; sem coreografia */ },
   'dialogo1.3B2': () => rodarStory([
