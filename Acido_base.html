@@ -808,7 +808,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.83.0</div>
+<div id="versao">v0.84.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1226,17 +1226,21 @@ function addLabel(group, parts, radius, height) {
   return plane;
 }
 
+// posições X dos vidros (água mais à direita, ácidos mais à esquerda = mais juntos)
+const WATER_X = -2.7;
+const AC_X = [1.0, 3.8, 6.6];   // HCl, H2CO3, H3PO4
+
 // ---------- Béquer principal com água ----------
 const waterBeaker = makeBeaker(1.6, 3.4, 0x4aa8e8, 0.62);
-waterBeaker.position.set(-3.5, 0.3, 1.5);
+waterBeaker.position.set(WATER_X, 0.3, 1.5);
 waterBeaker.traverse(o => { if (o.isMesh) o.castShadow = true; });
 scene.add(waterBeaker);
 
 // ---------- 3 béqueres com etiquetas ----------
 const reagents = [
-  { name: 'HCl', parts: [{ t: 'HCl' }], pos: [1.8, 0.3, 1.5] },
-  { name: 'H₂CO₃', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'CO' }, { t: '3', sub: true }], pos: [4.6, 0.3, 1.5] },
-  { name: 'H₃PO₄', parts: [{ t: 'H' }, { t: '3', sub: true }, { t: 'PO' }, { t: '4', sub: true }], pos: [7.4, 0.3, 1.5] },
+  { name: 'HCl', parts: [{ t: 'HCl' }], pos: [AC_X[0], 0.3, 1.5] },
+  { name: 'H₂CO₃', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'CO' }, { t: '3', sub: true }], pos: [AC_X[1], 0.3, 1.5] },
+  { name: 'H₃PO₄', parts: [{ t: 'H' }, { t: '3', sub: true }, { t: 'PO' }, { t: '4', sub: true }], pos: [AC_X[2], 0.3, 1.5] },
 ];
 
 reagents.forEach(r => {
@@ -1297,7 +1301,7 @@ hitBulb.position.y = 3.35; hitBulb.name = 'bulb';
 pipBody.add(hitBulb);
 
 pipBody.scale.setScalar(1.15);           // pipeta 15% maior (líquido enchendo mais visível)
-pipette.position.set(1.8, 3.3, PLANE_Z); // flutuando acima do HCl
+pipette.position.set(AC_X[0], 3.3, PLANE_Z); // flutuando acima do HCl
 scene.add(pipette);
 
 // estado da pipeta
@@ -1309,7 +1313,7 @@ const WATER_SURF = 0.3 + 3.4 * 0.62 + 0.06;
 
 function tipContainer() {
   const x = pipette.position.x, y = pipette.position.y;
-  if (Math.abs(x - (-3.5)) < 1.5 && y < WATER_SURF) return { name: 'água', color: 0x4aa8e8 };
+  if (Math.abs(x - WATER_X) < 1.5 && y < WATER_SURF) return { name: 'água', color: 0x4aa8e8 };
   for (const r of reagents) {
     if (r.locked) continue;   // copo bloqueado (ex.: HCl/H2CO3 no 1.3B) não pode ser usado
     if (Math.abs(x - r.pos[0]) < 0.95 && y < ACID_SURF) return { name: r.name, color: 0xdcedf7 };
@@ -1347,7 +1351,7 @@ function spawnDrop() {
   drops.push({ mesh: d, vy: 0 });
 }
 function dropFloorY(x) {
-  if (Math.abs(x - (-3.5)) < 1.4) return WATER_SURF; // água
+  if (Math.abs(x - WATER_X) < 1.4) return WATER_SURF; // água
   for (const r of reagents) if (Math.abs(x - r.pos[0]) < 0.95) return ACID_SURF;
   return 0.36; // bancada
 }
@@ -1401,7 +1405,7 @@ function mostrarEtiqueta(idx, ms = 600) {
 // fade in só do HCl + pipeta, nas posições atuais (dialogo1.3, t21)
 function mostrarHClPipeta() {
   const hcl = reagents[0];
-  pipette.position.set(1.8, 3.3, PLANE_Z);
+  pipette.position.set(AC_X[0], 3.3, PLANE_Z);
   pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
   if (hcl.label) hcl.label.visible = false;   // aparece SEM etiqueta (a fórmula entra só no 1.3R)
   if (hcl.shadow) fade3D(hcl.shadow, 1, 700);
@@ -1426,10 +1430,10 @@ function tweenPipFill(to, ms, onEnd) {
   })();
 }
 // mergulha (t24) -> enche (t25.6) -> sobe e vai pra água -> expele (t29)
-function pipetaMergulha() { tweenPipPos(1.8, 1.35, 1100); }
+function pipetaMergulha() { tweenPipPos(AC_X[0], 1.35, 1100); }
 function encherPipeta() { pipLiquid.material.color.setHex(0x8ad2ef); pipLiquid.material.opacity = 0.9; tweenPipFill(0.72, 1300); }
 function pipetaEnche() { encherPipeta(); setTimeout(pipetaVaiPraAgua, 1500); }   // 1.3: enche e já vai pra água
-function pipetaVaiPraAgua() { tweenPipPos(pipette.position.x, 3.5, 700, () => tweenPipPos(-3.5, 3.5, 1200)); }  // sobe reto e desloca pra água
+function pipetaVaiPraAgua() { tweenPipPos(pipette.position.x, 3.5, 700, () => tweenPipPos(WATER_X, 3.5, 1200)); }  // sobe reto e desloca pra água
 function pipetaExpele() { pipTargetFill = 0; }   // o loop de animação drena e solta gotas na água
 
 // ---- 2ª demonstração (H₂CO₃ - ácido carbônico, dialogo1.3A) ----
@@ -1439,7 +1443,7 @@ function mostrarH2CO3() {
   fade3D(r.beaker, 1, 800);                // copo aparece em fade in
 }
 function pipetaVaiMergulhaH2CO3() {
-  tweenPipPos(4.6, 3.4, 500, () => tweenPipPos(4.6, 1.35, 600));   // pipeta vai e mergulha no ácido
+  tweenPipPos(AC_X[1], 3.4, 500, () => tweenPipPos(AC_X[1], 1.35, 600));   // pipeta vai e mergulha no ácido
 }
 function pipetaEncheSemMover() { encherPipeta(); }           // só enche (o movimento é um cue separado)
 
@@ -1460,7 +1464,7 @@ function mostrarHmais() {
   for (let i = 0; i < 7; i++) {
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: hmaisTex, transparent: true, opacity: 0, depthTest: false, fog: false }));
     const sc = 0.55 + Math.random() * 0.35; s.scale.set(sc, sc, sc);
-    s.position.set(-3.5 + (Math.random() - 0.5) * 2.0, 0.7 + Math.random() * (WATER_SURF - 1.0), 1.5 + (Math.random() - 0.5) * 1.4);
+    s.position.set(WATER_X + (Math.random() - 0.5) * 2.0, 0.7 + Math.random() * (WATER_SURF - 1.0), 1.5 + (Math.random() - 0.5) * 1.4);
     s.userData = { phase: Math.random() * 6.28, base: s.position.y, amp: 0.06 + Math.random() * 0.08 };
     scene.add(s); hmaisSprites.push(s);
   }
@@ -1481,7 +1485,7 @@ function mostrarRotuloAcido(px) {
   }
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: rotuloAcidoTex, transparent: true, opacity: 0, depthTest: false, fog: false }));
   s.scale.set(1.7, 0.665, 1);                       // 50% menor
-  s.position.set(px == null ? 1.8 : px, 3.55, 1.5); // acima do frasco
+  s.position.set(px == null ? AC_X[0] : px, 3.55, 1.5); // acima do frasco
   scene.add(s); rotulosAcido.push(s);
   const t0 = animNow();
   (function step() { const k = Math.min(1, (animNow() - t0) / 500); s.material.opacity = 0.98 * k; if (k < 1) requestAnimationFrame(step); })();
@@ -1514,7 +1518,7 @@ let demoInterativo = { ativo: false, encheu: false, derramou: false };
 // pipeta reaparece pronta pra ser movida (t13) e libera a interação
 function pipetaProntaH3PO4() {
   pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
-  pipette.position.set(7.4, 4.2, PLANE_Z);   // acima do H3PO4
+  pipette.position.set(AC_X[2], 4.2, PLANE_Z);   // acima do H3PO4
   fade3D(pipette, 1, 700);
   demoInterativo.ativo = true;
 }
@@ -1523,7 +1527,7 @@ function resetDemo13() {
   limparHmais(); limparRotuloAcido(); limparNomesAcido();
   drops.forEach(d => scene.remove(d.mesh)); drops.length = 0;
   pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
-  pipette.position.set(1.8, 3.3, PLANE_Z);
+  pipette.position.set(AC_X[0], 3.3, PLANE_Z);
 }
 
 // arraste da pipeta (restrito ao plano dos vidros)
@@ -1561,21 +1565,21 @@ function startBulbPress(drag) {
 // toque (sem segurar): ponta mergulhada -> enche tudo; cheia -> derrama
 function endBulbPress(drag) {
   sucking = false;
-  if (pipFill <= 0.1) {                    // vazia: enche se a ponta estiver num líquido
-    const c = tipContainer();              // vale por toque OU ao soltar a pipeta já mergulhada
+  if (drag.moved) return;                  // arraste só REPOSICIONA a pipeta (não enche/derrama)
+  if (pipFill <= 0.1) {                     // vazia + toque: enche se a ponta estiver num líquido liberado
+    const c = tipContainer();
     if (c) {
       pipLiquid.material.color.setHex(c.name === 'água' ? c.color : 0x8ad2ef);  // ácido: azul claro visível
       pipLiquid.material.opacity = 0.9;
       squeezeTime = clock.getElapsedTime();
       tweenPipFill(1, 900);                // enche até o topo (não precisa segurar)
       showMsg('Pipeta cheia de ' + (c.name === 'água' ? 'água' : 'ácido') + '!');
-    } else if (!drag.moved) {
+    } else {
       showMsg(tipSobreCopoBloqueado() ? 'Esse ácido já foi analisado — use o ácido novo (à direita)' : 'Mergulhe a ponta no ácido e toque na pipeta');
     }
     return;
   }
-  if (drag.moved) return;                  // cheia + arraste = só reposicionou
-  pipTargetFill = 0;                        // cheia + toque = derrama tudo
+  pipTargetFill = 0;                        // cheia + toque: derrama tudo
   squeezeTime = clock.getElapsedTime();
   showMsg('Soltando o líquido...');
 }
@@ -1830,7 +1834,7 @@ function animate() {
       if (!demoInterativo.encheu && pipFill > 0.55) {
         demoInterativo.encheu = true;
         if (typeof onEncheuPipeta === 'function') onEncheuPipeta();
-      } else if (demoInterativo.encheu && !demoInterativo.derramou && pipFill < 0.05 && Math.abs(pipette.position.x - (-3.5)) < 1.6) {
+      } else if (demoInterativo.encheu && !demoInterativo.derramou && pipFill < 0.05 && Math.abs(pipette.position.x - WATER_X) < 1.6) {
         demoInterativo.derramou = true; demoInterativo.ativo = false;
         if (typeof onDerramouPipeta === 'function') onDerramouPipeta();
       }
@@ -2109,7 +2113,7 @@ const EVENTOS = {
   ]),
   'dialogo1.3R':  () => rodarStory([
     { t: 0.0, fn: esconderMaoOk },                                          // mãozinha some em fade out
-    { t: 2.0, fn: () => mostrarNomeAcido(1.8, 'Ácido Clorídrico') },         // nome acima do frasco (persistente)
+    { t: 2.0, fn: () => mostrarNomeAcido(AC_X[0], 'Ácido Clorídrico') },     // nome acima do frasco (persistente)
     { t: 4.7, fn: () => mostrarEtiqueta(0) },                                // etiqueta com a fórmula no copo de HCl
   ]),
   'dialogo1.3A':  () => rodarStory([
@@ -2121,7 +2125,7 @@ const EVENTOS = {
     { t: 8.0,  fn: () => { pipetaExpele(); irParaCamera(CAM_7, true, 1500); } },  // expele (até ~10s) + aproxima (pos7)
     { t: 12.4, fn: mostrarHmais },                                 // os mesmos H+ na água
     { t: 15.5, fn: () => irParaCamera(CAM_6, true, 1500) },        // volta pra pos6
-    { t: 21.0, fn: () => mostrarNomeAcido(4.6, 'Ácido Carbônico') },  // nome acima do frasco (persistente)
+    { t: 21.0, fn: () => mostrarNomeAcido(AC_X[1], 'Ácido Carbônico') },  // nome acima do frasco (persistente)
     { t: 23.8, fn: () => mostrarEtiqueta(1) },                     // etiqueta com a fórmula (H₂CO₃) em fade in
   ]),
   'dialogo1.3B':  () => rodarStory([
@@ -2133,7 +2137,7 @@ const EVENTOS = {
   'dialogo1.3B2': () => rodarStory([
     { t: 1.0,  fn: () => { irParaCamera(CAM_7, true, 1500); mostrarHmais(); } },  // câmera pos9 (=pos7) + H+ ao mesmo tempo
     { t: 5.0,  fn: () => irParaCamera(CAM_8, true, 1500) },         // volta pra posição anterior (pos8)
-    { t: 13.8, fn: () => { mostrarNomeAcido(7.4, 'Ácido Fosfórico'); mostrarEtiqueta(2); } },  // nome (persistente) + etiqueta H3PO4
+    { t: 13.8, fn: () => { mostrarNomeAcido(AC_X[2], 'Ácido Fosfórico'); mostrarEtiqueta(2); } },  // nome (persistente) + etiqueta H3PO4
   ]),
 };
 
@@ -3315,8 +3319,8 @@ function iniciarCena13B() {
     if (reagents[i].label) reagents[i].label.visible = true;   // etiqueta (fórmula) já revelada
     reagents[i].locked = true; escurecerCopo(i, true);
   });
-  mostrarNomeAcido(1.8, 'Ácido Clorídrico');   // idempotente (não duplica no fluxo normal)
-  mostrarNomeAcido(4.6, 'Ácido Carbônico');
+  mostrarNomeAcido(AC_X[0], 'Ácido Clorídrico');   // idempotente (não duplica no fluxo normal)
+  mostrarNomeAcido(AC_X[1], 'Ácido Carbônico');
   reagents[2].locked = false;
   demoInterativo = { ativo: false, encheu: false, derramou: false };
 }
