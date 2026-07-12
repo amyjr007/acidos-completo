@@ -281,6 +281,18 @@
     font-size: clamp(30px, 8.5vw, 50px); font-weight: 900;
     color: var(--acid); text-shadow: 0 0 16px var(--acid-glow);
   }
+  /* Texto dos indicadores (persiste entre 1.4 e 1.4A, sem flicker) */
+  #indicadorTxt {
+    position: fixed; top: 50%; left: 0; right: 0; z-index: 41;
+    transform: translateY(-50%); text-align: center; padding: 0 24px;
+    font-family: system-ui, sans-serif; font-weight: 900; line-height: 1.18;
+    font-size: clamp(30px, 8.5vw, 50px); color: #f2fbe4;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, .65), 0 0 26px rgba(166, 229, 52, .22);
+    opacity: 0; pointer-events: none; transition: opacity .5s ease;
+  }
+  #indicadorTxt.show { opacity: 1; }
+  #indicadorTxt.menor { font-size: clamp(28px, 7.9vw, 48px); }
+  #indicadorTxt .azul { color: #45a6f5; }
   /* "Ácido" verde escuro no topo (sobre o quadro branco, dialogo1.2) */
   .st-verdeescuro {
     color: #0f4d18;
@@ -817,7 +829,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.89.0</div>
+<div id="versao">v0.90.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -840,6 +852,7 @@
 <!-- Prateleira das substâncias inorgânicas (dialogo1.1) -->
 <div id="shelfInorg" aria-hidden="true"></div>
 <div id="substTitle">Substâncias Inorgânicas</div>
+<div id="indicadorTxt"></div>
 <div id="substDesc"></div>
 
 <!-- Cena do dialogo1.1A: "Ácidos", não-ácidos (H2O/H2O2) e frascos de ácidos -->
@@ -1548,7 +1561,7 @@ function clarearCoposFade(ms = 1500) {
 }
 
 // ---- Papel de tornassol azul (dialogo1.4A) — arrastável ----
-const AZUL_TORNASSOL = 0x4a5fd0, VERMELHO_TORNASSOL = 0xcf3535, LITMUS_X = 9.4;
+const AZUL_TORNASSOL = 0x4a5fd0, VERMELHO_TORNASSOL = 0xcf3535, LITMUS_X = AC_X[1];   // embaixo do H2CO3
 const litmusBloco = new THREE.Group(); litmusBloco.visible = false; scene.add(litmusBloco);
 let litmusAtivo = false, litmusDrag = null, litmusVermelhoUsado = false;
 let papel = null, papelUsado = null;
@@ -1592,6 +1605,7 @@ function mostrarBlocoTornassol() {
   if (papelUsado) { scene.remove(papelUsado); papelUsado = null; }
   novaTiraAtiva();
   litmusAtivo = true;
+  fade3D(litmusBloco, 1, 700); fade3D(papel, 1, 700);   // entra em fade in
 }
 function dissolverTira(g) {
   if (!g) return;
@@ -2318,14 +2332,15 @@ const EVENTOS = {
   ]),
   'dialogo1.4':   () => rodarStory([
     { t: 0.0,  fn: iniciarCena14 },                                          // ácidos escuros voltam ao normal (fade) + pipeta some
-    { t: 18.0, fn: esconderHmaisFade },                                      // H+ da solução somem
-    { t: 26.8, fn: () => stShow('center', '"Indicadores ácido-básico"', 'st-titulo2 st-branco') },
+    { t: 13.0, fn: () => irParaCamera(CAM_7, true, 1500) },                  // aproxima da água (mostra os H+)
+    { t: 18.0, fn: () => { irParaCamera(CAM_8, true, 1500); esconderHmaisFade(); } },  // volta pra vista da bancada + H+ somem
+    { t: 26.8, fn: () => mostrarIndicador('"Indicadores<br>ácido-base"') },  // 2 linhas
   ]),
   'dialogo1.4A':  () => rodarStory([
-    { t: 0.0,  fn: () => stShow('center', '"Indicadores ácido-básico"', 'st-titulo2 st-branco') },  // continua do 1.4
-    { t: 3.0,  fn: stSair },                                                 // some o texto "Indicadores..."
-    { t: 7.8,  fn: mostrarBlocoTornassol },                                  // bloquinho de papel azul na mesa + libera a interação
-    { t: 12.0, fn: () => stShow('center', '"Papel de tornassol azul"', 'st-titulo2 st-branco') },
+    // o texto "Indicadores" continua do 1.4 (persistente, sem sumir/voltar)
+    { t: 5.0,  fn: () => trocarIndicador('"Papel de tornassol"', true) },    // troca no lugar (2px menor)
+    { t: 7.8,  fn: mostrarBlocoTornassol },                                  // bloquinho de papel azul (fade in) embaixo do H2CO3 + libera a interação
+    { t: 12.0, fn: () => mostrarIndicador('"Papel de tornassol <span class="azul">azul</span>"', true) },  // complementa com "azul"
   ]),
   'dialogo1.4B':  () => { /* toca quando o papel fica vermelho; sem coreografia; play no fim */ },
 };
@@ -2361,6 +2376,7 @@ function tocarFaixa(i) {
   const f = FAIXAS[i];
   if (f.id !== 'dialogo1.3B' && f.id !== 'dialogo1.3B1') $id('ajudaBtn').style.display = 'none';   // botão ajuda só na demo interativa
   if (f.id !== 'dialogo1.4A' && f.id !== 'dialogo1.4B' && typeof limparTornassol === 'function') limparTornassol();   // papel só na cena dos indicadores
+  if (f.id !== 'dialogo1.4' && f.id !== 'dialogo1.4A' && f.id !== 'dialogo1.4B') $id('indicadorTxt').classList.remove('show');   // texto dos indicadores só na família 1.4
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
@@ -3538,8 +3554,22 @@ function onEncheuPipeta() { const i = idxFaixa('dialogo1.3B1'); if (i >= 0) toca
 function onDerramouPipeta() { $id('ajudaBtn').style.display = 'none'; const i = idxFaixa('dialogo1.3B2'); if (i >= 0) tocarFaixa(i); }
 
 // ---- Cena dos indicadores (dialogo1.4 / 1.4A) ----
+// texto persistente que continua entre 1.4 e 1.4A (sem sumir/voltar)
+function mostrarIndicador(html, menor) {
+  const el = $id('indicadorTxt');
+  el.classList.toggle('menor', !!menor);
+  el.innerHTML = html; el.classList.add('show');
+}
+function trocarIndicador(html, menor) {   // troca com fade curto (mantém "no lugar")
+  const el = $id('indicadorTxt');
+  el.classList.remove('show');
+  setTimeout(() => { el.classList.toggle('menor', !!menor); el.innerHTML = html; el.classList.add('show'); }, 300);
+}
+function esconderIndicador() { $id('indicadorTxt').classList.remove('show'); }
+
 // início do 1.4: os ácidos escuros voltam ao normal (fade) e a pipeta some
 function iniciarCena14() {
+  esconderIndicador();             // some qualquer texto antigo (reaparece em 26.8)
   clarearCoposFade(1500);          // HCl/H2CO3 escuros voltam ao normal
   fade3D(pipette, 0, 600);         // pipeta some
 }
