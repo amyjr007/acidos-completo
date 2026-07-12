@@ -829,7 +829,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.94.0</div>
+<div id="versao">v0.95.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1746,14 +1746,14 @@ const MIN_D = 5, MAX_D = 40;
 let camLocked = true;  // câmera travada por padrão; tecla L libera/trava
 let freeCam = false;   // modo dev de câmera livre (toque no selo de versão)
 // "segurar 2s" no modo livre -> mostra/copia coordenadas
-let holdTimer = null, holdX = 0, holdY = 0;
+let holdTimer = null, holdX = 0, holdY = 0, copiaPendente = null;
 function holdStart(e) {
   holdX = e.clientX; holdY = e.clientY;
   clearTimeout(holdTimer);
   holdTimer = setTimeout(() => { holdTimer = null; mostrarCoordenadas(); }, 2000);
 }
 function holdMaybeCancel(e) {
-  if (holdTimer && Math.hypot(e.clientX - holdX, e.clientY - holdY) > 12) { clearTimeout(holdTimer); holdTimer = null; }
+  if (holdTimer && Math.hypot(e.clientX - holdX, e.clientY - holdY) > 44) { clearTimeout(holdTimer); holdTimer = null; }
 }
 function holdClear() { clearTimeout(holdTimer); holdTimer = null; }
 
@@ -1901,6 +1901,7 @@ renderer.domElement.addEventListener('pointermove', e => {
 
 function endPointer(e) {
   holdClear();
+  if (copiaPendente) { copiar(copiaPendente); copiaPendente = null; }   // copia ao soltar (gesto válido no celular)
   if (litmusDrag && e.pointerId === litmusDrag.id) {
     litmusDrag = null;
     if (papel) soltarPapel(papel);
@@ -2098,7 +2099,8 @@ function mostrarCoordenadas() {
     '<span class="rodape">copiado! — clique para copiar de novo · C fecha</span>';
   camBox.hidden = false;
   camBox.dataset.trecho = trecho;
-  copiar(trecho);
+  copiar(trecho);              // tentativa imediata (funciona no desktop)
+  copiaPendente = trecho;      // e copia de novo ao soltar o dedo (gesto válido no celular)
 }
 addEventListener('keydown', e => {
   if (e.key === 'c' || e.key === 'C') {
