@@ -713,6 +713,15 @@
     60%  { opacity: 1; transform: translate(-50%, -50%) scale(1.22) rotate(6deg); }
     100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
   }
+  /* Botão de ajuda (demonstração interativa) */
+  #ajudaBtn {
+    position: fixed; right: 16px; bottom: 26px; z-index: 85; display: none;
+    padding: 10px 20px; border: 2px solid var(--acid); border-radius: 24px;
+    background: rgba(6, 16, 6, 0.86); color: var(--acid);
+    font: 800 15px system-ui, sans-serif; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .45); -webkit-tap-highlight-color: transparent;
+  }
+  #ajudaBtn.ativo { background: var(--acid); color: #12290a; box-shadow: 0 0 18px var(--acid-glow); }
   #okHand.fade-out { animation: okFade .5s ease forwards; }
   @keyframes okFade {
     from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
@@ -808,7 +817,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.85.2</div>
+<div id="versao">v0.86.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -900,6 +909,9 @@
 
 <!-- Mãozinha de OK (dialogo1.3, fim da demonstração) -->
 <div id="okHand">&#128077;</div>
+
+<!-- Botão de ajuda (demonstração interativa 1.3B) -->
+<button id="ajudaBtn" aria-label="Ajuda">Ajuda</button>
 
 <button id="playBtn" aria-label="Reproduzir / pausar narração">
   <svg id="playRing" viewBox="0 0 82 82" aria-hidden="true">
@@ -1503,7 +1515,7 @@ function mostrarNomeAcido(px, nome) {
   c.font = 'bold 62px system-ui, sans-serif'; c.fillText(nome, 320, 72);
   const tex = new THREE.CanvasTexture(cv);
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthTest: false, fog: false }));
-  s.scale.set(2.3, 0.49, 1);                 // 60% menor
+  s.scale.set(2.53, 0.539, 1);               // 60% menor (+10% de fonte)
   s.position.set(px, 3.55, 1.5);             // acima do frasco
   s.userData.px = px;
   scene.add(s); nomesAcido.push(s);
@@ -1521,6 +1533,7 @@ function pipetaProntaH3PO4() {
   pipette.position.set(WATER_X, 4.2, PLANE_Z);   // acima da água
   fade3D(pipette, 1, 700);
   demoInterativo.ativo = true;
+  $id('ajudaBtn').style.display = '';            // libera o botão de ajuda
 }
 
 function resetDemo13() {
@@ -1575,11 +1588,12 @@ function endBulbPress(drag) {
       tweenPipFill(1, 900);                // enche até o topo (não precisa segurar)
       showMsg('Pipeta cheia de ' + (c.name === 'água' ? 'água' : 'ácido') + '!');
     } else {
-      showMsg(tipSobreCopoBloqueado() ? 'Esse ácido já foi analisado — use o ácido novo (à direita)' : 'Mergulhe a ponta no ácido e aperte a bolinha');
+      showMsg(tipSobreCopoBloqueado() ? 'Esse ácido já foi analisado — use o ácido novo (à direita)' : 'Mergulhe a ponta no ácido e aperte nela pra encher');
     }
     return;
   }
   pipTargetFill = 0;                        // cheia + toque: derrama tudo
+  demoInterativo.expelindo = true;          // marca que o usuário expeliu (pra checar se acertou a água)
   squeezeTime = clock.getElapsedTime();
   showMsg('Soltando o líquido...');
 }
@@ -1645,7 +1659,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
         offX: planePoint.x - pipette.position.x,
         offY: planePoint.y - pipette.position.y
       };
-      if (part === 'bulb') startBulbPress(pipDrag);   // só a bolinha (pêra) enche/derrama; tubo/ponta = arrastar
+      if (part === 'bulb' || part === 'tip') startBulbPress(pipDrag);   // ponta OU bolinha enche/derrama; tubo = arrastar
       return;
     }
   } else {
@@ -1720,8 +1734,8 @@ renderer.domElement.addEventListener('pointermove', e => {
 function endPointer(e) {
   holdClear();
   if (pipDrag && e.pointerId === pipDrag.id) {
-    if (pipDrag.part === 'bulb') endBulbPress(pipDrag);
-    else if (!pipDrag.moved) showMsg(pipFill > 0.1 ? 'Aperte a bolinha pra soltar o líquido' : 'Aperte a bolinha pra encher');
+    if (pipDrag.part === 'bulb' || pipDrag.part === 'tip') endBulbPress(pipDrag);
+    else if (!pipDrag.moved) showMsg(pipFill > 0.1 ? 'Aperte a ponta da pipeta pra soltar' : 'Aperte a ponta da pipeta pra encher');
     pipDrag = null;
     return;
   }
@@ -1765,6 +1779,7 @@ function showMsg(text) {
 // ---------- Animação ----------
 const clock = new THREE.Clock();
 let lastT = 0;
+const _okVec = new THREE.Vector3();   // reaproveitado pra projetar a mãozinha sobre o HCl
 function animate() {
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
@@ -1835,11 +1850,24 @@ function animate() {
       if (!demoInterativo.encheu && pipFill > 0.55) {
         demoInterativo.encheu = true;
         if (typeof onEncheuPipeta === 'function') onEncheuPipeta();
-      } else if (demoInterativo.encheu && !demoInterativo.derramou && pipFill < 0.05 && Math.abs(pipette.position.x - WATER_X) < 1.6) {
-        demoInterativo.derramou = true; demoInterativo.ativo = false;
-        if (typeof onDerramouPipeta === 'function') onDerramouPipeta();
+      } else if (demoInterativo.encheu && !demoInterativo.derramou && demoInterativo.expelindo && pipFill < 0.05) {
+        demoInterativo.expelindo = false;
+        if (Math.abs(pipette.position.x - WATER_X) < 1.6) {          // acertou a água
+          demoInterativo.derramou = true; demoInterativo.ativo = false;
+          if (typeof onDerramouPipeta === 'function') onDerramouPipeta();
+        } else {                                                       // errou a água
+          showMsg('Tente de novo. O líquido precisa ser expelido no béquer com água.');
+        }
       }
     }
+  }
+
+  // mãozinha de OK acompanhando o frasco de HCl (projeta a posição 3D na tela)
+  const _okEl = $id('okHand');
+  if (_okEl.classList.contains('show') || _okEl.classList.contains('fade-out')) {
+    _okVec.set(AC_X[0], 3.7, PLANE_Z).project(camera);
+    _okEl.style.left = ((_okVec.x * 0.5 + 0.5) * innerWidth) + 'px';
+    _okEl.style.top = ((-_okVec.y * 0.5 + 0.5) * innerHeight) + 'px';
   }
 
   renderer.render(scene, camera);
@@ -2171,6 +2199,7 @@ function tocarFaixa(i) {
   // volta pra vista padrão (e restaura os ácidos) se for um diálogo ANTERIOR à virada de câmera (1.2)
   if (i < idxFaixa('dialogo1.2')) { irParaCamera(CAM_PADRAO, false); if (typeof mostrarAcidosBancada === 'function') mostrarAcidosBancada(); }
   const f = FAIXAS[i];
+  if (f.id !== 'dialogo1.3B' && f.id !== 'dialogo1.3B1') $id('ajudaBtn').style.display = 'none';   // botão ajuda só na demo interativa
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
@@ -2207,6 +2236,18 @@ $id('playBtn').addEventListener('click', () => {
   }
   if (player.paused) player.play();
   else player.pause();
+});
+
+// Botão de ajuda: mostra a instrução do passo ATUAL (depende de a pipeta estar vazia/cheia)
+let _ajudaTimer = null;
+$id('ajudaBtn').addEventListener('click', () => {
+  const btn = $id('ajudaBtn');
+  btn.classList.add('ativo');
+  showMsg(pipFill > 0.1
+    ? 'Arraste até a água e aperte de novo na ponta da pipeta pra expelir.'
+    : 'Coloque a pipeta na substância desconhecida e aperte na ponta dela pra encher.');
+  clearTimeout(_ajudaTimer);
+  _ajudaTimer = setTimeout(() => btn.classList.remove('ativo'), 2400);
 });
 
 player.addEventListener('play',  () => { setIconePlay(true);  animRetomar(); });
@@ -2251,6 +2292,7 @@ $id('btnIniciar').addEventListener('click', () => {
 $id('homeBtn').addEventListener('click', () => {
   player.pause();
   limparStory();
+  $id('ajudaBtn').style.display = 'none';
   $id('cover').classList.remove('saindo');
 });
 
@@ -3324,12 +3366,14 @@ function iniciarCena13B() {
   mostrarNomeAcido(AC_X[0], 'Ácido Clorídrico');   // idempotente (não duplica no fluxo normal)
   mostrarNomeAcido(AC_X[1], 'Ácido Carbônico');
   reagents[2].locked = false;
-  demoInterativo = { ativo: false, encheu: false, derramou: false };
+  demoInterativo = { ativo: false, encheu: false, derramou: false, expelindo: false };
+  $id('ajudaBtn').classList.remove('ativo');
+  $id('ajudaBtn').style.display = 'none';   // só reaparece quando a pipeta ficar pronta (t5.7)
 }
 // usuário encheu a pipeta -> toca 1.3B1
 function onEncheuPipeta() { const i = idxFaixa('dialogo1.3B1'); if (i >= 0) tocarFaixa(i); }
 // usuário derramou tudo na água -> toca 1.3B2
-function onDerramouPipeta() { const i = idxFaixa('dialogo1.3B2'); if (i >= 0) tocarFaixa(i); }
+function onDerramouPipeta() { $id('ajudaBtn').style.display = 'none'; const i = idxFaixa('dialogo1.3B2'); if (i >= 0) tocarFaixa(i); }
 // H+ vira sobrescrito; caret pisca enquanto digita
 function montarDef(s, digitando) {
   let h = s.split('H+').join('H<sup>+</sup>');
