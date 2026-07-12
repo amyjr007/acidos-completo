@@ -829,7 +829,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.90.0</div>
+<div id="versao">v0.91.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1561,7 +1561,7 @@ function clarearCoposFade(ms = 1500) {
 }
 
 // ---- Papel de tornassol azul (dialogo1.4A) — arrastável ----
-const AZUL_TORNASSOL = 0x4a5fd0, VERMELHO_TORNASSOL = 0xcf3535, LITMUS_X = AC_X[1];   // embaixo do H2CO3
+const AZUL_TORNASSOL = 0x4a5fd0, VERMELHO_TORNASSOL = 0xcf3535, LITMUS_X = 3.0, LITMUS_Y = 0.8;   // mais pra baixo e à esquerda do H2CO3
 const litmusBloco = new THREE.Group(); litmusBloco.visible = false; scene.add(litmusBloco);
 let litmusAtivo = false, litmusDrag = null, litmusVermelhoUsado = false;
 let papel = null, papelUsado = null;
@@ -1592,12 +1592,12 @@ function criarTira(x, y) {
 function pintarContato(g, surfY) {
   g._segs.forEach(s => { if (g.position.y + s.position.y < surfY) s.material.color.setHex(VERMELHO_TORNASSOL); });
 }
-function novaTiraAtiva() { papel = criarTira(LITMUS_X, 1.35); }
+function novaTiraAtiva() { papel = criarTira(LITMUS_X, LITMUS_Y); }
 function mostrarBlocoTornassol() {
   while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]);
   for (let i = 0; i < 7; i++) {
     const m = new THREE.Mesh(new THREE.BoxGeometry(0.42, 2.0, 0.06), toonMat(AZUL_TORNASSOL));
-    m.position.set(LITMUS_X + (i - 3) * 0.05, 1.3, PLANE_Z - 0.28 + i * 0.04); m.rotation.z = 0.1;
+    m.position.set(LITMUS_X + (i - 3) * 0.05, LITMUS_Y, PLANE_Z - 0.28 + i * 0.04); m.rotation.z = 0.1;
     litmusBloco.add(m);
   }
   litmusBloco.visible = true; litmusVermelhoUsado = false;
@@ -1986,7 +1986,7 @@ function animate() {
     g._vy = (g._vy || 0) - 12 * dt;
     g.position.y += g._vy * dt;
     g.rotation.z += 3 * dt;               // tomba levemente ao cair
-    if (g.position.y <= 1.25) { g.position.y = 1.25; quedaTiras.splice(i, 1); }   // pousou na mesa
+    if (g.position.y <= 0.95) { g.position.y = 0.95; quedaTiras.splice(i, 1); }   // pousou na mesa
   }
 
   // H+ flutuando DENTRO da solução (fade in/out + bobbing suave)
@@ -2338,7 +2338,8 @@ const EVENTOS = {
   ]),
   'dialogo1.4A':  () => rodarStory([
     // o texto "Indicadores" continua do 1.4 (persistente, sem sumir/voltar)
-    { t: 5.0,  fn: () => trocarIndicador('"Papel de tornassol"', true) },    // troca no lugar (2px menor)
+    { t: 3.8,  fn: esconderIndicador },                                      // "Indicadores..." some em fade
+    { t: 5.0,  fn: () => mostrarIndicador('"Papel de tornassol"', true) },   // aparece no lugar (2px menor)
     { t: 7.8,  fn: mostrarBlocoTornassol },                                  // bloquinho de papel azul (fade in) embaixo do H2CO3 + libera a interação
     { t: 12.0, fn: () => mostrarIndicador('"Papel de tornassol <span class="azul">azul</span>"', true) },  // complementa com "azul"
   ]),
@@ -2447,6 +2448,7 @@ player.addEventListener('ended', () => {
   setIconePlay(false);
   marcarAnel(1);
   $id('playBtn').style.display = '';   // volta o botão (caso a faixa que acabou o tivesse escondido)
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.4A') esconderIndicador();   // fim do 1.4A: todo o texto some em fade
   // fim do tutorial 1.1E -> botão de play vira "JOGAR"
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.1E') {
     jogarPronto = true;
