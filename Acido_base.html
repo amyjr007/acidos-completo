@@ -808,7 +808,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.85.0</div>
+<div id="versao">v0.85.1</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2224,6 +2224,7 @@ player.addEventListener('loadedmetadata', () => marcarAnel(0));   // zera ao tro
 
 // Ao terminar uma faixa, NÃO avança sozinho: deixa o play pronto p/ a próxima
 player.addEventListener('ended', () => {
+  animRetomar();   // fim NATURAL da faixa: as animações continuam (o freeze é só pro pause manual)
   faixaTerminou = true;
   setIconePlay(false);
   marcarAnel(1);
