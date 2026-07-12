@@ -808,7 +808,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.82.0</div>
+<div id="versao">v0.83.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -964,14 +964,54 @@ function toonMat(color) {
   return new THREE.MeshToonMaterial({ color, gradientMap: grad });
 }
 
-// ---------- Bancada escura ----------
-const bench = new THREE.Mesh(new THREE.BoxGeometry(26, 1.2, 14), toonMat(0x1d2b16));
+// ---------- Textura de madeira procedural (tábuas + veios) ----------
+function woodTexture() {
+  const w = 1024, h = 512;
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const g = cv.getContext('2d');
+  g.fillStyle = '#7c4d24'; g.fillRect(0, 0, w, h);
+  const planks = 5, ph = h / planks;
+  for (let p = 0; p < planks; p++) {
+    const y0 = p * ph;
+    const base = 118 + Math.floor(Math.random() * 46);     // tom da tábua
+    g.fillStyle = 'rgb(' + base + ',' + Math.floor(base * 0.6) + ',' + Math.floor(base * 0.3) + ')';
+    g.fillRect(0, y0, w, ph);
+    for (let i = 0; i < 70; i++) {                          // veios ondulados
+      const yy = y0 + Math.random() * ph;
+      const amp = 3 + Math.random() * 9;
+      const dark = Math.random() < 0.5;
+      g.strokeStyle = dark
+        ? 'rgba(' + (44 + Math.random() * 34) + ',' + (24 + Math.random() * 18) + ',10,' + (0.05 + Math.random() * 0.13) + ')'
+        : 'rgba(' + (190 + Math.random() * 40) + ',' + (150 + Math.random() * 30) + ',' + (100 + Math.random() * 30) + ',' + (0.04 + Math.random() * 0.08) + ')';
+      g.lineWidth = 0.4 + Math.random() * 1.6;
+      g.beginPath();
+      for (let x = 0; x <= w; x += 14) {
+        const y = yy + Math.sin(x * 0.006 + p) * amp + Math.sin(x * 0.03 + i) * amp * 0.2;
+        x === 0 ? g.moveTo(x, y) : g.lineTo(x, y);
+      }
+      g.stroke();
+    }
+    g.strokeStyle = 'rgba(28,14,6,0.55)'; g.lineWidth = 2.5;  // fresta entre tábuas
+    g.beginPath(); g.moveTo(0, y0); g.lineTo(w, y0); g.stroke();
+  }
+  const tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.anisotropy = 8;
+  return tex;
+}
+const woodMap = woodTexture();
+woodMap.repeat.set(2, 1);
+const woodMat = new THREE.MeshStandardMaterial({ map: woodMap, roughness: 0.72, metalness: 0.04 });
+const woodMatDark = new THREE.MeshStandardMaterial({ map: woodMap, color: 0x6a4a2c, roughness: 0.8, metalness: 0.04 });
+
+// ---------- Bancada (madeira) ----------
+const bench = new THREE.Mesh(new THREE.BoxGeometry(26, 1.2, 14), woodMatDark);
 bench.position.y = -0.6;
 bench.receiveShadow = true;
 scene.add(bench);
 
-// borda da bancada (detalhe cartoon)
-const edge = new THREE.Mesh(new THREE.BoxGeometry(26.4, 0.25, 14.4), toonMat(0x2b4020));
+// tampo da bancada (madeira, superfície visível)
+const edge = new THREE.Mesh(new THREE.BoxGeometry(26.4, 0.25, 14.4), woodMat);
 edge.position.y = 0.02;
 edge.receiveShadow = true;
 scene.add(edge);
@@ -1269,12 +1309,17 @@ const WATER_SURF = 0.3 + 3.4 * 0.62 + 0.06;
 
 function tipContainer() {
   const x = pipette.position.x, y = pipette.position.y;
-  if (Math.abs(x - (-3.5)) < 1.35 && y < WATER_SURF - 0.05) return { name: 'água', color: 0x4aa8e8 };
+  if (Math.abs(x - (-3.5)) < 1.5 && y < WATER_SURF) return { name: 'água', color: 0x4aa8e8 };
   for (const r of reagents) {
     if (r.locked) continue;   // copo bloqueado (ex.: HCl/H2CO3 no 1.3B) não pode ser usado
-    if (Math.abs(x - r.pos[0]) < 0.85 && y < ACID_SURF - 0.05) return { name: r.name, color: 0xdcedf7 };
+    if (Math.abs(x - r.pos[0]) < 0.95 && y < ACID_SURF) return { name: r.name, color: 0xdcedf7 };
   }
   return null;
+}
+// ponta sobre um copo BLOQUEADO (pra dar um aviso claro em vez de silêncio)
+function tipSobreCopoBloqueado() {
+  const x = pipette.position.x, y = pipette.position.y;
+  return reagents.some(r => r.locked && Math.abs(x - r.pos[0]) < 0.95 && y < ACID_SURF);
 }
 
 // escurece/restaura um copo (indica "inativo" no 1.3B). Reversível.
@@ -1525,7 +1570,7 @@ function endBulbPress(drag) {
       tweenPipFill(1, 900);                // enche até o topo (não precisa segurar)
       showMsg('Pipeta cheia de ' + (c.name === 'água' ? 'água' : 'ácido') + '!');
     } else if (!drag.moved) {
-      showMsg('Toque a ponta dentro de um líquido');
+      showMsg(tipSobreCopoBloqueado() ? 'Esse ácido já foi analisado — use o ácido novo (à direita)' : 'Mergulhe a ponta no ácido e toque na pipeta');
     }
     return;
   }
@@ -1596,7 +1641,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
         offX: planePoint.x - pipette.position.x,
         offY: planePoint.y - pipette.position.y
       };
-      if (part === 'bulb' || part === 'tip') startBulbPress(pipDrag);
+      startBulbPress(pipDrag);   // tocar em qualquer parte da pipeta (bola/tubo/ponta) enche/derrama
       return;
     }
   } else {
@@ -1671,7 +1716,7 @@ renderer.domElement.addEventListener('pointermove', e => {
 function endPointer(e) {
   holdClear();
   if (pipDrag && e.pointerId === pipDrag.id) {
-    if (pipDrag.part === 'bulb' || pipDrag.part === 'tip') endBulbPress(pipDrag);
+    endBulbPress(pipDrag);   // qualquer parte da pipeta
     pipDrag = null;
     return;
   }
