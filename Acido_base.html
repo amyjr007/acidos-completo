@@ -817,7 +817,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.86.0</div>
+<div id="versao">v0.87.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1525,6 +1525,101 @@ function mostrarNomeAcido(px, nome) {
 function limparNomesAcido() { nomesAcido.forEach(s => scene.remove(s)); nomesAcido.length = 0; }
 function esconderHmaisFade() { hmaisSprites.forEach(s => s.userData.fadeOut = true); }
 
+// clareia (fade) os copos que estavam escuros/bloqueados (dialogo1.4)
+function clarearCoposFade(ms = 1500) {
+  const mats = [];
+  reagents.forEach((r, i) => {
+    if (!r.beaker) return;
+    const eraLocked = r.locked;
+    r.locked = false;
+    if (!eraLocked) return;   // só clareia os que estavam bloqueados/escuros
+    r.beaker.traverse(o => {
+      if (!o.material) return;
+      (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { if (m.color && m.userData._baseColor) mats.push(m); });
+    });
+  });
+  if (!mats.length) return;
+  const t0 = animNow();
+  (function step() {
+    const k = Math.min(1, (animNow() - t0) / ms), f = 0.35 + 0.65 * k;
+    mats.forEach(m => m.color.copy(m.userData._baseColor).multiplyScalar(f));
+    if (k < 1) requestAnimationFrame(step); else mats.forEach(m => m.color.copy(m.userData._baseColor));
+  })();
+}
+
+// ---- Papel de tornassol azul (dialogo1.4A) — arrastável ----
+const AZUL_TORNASSOL = 0x4a5fd0, VERMELHO_TORNASSOL = 0xcf3535, LITMUS_X = 9.4;
+const litmusBloco = new THREE.Group(); litmusBloco.visible = false; scene.add(litmusBloco);
+let litmusAtivo = false, litmusDrag = null, litmusVermelhoUsado = false;
+let papel = null, papelUsado = null;
+
+// tira sobre algum béquer e mergulhada (foi "jogada" num copo)?
+function copoSobPapel(x, y) {
+  return [WATER_X, AC_X[0], AC_X[1], AC_X[2]].some(bx => Math.abs(x - bx) < 1.1) && y < 2.8;
+}
+function criarTira(x, y) {
+  const g = new THREE.Group();
+  const corpo = new THREE.Mesh(new THREE.BoxGeometry(0.42, 2.0, 0.07), toonMat(AZUL_TORNASSOL));
+  g.add(corpo);
+  const hit = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.6, 0.9), hitMat.clone());
+  hit.name = 'litmus'; g.add(hit);
+  g.position.set(x, y, PLANE_Z); g.rotation.z = 0.1;
+  g._corpo = corpo;
+  scene.add(g);
+  return g;
+}
+function novaTiraAtiva() { papel = criarTira(LITMUS_X, 1.35); }
+function mostrarBlocoTornassol() {
+  while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]);
+  for (let i = 0; i < 7; i++) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(0.42, 2.0, 0.06), toonMat(AZUL_TORNASSOL));
+    m.position.set(LITMUS_X + (i - 3) * 0.05, 1.3, PLANE_Z - 0.28 + i * 0.04); m.rotation.z = 0.1;
+    litmusBloco.add(m);
+  }
+  litmusBloco.visible = true; litmusVermelhoUsado = false;
+  if (papel) { scene.remove(papel); papel = null; }
+  if (papelUsado) { scene.remove(papelUsado); papelUsado = null; }
+  novaTiraAtiva();
+  litmusAtivo = true;
+}
+function dissolverTira(g) {
+  if (!g) return;
+  const mats = [];
+  g.traverse(o => { if (o.material && o.name !== 'litmus') { o.material.transparent = true; mats.push(o.material); } });
+  const t0 = performance.now();
+  (function step() {
+    const k = Math.min(1, (performance.now() - t0) / 600);
+    mats.forEach(m => m.opacity = 1 - k);
+    g.scale.setScalar(1 - k * 0.4); g.position.y += 0.012;
+    if (k < 1) requestAnimationFrame(step); else scene.remove(g);
+  })();
+}
+function limparTornassol() {
+  litmusAtivo = false; litmusDrag = null;
+  if (papel) { scene.remove(papel); papel = null; }
+  if (papelUsado) { scene.remove(papelUsado); papelUsado = null; }
+  litmusBloco.visible = false;
+  while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]);
+}
+function voltaTiraProBloco(g) {
+  const sx = g.position.x, sy = g.position.y, t0 = performance.now();
+  (function step() {
+    const k = Math.min(1, (performance.now() - t0) / 300), e = 1 - Math.pow(1 - k, 3);
+    g.position.x = sx + (LITMUS_X - sx) * e; g.position.y = sy + (1.35 - sy) * e;
+    if (k < 1) requestAnimationFrame(step);
+  })();
+}
+// tira "jogada" num copo -> fica vermelha; 1ª vez dispara o 1.4B
+function papelFicaVermelho(g) {
+  if (g._corpo) g._corpo.material.color.setHex(VERMELHO_TORNASSOL);
+  papelUsado = g; papel = null;
+  novaTiraAtiva();                   // nova tira azul pronta no bloco
+  if (!litmusVermelhoUsado) {
+    litmusVermelhoUsado = true;
+    if (typeof onPapelVermelho === 'function') onPapelVermelho();
+  }
+}
+
 // demonstração interativa (dialogo1.3B): o usuário enche e derrama a pipeta
 let demoInterativo = { ativo: false, encheu: false, derramou: false };
 // pipeta reaparece pronta pra ser movida (t13) e libera a interação
@@ -1649,6 +1744,22 @@ renderer.domElement.addEventListener('pointerdown', e => {
     return;
   }
 
+  if (litmusAtivo) {   // durante o papel de tornassol: só o papel é interativo
+    if (!papel) return;
+    ndc.x = (e.clientX / innerWidth) * 2 - 1;
+    ndc.y = -(e.clientY / innerHeight) * 2 + 1;
+    raycaster.setFromCamera(ndc, camera);
+    const objs = [];
+    papel.traverse(o => { if (o.name === 'litmus') objs.push(o); });
+    litmusBloco.children.forEach(m => objs.push(m));
+    if (raycaster.intersectObjects(objs, false).length) {
+      if (papelUsado) { dissolverTira(papelUsado); papelUsado = null; }   // pegou uma nova -> a anterior dissolve
+      raycaster.ray.intersectPlane(dragPlane, planePoint);
+      litmusDrag = { id: e.pointerId, offX: planePoint.x - papel.position.x, offY: planePoint.y - papel.position.y, sx: e.clientX, sy: e.clientY, moved: false };
+    }
+    return;
+  }
+
   if (!pipDrag) {
     const part = raycastPipette(e);
     if (part) {
@@ -1676,6 +1787,18 @@ renderer.domElement.addEventListener('pointerdown', e => {
 });
 
 renderer.domElement.addEventListener('pointermove', e => {
+  if (litmusDrag && e.pointerId === litmusDrag.id) {
+    if (Math.hypot(e.clientX - litmusDrag.sx, e.clientY - litmusDrag.sy) > 8) litmusDrag.moved = true;
+    ndc.x = (e.clientX / innerWidth) * 2 - 1;
+    ndc.y = -(e.clientY / innerHeight) * 2 + 1;
+    raycaster.setFromCamera(ndc, camera);
+    if (papel && raycaster.ray.intersectPlane(dragPlane, planePoint)) {
+      papel.position.x = planePoint.x - litmusDrag.offX;
+      papel.position.y = Math.max(0.6, planePoint.y - litmusDrag.offY);
+      papel.position.z = PLANE_Z;
+    }
+    return;
+  }
   if (pipDrag && e.pointerId === pipDrag.id) {
     if (Math.hypot(e.clientX - pipDrag.startX, e.clientY - pipDrag.startY) > 10) pipDrag.moved = true;
     ndc.x = (e.clientX / innerWidth) * 2 - 1;
@@ -1733,6 +1856,12 @@ renderer.domElement.addEventListener('pointermove', e => {
 
 function endPointer(e) {
   holdClear();
+  if (litmusDrag && e.pointerId === litmusDrag.id) {
+    litmusDrag = null;
+    if (papel && copoSobPapel(papel.position.x, papel.position.y)) papelFicaVermelho(papel);
+    else if (papel) voltaTiraProBloco(papel);
+    return;
+  }
   if (pipDrag && e.pointerId === pipDrag.id) {
     if (pipDrag.part === 'bulb' || pipDrag.part === 'tip') endBulbPress(pipDrag);
     else if (!pipDrag.moved) showMsg(pipFill > 0.1 ? 'Aperte a ponta da pipeta pra soltar' : 'Aperte a ponta da pipeta pra encher');
@@ -2002,6 +2131,9 @@ const FAIXAS = [
   { id: 'dialogo1.3B',  arquivo: 'audios/dialogo1.3B.mp3',  titulo: 'Diálogo 1.3B' },
   { id: 'dialogo1.3B1', arquivo: 'audios/dialogo1.3B1.mp3', titulo: 'Diálogo 1.3B1' },
   { id: 'dialogo1.3B2', arquivo: 'audios/dialogo1.3B2.mp3', titulo: 'Diálogo 1.3B2' },
+  { id: 'dialogo1.4',   arquivo: 'audios/dialogo1.4.mp3',   titulo: 'Diálogo 1.4' },
+  { id: 'dialogo1.4A',  arquivo: 'audios/dialogo1.4A.mp3',  titulo: 'Diálogo 1.4A' },
+  { id: 'dialogo1.4B',  arquivo: 'audios/dialogo1.4B.mp3',  titulo: 'Diálogo 1.4B' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -2168,6 +2300,18 @@ const EVENTOS = {
     { t: 5.0,  fn: () => irParaCamera(CAM_8, true, 1500) },         // volta pra posição anterior (pos8)
     { t: 13.8, fn: () => { mostrarNomeAcido(AC_X[2], 'Ácido Fosfórico'); mostrarEtiqueta(2); } },  // nome (persistente) + etiqueta H3PO4
   ]),
+  'dialogo1.4':   () => rodarStory([
+    { t: 0.0,  fn: iniciarCena14 },                                          // ácidos escuros voltam ao normal (fade) + pipeta some
+    { t: 18.0, fn: esconderHmaisFade },                                      // H+ da solução somem
+    { t: 26.8, fn: () => stShow('center', '"Indicadores ácido-básico"', 'st-titulo2 st-branco') },
+  ]),
+  'dialogo1.4A':  () => rodarStory([
+    { t: 0.0,  fn: () => stShow('center', '"Indicadores ácido-básico"', 'st-titulo2 st-branco') },  // continua do 1.4
+    { t: 3.0,  fn: stSair },                                                 // some o texto "Indicadores..."
+    { t: 7.8,  fn: mostrarBlocoTornassol },                                  // bloquinho de papel azul na mesa + libera a interação
+    { t: 12.0, fn: () => stShow('center', '"Papel de tornassol azul"', 'st-titulo2 st-branco') },
+  ]),
+  'dialogo1.4B':  () => { /* toca quando o papel fica vermelho; sem coreografia; play no fim */ },
 };
 
 const player = new Audio();
@@ -2200,6 +2344,7 @@ function tocarFaixa(i) {
   if (i < idxFaixa('dialogo1.2')) { irParaCamera(CAM_PADRAO, false); if (typeof mostrarAcidosBancada === 'function') mostrarAcidosBancada(); }
   const f = FAIXAS[i];
   if (f.id !== 'dialogo1.3B' && f.id !== 'dialogo1.3B1') $id('ajudaBtn').style.display = 'none';   // botão ajuda só na demo interativa
+  if (f.id !== 'dialogo1.4A' && f.id !== 'dialogo1.4B' && typeof limparTornassol === 'function') limparTornassol();   // papel só na cena dos indicadores
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
@@ -3374,6 +3519,15 @@ function iniciarCena13B() {
 function onEncheuPipeta() { const i = idxFaixa('dialogo1.3B1'); if (i >= 0) tocarFaixa(i); }
 // usuário derramou tudo na água -> toca 1.3B2
 function onDerramouPipeta() { $id('ajudaBtn').style.display = 'none'; const i = idxFaixa('dialogo1.3B2'); if (i >= 0) tocarFaixa(i); }
+
+// ---- Cena dos indicadores (dialogo1.4 / 1.4A) ----
+// início do 1.4: os ácidos escuros voltam ao normal (fade) e a pipeta some
+function iniciarCena14() {
+  clarearCoposFade(1500);          // HCl/H2CO3 escuros voltam ao normal
+  fade3D(pipette, 0, 600);         // pipeta some
+}
+// papel de tornassol ficou vermelho num béquer -> toca 1.4B (uma vez)
+function onPapelVermelho() { const i = idxFaixa('dialogo1.4B'); if (i >= 0) tocarFaixa(i); }
 // H+ vira sobrescrito; caret pisca enquanto digita
 function montarDef(s, digitando) {
   let h = s.split('H+').join('H<sup>+</sup>');
