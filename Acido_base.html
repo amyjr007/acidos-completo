@@ -829,7 +829,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.96.0</div>
+<div id="versao">v0.97.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1596,7 +1596,8 @@ let papel = null, papelUsado = null;
 const quedaTiras = [];   // tiras caindo (gravidade)
 // a tira mergulhada na ÁGUA (que virou ácida com os H+) fica vermelha; os ácidos sumiram
 function coposMergulho(x, y) {
-  if (Math.abs(x - WATER_X) < 1.5 && (y - LITMUS_HH) < WATER_SURF) return WATER_SURF;
+  // dentro da coluna de água E com a PONTA abaixo da superfície (margem, pra não disparar na boca)
+  if (Math.abs(x - WATER_X) < 1.2 && (y - LITMUS_HH) < WATER_SURF - 0.2) return WATER_SURF;
   return null;
 }
 // tira em segmentos: só os que ficam ABAIXO da superfície do líquido viram vermelho
@@ -1654,18 +1655,14 @@ function limparTornassol() {
   litmusBloco.visible = false;
   while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]);
 }
-// a parte que tocou o líquido fica vermelha; a 1ª tira que fica vermelha dispara o 1.4B
+// a parte que toca o líquido fica vermelha (cumulativo, conforme mergulha); a 1ª a ficar vermelha dispara o 1.4B
 function tornarVermelho(g, surf) {
-  if (g._vermelho) return;
   pintarContato(g, surf); g._vermelho = true;
   if (!litmusVermelhoUsado) { litmusVermelhoUsado = true; if (typeof onPapelVermelho === 'function') onPapelVermelho(); }
 }
-// solta a tira: mergulhada -> vermelha na hora; no ar -> cai (gravidade) e, se cair no líquido, vira vermelha.
-// Em ambos vira a "anterior" (dissolve ao pegar outra) e nasce uma nova no bloco.
+// solta a tira: se já ficou vermelha, só vira a "anterior"; senão cai (e pode cair no líquido -> vermelha).
 function soltarPapel(g) {
-  const surf = coposMergulho(g.position.x, g.position.y);
-  if (surf != null) tornarVermelho(g, surf);
-  else { g._vy = 0; quedaTiras.push(g); }
+  if (!g._vermelho) { g._vy = 0; quedaTiras.push(g); }
   papelUsado = g; papel = null;
   novaTiraAtiva();
 }
@@ -1846,6 +1843,8 @@ renderer.domElement.addEventListener('pointermove', e => {
       papel.position.x = planePoint.x - litmusDrag.offX;
       papel.position.y = Math.max(0.6, planePoint.y - litmusDrag.offY);
       papel.position.z = PLANE_Z;
+      const surf = coposMergulho(papel.position.x, papel.position.y);
+      if (surf != null) tornarVermelho(papel, surf);   // mergulhou -> parte de contato fica vermelha (pode tirar pra ver)
     }
     return;
   }
@@ -2013,10 +2012,9 @@ function animate() {
   for (let i = quedaTiras.length - 1; i >= 0; i--) {
     const g = quedaTiras[i];
     const surf = coposMergulho(g.position.x, g.position.y);
-    if (surf != null && !g._vermelho) { tornarVermelho(g, surf); quedaTiras.splice(i, 1); continue; }   // caiu no líquido
+    if (surf != null && !g._vermelho) { tornarVermelho(g, surf); quedaTiras.splice(i, 1); continue; }   // encostou no líquido
     g._vy = (g._vy || 0) - 12 * dt;
-    g.position.y += g._vy * dt;
-    g.rotation.z += 3 * dt;               // tomba levemente ao cair
+    g.position.y += g._vy * dt;           // cai reto (sem girar, pra não travar na boca)
     if (g.position.y <= LITMUS_Y) { g.position.y = LITMUS_Y; quedaTiras.splice(i, 1); }   // pousou na mesa
   }
 
