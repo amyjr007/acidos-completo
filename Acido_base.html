@@ -808,7 +808,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.81.0</div>
+<div id="versao">v0.82.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1382,7 +1382,7 @@ function tweenPipFill(to, ms, onEnd) {
 }
 // mergulha (t24) -> enche (t25.6) -> sobe e vai pra água -> expele (t29)
 function pipetaMergulha() { tweenPipPos(1.8, 1.35, 1100); }
-function encherPipeta() { pipLiquid.material.color.setHex(0xdcedf7); tweenPipFill(0.72, 1300); }
+function encherPipeta() { pipLiquid.material.color.setHex(0x8ad2ef); pipLiquid.material.opacity = 0.9; tweenPipFill(0.72, 1300); }
 function pipetaEnche() { encherPipeta(); setTimeout(pipetaVaiPraAgua, 1500); }   // 1.3: enche e já vai pra água
 function pipetaVaiPraAgua() { tweenPipPos(pipette.position.x, 3.5, 700, () => tweenPipPos(-3.5, 3.5, 1200)); }  // sobe reto e desloca pra água
 function pipetaExpele() { pipTargetFill = 0; }   // o loop de animação drena e solta gotas na água
@@ -1446,6 +1446,7 @@ function limparRotuloAcido() { rotulosAcido.forEach(s => scene.remove(s)); rotul
 // nomes ("Ácido Clorídrico" etc.) acima dos frascos — 60% menores e persistentes (ficam até o fim)
 const nomesAcido = [];
 function mostrarNomeAcido(px, nome) {
+  if (nomesAcido.some(s => s.userData.px === px)) return;   // já existe (evita duplicar/piscar)
   const cv = document.createElement('canvas'); cv.width = 640; cv.height = 136;
   const c = cv.getContext('2d');
   c.textAlign = 'center'; c.textBaseline = 'middle';
@@ -1455,6 +1456,7 @@ function mostrarNomeAcido(px, nome) {
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthTest: false, fog: false }));
   s.scale.set(2.3, 0.49, 1);                 // 60% menor
   s.position.set(px, 3.55, 1.5);             // acima do frasco
+  s.userData.px = px;
   scene.add(s); nomesAcido.push(s);
   const t0 = animNow();
   (function step() { const k = Math.min(1, (animNow() - t0) / 500); s.material.opacity = 0.98 * k; if (k < 1) requestAnimationFrame(step); })();
@@ -1517,7 +1519,8 @@ function endBulbPress(drag) {
   if (pipFill <= 0.1) {                    // vazia: enche se a ponta estiver num líquido
     const c = tipContainer();              // vale por toque OU ao soltar a pipeta já mergulhada
     if (c) {
-      pipLiquid.material.color.setHex(c.color);
+      pipLiquid.material.color.setHex(c.name === 'água' ? c.color : 0x8ad2ef);  // ácido: azul claro visível
+      pipLiquid.material.opacity = 0.9;
       squeezeTime = clock.getElapsedTime();
       tweenPipFill(1, 900);                // enche até o topo (não precisa segurar)
       showMsg('Pipeta cheia de ' + (c.name === 'água' ? 'água' : 'ácido') + '!');
@@ -3196,8 +3199,8 @@ const defTextoEl = $id('defTexto');
 let typeRAF = null;
 
 const DEF_ARRHENIUS =
-  '"Ácidos são substâncias moleculares que, quando dissolvidas em água, ' +
-  'liberam como único cátion o íon H+"';
+  'Ácidos são substâncias moleculares que, quando dissolvidas em água, ' +
+  'liberam como único cátion o íon H+';
 // versão pro quadro 3D (H+ como sobrescrito unicode)
 const DEF_QUADRO = DEF_ARRHENIUS.replace(/H\+/g, 'H⁺');
 // "digita" a definição direto no quadro 3D (fica fixa na posição 2 quando a câmera move)
@@ -3258,8 +3261,17 @@ function iniciarCena13B() {
   esconderHmaisFade();                      // só os H+ da solução somem em fade; os "Ácido" ficam
   fade3D(pipette, 0, 600);                  // a pipeta some (reaparece pronta em t13)
   pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
-  // HCl e H2CO3 ficam escurecidos e bloqueados; só o H3PO4 é usável
-  [0, 1].forEach(i => { reagents[i].locked = true; escurecerCopo(i, true); });
+  // HCl e H2CO3: garante nome + etiqueta + visíveis (mesmo pulando direto pra cá pelo sumário),
+  // e ficam escurecidos e bloqueados; só o H3PO4 é usável
+  [0, 1].forEach(i => {
+    const b = reagents[i].beaker;
+    b.visible = true;
+    b.traverse(o => { if (o.material && o.material.userData._baseOp != null) o.material.opacity = o.material.userData._baseOp; });
+    if (reagents[i].label) reagents[i].label.visible = true;   // etiqueta (fórmula) já revelada
+    reagents[i].locked = true; escurecerCopo(i, true);
+  });
+  mostrarNomeAcido(1.8, 'Ácido Clorídrico');   // idempotente (não duplica no fluxo normal)
+  mostrarNomeAcido(4.6, 'Ácido Carbônico');
   reagents[2].locked = false;
   demoInterativo = { ativo: false, encheu: false, derramou: false };
 }
