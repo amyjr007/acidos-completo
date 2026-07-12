@@ -808,7 +808,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.79.0</div>
+<div id="versao">v0.80.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1270,9 +1270,25 @@ function tipContainer() {
   const x = pipette.position.x, y = pipette.position.y;
   if (Math.abs(x - (-3.5)) < 1.35 && y < WATER_SURF - 0.05) return { name: 'água', color: 0x4aa8e8 };
   for (const r of reagents) {
+    if (r.locked) continue;   // copo bloqueado (ex.: HCl/H2CO3 no 1.3B) não pode ser usado
     if (Math.abs(x - r.pos[0]) < 0.85 && y < ACID_SURF - 0.05) return { name: r.name, color: 0xdcedf7 };
   }
   return null;
+}
+
+// escurece/restaura um copo (indica "inativo" no 1.3B). Reversível.
+function escurecerCopo(idx, on) {
+  const b = reagents[idx] && reagents[idx].beaker;
+  if (!b) return;
+  b.traverse(o => {
+    if (!o.material) return;
+    (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => {
+      if (!m.color) return;
+      if (m.userData._baseColor == null) m.userData._baseColor = m.color.clone();
+      m.color.copy(m.userData._baseColor);
+      if (on) m.color.multiplyScalar(0.35);
+    });
+  });
 }
 
 // gotas
@@ -1313,7 +1329,10 @@ function fade3D(obj, dir, ms, onEnd) {
 }
 // esconde os 3 ácidos da bancada (+ sombras) e a pipeta
 function esconderAcidosBancada() {
-  reagents.forEach(r => { if (r.beaker) r.beaker.visible = false; if (r.shadow) r.shadow.visible = false; });
+  reagents.forEach((r, i) => {
+    if (r.beaker) r.beaker.visible = false; if (r.shadow) r.shadow.visible = false;
+    r.locked = false; escurecerCopo(i, false);   // limpa estado do 1.3B (replay)
+  });
   pipette.visible = false;
 }
 // restaura tudo (usado ao voltar pra antes da virada de câmera)
@@ -1323,7 +1342,7 @@ function mostrarAcidosBancada() {
     if (r.shadow) r.shadow.visible = true;
   });
   pipette.visible = true; pipette.traverse(o => { if (o.material && o.material.userData._baseOp != null) o.material.opacity = o.material.userData._baseOp; });
-  reagents.forEach(r => { if (r.label) r.label.visible = true; });   // etiquetas de fórmula voltam nas cenas anteriores
+  reagents.forEach((r, i) => { if (r.label) r.label.visible = true; r.locked = false; escurecerCopo(i, false); });   // etiquetas voltam + limpa estado do 1.3B
   resetDemo13();
 }
 // revela a etiqueta da fórmula do copo (fade in) — ex.: HCl no dialogo1.3R
@@ -1426,8 +1445,12 @@ function esconderHmaisFade() { hmaisSprites.forEach(s => s.userData.fadeOut = tr
 
 // demonstração interativa (dialogo1.3B): o usuário enche e derrama a pipeta
 let demoInterativo = { ativo: false, encheu: false, derramou: false };
-function pipetaVaiParaH3PO4() {
-  tweenPipPos(7.4, 3.4, 1000, () => { demoInterativo.ativo = true; });   // libera a interação ao chegar
+// pipeta reaparece pronta pra ser movida (t13) e libera a interação
+function pipetaProntaH3PO4() {
+  pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
+  pipette.position.set(7.4, 4.2, PLANE_Z);   // acima do H3PO4
+  fade3D(pipette, 1, 700);
+  demoInterativo.ativo = true;
 }
 
 function resetDemo13() {
@@ -1466,36 +1489,27 @@ function raycastPipette(e) {
 }
 
 function startBulbPress(drag) {
-  if (pipFill > 0.1) {
-    drag.action = 'expel';
-  } else {
-    const c = tipContainer();
-    if (c) {
-      sucking = true;
-      pipLiquid.material.color.setHex(c.color);
-      squeezeTime = clock.getElapsedTime();
-      showMsg('Sugando ' + c.name + '... (segure)');
-      drag.action = 'suck';
-    } else {
-      drag.action = 'needliquid';
-    }
-  }
+  drag.action = pipFill > 0.1 ? 'expel' : 'fill';   // a ação real só acontece no toque (endBulbPress)
 }
 
+// toque (sem segurar): ponta na ponta enche; cheia -> derrama
 function endBulbPress(drag) {
   sucking = false;
-  if (drag.action === 'suck') {
-    pipTargetFill = pipFill;
-    if (pipFill > 0.05) showMsg('Pipeta com ' + Math.round(pipFill * 100) + '% de líquido');
-    return;
-  }
-  if (drag.moved) return;
-  if (drag.action === 'expel') {
+  if (drag.moved) return;                 // foi arraste (reposicionou a pipeta), não toque
+  if (pipFill > 0.1) {                     // cheia -> derrama tudo
     pipTargetFill = 0;
     squeezeTime = clock.getElapsedTime();
     showMsg('Soltando o líquido...');
-  } else if (drag.action === 'needliquid') {
-    showMsg('Mergulhe a ponta num líquido primeiro');
+    return;
+  }
+  const c = tipContainer();               // vazia -> enche num toque (não precisa segurar)
+  if (c) {
+    pipLiquid.material.color.setHex(c.color);
+    squeezeTime = clock.getElapsedTime();
+    tweenPipFill(1, 900);
+    showMsg('Pipeta cheia de ' + c.name + '!');
+  } else {
+    showMsg('Toque a ponta dentro de um líquido');
   }
 }
 
@@ -2023,12 +2037,12 @@ const EVENTOS = {
     { t: 33.0, fn: pipetaExpele },                                 // expele o líquido na água
     { t: 36.0, fn: () => irParaCamera(CAM_4, true, 1500) },        // câmera pra posição 4 (close na água)
     { t: 39.0, fn: mostrarHmais },                                 // H+ (potência) flutuando dentro da solução
+    { t: 43.0, fn: () => irParaCamera({ theta: 0.024, phi: 1.438, dist: 25.13, target: [-1.18, 2.56, -3.54] }, true, 1500) },  // enquadra o copo de HCl (pro nome/etiqueta no 1.3R)
     { t: 45.0, fn: () => { maoOk(); playSfx('funfare'); } },       // mãozinha de OK + efeito sonoro
   ]),
   'dialogo1.3R':  () => rodarStory([
     { t: 0.0, fn: esconderMaoOk },                                          // mãozinha some em fade out
     { t: 2.0, fn: () => stShow('top', 'Ácido Clorídrico', 'st-titulo2') },  // nome escrito na tela
-    { t: 3.0, fn: () => irParaCamera({ theta: 0.024, phi: 1.438, dist: 25.13, target: [-1.18, 2.56, -3.54] }, true, 1500) },  // câmera enquadra o copo de HCl
     { t: 4.7, fn: () => mostrarEtiqueta(0) },                                // etiqueta com a fórmula no copo de HCl
   ]),
   'dialogo1.3A':  () => rodarStory([
@@ -2044,15 +2058,15 @@ const EVENTOS = {
     { t: 23.8, fn: () => mostrarEtiqueta(1) },                     // etiqueta com a fórmula (H₂CO₃) em fade in
   ]),
   'dialogo1.3B':  () => rodarStory([
-    { t: 0.0, fn: iniciarCena13B },                                 // fade out "Ácido" + H+ da solução
-    { t: 1.0, fn: () => { fade3D(reagents[2].beaker, 1, 800); irParaCamera(CAM_8, true, 1500); } },  // H3PO4 aparece + câmera pos8
-    { t: 9.0, fn: pipetaVaiParaH3PO4 },                             // pipeta vai pra cima do H3PO4 (libera a interação)
+    { t: 0.0,  fn: iniciarCena13B },                                // fade out H+ + pipeta; escurece HCl/H2CO3
+    { t: 0.8,  fn: () => { reagents[2].label.visible = false; fade3D(reagents[2].beaker, 1, 800); irParaCamera(CAM_8, true, 1500); } },  // H3PO4 aparece (sem etiqueta) + câmera pos8
+    { t: 13.0, fn: pipetaProntaH3PO4 },                             // pipeta reaparece pronta pra ser movida (libera a interação)
   ]),
   'dialogo1.3B1': () => { /* toca ao encher a pipeta; sem coreografia */ },
   'dialogo1.3B2': () => rodarStory([
-    { t: 0.0, fn: () => { irParaCamera(CAM_7, true, 1500); mostrarHmais(); } },  // câmera pos9 (=pos7) + H+ ao mesmo tempo
-    { t: 5.0, fn: () => irParaCamera(CAM_8, true, 1500) },          // volta pra posição anterior (pos8)
-    { t: 6.0, fn: () => mostrarRotuloAcido(7.4) },                  // "Ácido" em cima do H3PO4
+    { t: 1.0,  fn: () => { irParaCamera(CAM_7, true, 1500); mostrarHmais(); } },  // câmera pos9 (=pos7) + H+ ao mesmo tempo
+    { t: 5.0,  fn: () => irParaCamera(CAM_8, true, 1500) },         // volta pra posição anterior (pos8)
+    { t: 13.8, fn: () => mostrarEtiqueta(2) },                      // etiqueta com a fórmula (H3PO4) em fade in
   ]),
 };
 
@@ -3221,7 +3235,11 @@ function iniciarCena13A() {
 // início da 3ª demonstração (dialogo1.3B) — interativa
 function iniciarCena13B() {
   esconderHmaisFade();                      // só os H+ da solução somem em fade; os "Ácido" ficam
+  fade3D(pipette, 0, 600);                  // a pipeta some (reaparece pronta em t13)
   pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
+  // HCl e H2CO3 ficam escurecidos e bloqueados; só o H3PO4 é usável
+  [0, 1].forEach(i => { reagents[i].locked = true; escurecerCopo(i, true); });
+  reagents[2].locked = false;
   demoInterativo = { ativo: false, encheu: false, derramou: false };
 }
 // usuário encheu a pipeta -> toca 1.3B1
