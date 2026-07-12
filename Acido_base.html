@@ -817,7 +817,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.87.0</div>
+<div id="versao">v0.88.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1553,20 +1553,31 @@ const litmusBloco = new THREE.Group(); litmusBloco.visible = false; scene.add(li
 let litmusAtivo = false, litmusDrag = null, litmusVermelhoUsado = false;
 let papel = null, papelUsado = null;
 
-// tira sobre algum béquer e mergulhada (foi "jogada" num copo)?
-function copoSobPapel(x, y) {
-  return [WATER_X, AC_X[0], AC_X[1], AC_X[2]].some(bx => Math.abs(x - bx) < 1.1) && y < 2.8;
+const quedaTiras = [];   // tiras caindo (gravidade)
+// se a tira está mergulhada num béquer, retorna a superfície do líquido (senão null)
+function coposMergulho(x, y) {
+  if (Math.abs(x - WATER_X) < 1.3 && (y - 1.0) < WATER_SURF) return WATER_SURF;
+  for (const bx of AC_X) if (Math.abs(x - bx) < 1.1 && (y - 1.0) < ACID_SURF) return ACID_SURF;
+  return null;
 }
+// tira em segmentos: só os que ficam ABAIXO da superfície do ácido viram vermelho
 function criarTira(x, y) {
   const g = new THREE.Group();
-  const corpo = new THREE.Mesh(new THREE.BoxGeometry(0.42, 2.0, 0.07), toonMat(AZUL_TORNASSOL));
-  g.add(corpo);
+  const N = 8, segH = 2.0 / N;
+  g._segs = [];
+  for (let i = 0; i < N; i++) {
+    const s = new THREE.Mesh(new THREE.BoxGeometry(0.42, segH * 0.96, 0.07), toonMat(AZUL_TORNASSOL));
+    s.position.y = -1.0 + segH * (i + 0.5);   // de -1 (base) a +1 (topo)
+    g.add(s); g._segs.push(s);
+  }
   const hit = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.6, 0.9), hitMat.clone());
   hit.name = 'litmus'; g.add(hit);
   g.position.set(x, y, PLANE_Z); g.rotation.z = 0.1;
-  g._corpo = corpo;
   scene.add(g);
   return g;
+}
+function pintarContato(g, surfY) {
+  g._segs.forEach(s => { if (g.position.y + s.position.y < surfY) s.material.color.setHex(VERMELHO_TORNASSOL); });
 }
 function novaTiraAtiva() { papel = criarTira(LITMUS_X, 1.35); }
 function mostrarBlocoTornassol() {
@@ -1584,6 +1595,7 @@ function mostrarBlocoTornassol() {
 }
 function dissolverTira(g) {
   if (!g) return;
+  const idx = quedaTiras.indexOf(g); if (idx >= 0) quedaTiras.splice(idx, 1);
   const mats = [];
   g.traverse(o => { if (o.material && o.name !== 'litmus') { o.material.transparent = true; mats.push(o.material); } });
   const t0 = performance.now();
@@ -1596,28 +1608,24 @@ function dissolverTira(g) {
 }
 function limparTornassol() {
   litmusAtivo = false; litmusDrag = null;
+  quedaTiras.length = 0;
   if (papel) { scene.remove(papel); papel = null; }
   if (papelUsado) { scene.remove(papelUsado); papelUsado = null; }
   litmusBloco.visible = false;
   while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]);
 }
-function voltaTiraProBloco(g) {
-  const sx = g.position.x, sy = g.position.y, t0 = performance.now();
-  (function step() {
-    const k = Math.min(1, (performance.now() - t0) / 300), e = 1 - Math.pow(1 - k, 3);
-    g.position.x = sx + (LITMUS_X - sx) * e; g.position.y = sy + (1.35 - sy) * e;
-    if (k < 1) requestAnimationFrame(step);
-  })();
-}
-// tira "jogada" num copo -> fica vermelha; 1ª vez dispara o 1.4B
-function papelFicaVermelho(g) {
-  if (g._corpo) g._corpo.material.color.setHex(VERMELHO_TORNASSOL);
-  papelUsado = g; papel = null;
-  novaTiraAtiva();                   // nova tira azul pronta no bloco
-  if (!litmusVermelhoUsado) {
-    litmusVermelhoUsado = true;
-    if (typeof onPapelVermelho === 'function') onPapelVermelho();
+// solta a tira: mergulhada num béquer -> parte de contato fica vermelha (1ª vez toca 1.4B);
+// no ar -> cai (gravidade). Em ambos vira a "anterior" e nasce uma nova no bloco.
+function soltarPapel(g) {
+  const surf = coposMergulho(g.position.x, g.position.y);
+  if (surf != null) {
+    pintarContato(g, surf);
+    if (!litmusVermelhoUsado) { litmusVermelhoUsado = true; if (typeof onPapelVermelho === 'function') onPapelVermelho(); }
+  } else {
+    g._vy = 0; quedaTiras.push(g);
   }
+  papelUsado = g; papel = null;
+  novaTiraAtiva();
 }
 
 // demonstração interativa (dialogo1.3B): o usuário enche e derrama a pipeta
@@ -1858,8 +1866,7 @@ function endPointer(e) {
   holdClear();
   if (litmusDrag && e.pointerId === litmusDrag.id) {
     litmusDrag = null;
-    if (papel && copoSobPapel(papel.position.x, papel.position.y)) papelFicaVermelho(papel);
-    else if (papel) voltaTiraProBloco(papel);
+    if (papel) soltarPapel(papel);
     return;
   }
   if (pipDrag && e.pointerId === pipDrag.id) {
@@ -1957,6 +1964,15 @@ function animate() {
       scene.remove(d.mesh);
       drops.splice(i, 1);
     }
+  }
+
+  // gravidade das tiras de tornassol soltas no ar (caem e pousam na mesa)
+  for (let i = quedaTiras.length - 1; i >= 0; i--) {
+    const g = quedaTiras[i];
+    g._vy = (g._vy || 0) - 12 * dt;
+    g.position.y += g._vy * dt;
+    g.rotation.z += 3 * dt;               // tomba levemente ao cair
+    if (g.position.y <= 1.25) { g.position.y = 1.25; quedaTiras.splice(i, 1); }   // pousou na mesa
   }
 
   // H+ flutuando DENTRO da solução (fade in/out + bobbing suave)
@@ -2458,6 +2474,7 @@ const SUMARIO = [
   { titulo: 'Minigame',                     faixa: idxFaixa('dialogo1.1E'), acao: irParaMinigame },
   { titulo: 'Ácidos de Arrhenius',          faixa: idxFaixa('dialogo1.3') },
   { titulo: 'Exemplo prático de ionização', faixa: idxFaixa('dialogo1.3B') },
+  { titulo: 'Os indicadores ácido-base',    faixa: idxFaixa('dialogo1.4A') },
 ];
 
 SUMARIO.forEach(item => {
