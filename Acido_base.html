@@ -830,7 +830,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v0.99.0</div>
+<div id="versao">v1.00.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2052,7 +2052,7 @@ function animate() {
   }
 
   // mãozinha de OK acompanhando o frasco de HCl (projeta a posição 3D na tela)
-  const _okEl = $id('okHand');
+  const _okEl = document.getElementById('okHand');   // NÃO usar $id aqui: definido só no script 2; quebraria o animate() no load
   if (_okEl.classList.contains('show') || _okEl.classList.contains('fade-out')) {
     _okVec.set(AC_X[0], 3.7, PLANE_Z).project(camera);
     _okEl.style.left = ((_okVec.x * 0.5 + 0.5) * innerWidth) + 'px';
