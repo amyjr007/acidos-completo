@@ -294,6 +294,51 @@
   #indicadorTxt.show { opacity: 1; }
   #indicadorTxt.menor { font-size: clamp(26px, 7.3vw, 46px); }
   #indicadorTxt .azul { color: #45a6f5; }
+  /* Equação de Arrhenius (dialogo1.5 / 1.5A) — título no topo + linha da equação */
+  #eqTitulo {
+    position: fixed; top: 6%; left: 0; right: 0; z-index: 41;
+    text-align: center; padding: 0 16px;
+    font-family: system-ui, sans-serif; font-weight: 900;
+    font-size: clamp(24px, 6.6vw, 44px); color: #a6e534;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, .6), 0 0 22px rgba(166, 229, 52, .35);
+    opacity: 0; pointer-events: none; transition: opacity .7s ease;
+  }
+  #eqTitulo.show { opacity: 1; }
+  #eqLinha {
+    position: fixed; top: 21%; left: 0; right: 0; z-index: 41;
+    text-align: center; white-space: nowrap; padding: 0 8px;
+    font-family: "Cambria Math", Georgia, system-ui, serif; font-weight: 800;
+    font-size: clamp(30px, 10vw, 60px); color: #f2fbe4;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
+    opacity: 0; pointer-events: none; transition: opacity .4s ease;
+  }
+  #eqLinha.show { opacity: 1; }
+  #eqLinha sup { font-size: .58em; vertical-align: super; }
+  #eqLinha sub { font-size: .58em; vertical-align: sub; }
+  #eqLinha .eqi { display: inline-block; opacity: 0; transform: scale(0); vertical-align: middle; }
+  #eqLinha .eqi.on { opacity: 1; animation: eqIn .55s cubic-bezier(.2, .9, .25, 1.6) both; }
+  #eqLinha .eqi.on.enfase { animation: eqPulsa .5s ease 2; }
+  @keyframes eqIn {
+    0%   { opacity: 0; transform: scale(0) translateY(-24px) rotate(-14deg); }
+    55%  { opacity: 1; transform: scale(1.3) translateY(0) rotate(0); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes eqPulsa {
+    0%, 100% { transform: scale(1); color: #f2fbe4; }
+    50%      { transform: scale(1.45); color: #ffd27a; }
+  }
+  #eqLinha .seta { position: relative; margin: 0 .3em; }
+  #eqLinha .seta .arrow { display: inline-block; }
+  #eqLinha .seta .agua {
+    position: absolute; left: 50%; top: -.72em;
+    font-size: .46em; font-weight: 700; white-space: nowrap; color: #cdeaff;
+    opacity: 0; transform: translate(-150%, 0);
+  }
+  #eqLinha .seta.on .agua { animation: aguaEntra .7s ease .12s both; }
+  @keyframes aguaEntra {
+    0%   { opacity: 0; transform: translate(-150%, 0); }
+    100% { opacity: 1; transform: translate(-50%, 0); }
+  }
   /* "Ácido" verde escuro no topo (sobre o quadro branco, dialogo1.2) */
   .st-verdeescuro {
     color: #0f4d18;
@@ -830,7 +875,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.02.0</div>
+<div id="versao">v1.03.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -854,6 +899,8 @@
 <div id="shelfInorg" aria-hidden="true"></div>
 <div id="substTitle">Substâncias Inorgânicas</div>
 <div id="indicadorTxt"></div>
+<div id="eqTitulo"></div>
+<div id="eqLinha"><span class="eqi" data-k="h">H</span><span class="eqi" data-k="c">C</span><span class="eqi" data-k="l">l</span><span class="eqi seta" data-k="seta"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="eqi" data-k="hmais">H<sup>+</sup></span><span class="eqi" data-k="mais">&nbsp;+&nbsp;</span><span class="eqi" data-k="cl">Cl<sup>&#8722;</sup></span></div>
 <div id="substDesc"></div>
 
 <!-- Cena do dialogo1.1A: "Ácidos", não-ácidos (H2O/H2O2) e frascos de ácidos -->
@@ -2213,6 +2260,8 @@ const FAIXAS = [
   { id: 'dialogo1.4',   arquivo: 'audios/dialogo1.4.mp3',   titulo: 'Diálogo 1.4' },
   { id: 'dialogo1.4A',  arquivo: 'audios/dialogo1.4A.mp3',  titulo: 'Diálogo 1.4A' },
   { id: 'dialogo1.4B',  arquivo: 'audios/dialogo1.4B.mp3',  titulo: 'Diálogo 1.4B' },
+  { id: 'dialogo1.5',   arquivo: 'audios/dialogo1.5.mp3',   titulo: 'Diálogo 1.5' },
+  { id: 'dialogo1.5A',  arquivo: 'audios/dialogo1.5A.mp3',  titulo: 'Diálogo 1.5A' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -2393,6 +2442,26 @@ const EVENTOS = {
     { t: 12.0, fn: () => mostrarIndicador('"Papel de tornassol <span class="azul">azul</span>"', true) },  // complementa com "azul"
   ]),
   'dialogo1.4B':  () => { /* toca quando o papel fica vermelho; sem coreografia; play no fim */ },
+  'dialogo1.5':   () => rodarStory([
+    { t: 0.0, fn: () => { limparHmais(); esconderEquacao(); } },   // limpa H+ antigos e a linha da equação; papel some via tocarFaixa
+    { t: 2.7, fn: mostrarHmais },                                  // os H+ voltam à solução (na cena só a água)
+    { t: 8.0, fn: mostrarEqTitulo },                              // "Equação de Arrhenius" surge no topo (fade in)
+  ]),
+  'dialogo1.5A':  () => rodarStory([
+    { t: 0.0,  fn: () => { mostrarEqTitulo(); abrirEquacao(); } },                 // título persiste do 1.5; prepara a linha
+    { t: 4.7,  fn: mostrarAcidosSoEtiqueta },                                      // os 3 ácidos voltam (só a etiqueta da fórmula)
+    { t: 5.0,  fn: () => irParaCamera({ theta: -0.022, phi: 1.548, dist: 28.46, target: [1.77, 8.86, 0.63] }, true, 1500) },
+    { t: 9.7,  fn: () => pulsarEtiqueta(0) },                                      // pulsa a etiqueta do HCl (aumenta e diminui)
+    { t: 12.0, fn: () => eqShow('h') },                                           // H
+    { t: 13.0, fn: () => eqShow('c') },                                           // C
+    { t: 13.2, fn: () => eqShow('l') },                                           // l  -> "HCl" letra a letra
+    { t: 15.3, fn: () => eqShow('seta') },                                        // seta -> com a água (H₂O) entrando por cima
+    { t: 18.7, fn: () => eqShow('mais') },                                        // "+" dos produtos
+    { t: 19.0, fn: () => eqShow('hmais') },                                       // H⁺ (entrada dramática)
+    { t: 20.0, fn: () => eqEnfase('hmais') },                                     // enfatiza o H⁺
+    { t: 21.0, fn: () => eqShow('cl') },                                          // Cl⁻
+    { t: 23.0, fn: () => eqEnfase('cl') },                                        // enfatiza o Cl⁻
+  ]),
 };
 
 const player = new Audio();
@@ -2427,6 +2496,7 @@ function tocarFaixa(i) {
   if (f.id !== 'dialogo1.3B' && f.id !== 'dialogo1.3B1') $id('ajudaBtn').style.display = 'none';   // botão ajuda só na demo interativa
   if (f.id !== 'dialogo1.4A' && f.id !== 'dialogo1.4B' && typeof limparTornassol === 'function') limparTornassol();   // papel só na cena dos indicadores
   if (f.id !== 'dialogo1.4' && f.id !== 'dialogo1.4A' && f.id !== 'dialogo1.4B') $id('indicadorTxt').classList.remove('show');   // texto dos indicadores só na família 1.4
+  if (f.id !== 'dialogo1.5' && f.id !== 'dialogo1.5A') { $id('eqTitulo').classList.remove('show'); if (typeof esconderEquacao === 'function') esconderEquacao(); }   // equação de Arrhenius só na família 1.5
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
@@ -3617,6 +3687,39 @@ function trocarIndicador(html, menor) {   // troca com fade curto (mantém "no l
   setTimeout(() => { el.classList.toggle('menor', !!menor); el.innerHTML = html; el.classList.add('show'); }, 300);
 }
 function esconderIndicador() { $id('indicadorTxt').classList.remove('show'); }
+
+// ---- Equação de Arrhenius (dialogo1.5 / 1.5A) ----
+function mostrarEqTitulo() { const el = $id('eqTitulo'); el.textContent = 'Equação de Arrhenius'; el.classList.add('show'); }
+function esconderEqTitulo() { $id('eqTitulo').classList.remove('show'); }
+function eqReset() { $id('eqLinha').querySelectorAll('.eqi').forEach(e => e.classList.remove('on', 'enfase')); }
+function abrirEquacao() { eqReset(); $id('eqLinha').classList.add('show'); }      // deixa a linha visível (itens ainda ocultos)
+function esconderEquacao() { $id('eqLinha').classList.remove('show'); eqReset(); }
+function eqShow(k) { const e = $id('eqLinha').querySelector('.eqi[data-k="' + k + '"]'); if (e) e.classList.add('on'); }
+function eqEnfase(k) { const e = $id('eqLinha').querySelector('.eqi[data-k="' + k + '"]'); if (!e) return; e.classList.remove('enfase'); void e.offsetWidth; e.classList.add('enfase'); }
+
+// os 3 ácidos voltam à bancada mostrando SÓ a etiqueta da fórmula (sem os nomes) — dialogo1.5A
+function mostrarAcidosSoEtiqueta() {
+  reagents.forEach((r, i) => {
+    r.locked = false;
+    if (typeof escurecerCopo === 'function') escurecerCopo(i, false);
+    if (r.beaker) fade3D(r.beaker, 1, 700);
+    if (r.label) { r.label.visible = true; fade3D(r.label, 1, 700); }
+  });
+}
+
+// pulsa a etiqueta 3D de um frasco (aumenta e diminui uma vez) — destaque do HCl (1.5A)
+function pulsarEtiqueta(idx) {
+  const lbl = reagents[idx] && reagents[idx].label;
+  if (!lbl) return;
+  if (lbl.userData._base == null) lbl.userData._base = lbl.scale.x;
+  const base = lbl.userData._base, t0 = animNow(), dur = 850;
+  (function step() {
+    const k = Math.min(1, (animNow() - t0) / dur);
+    const s = base * (1 + 0.4 * Math.sin(k * Math.PI));   // 1 -> 1.4 -> 1
+    lbl.scale.set(s, s, 1);
+    if (k < 1) requestAnimationFrame(step); else lbl.scale.set(base, base, 1);
+  })();
+}
 
 // início do 1.4: os ácidos escuros voltam ao normal (fade) e a pipeta some
 function iniciarCena14() {
