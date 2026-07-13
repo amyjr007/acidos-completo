@@ -830,7 +830,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.00.0</div>
+<div id="versao">v1.01.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2114,17 +2114,19 @@ addEventListener('keydown', e => {
     else mostrarCoordenadas();
   }
   if (e.key === 'l' || e.key === 'L') {
-    freeCam ? fecharCamLivre() : abrirCamLivre();   // L = liga/desliga a câmera livre (mesmo do toque no selo)
+    freeCam ? fecharCamLivre() : abrirCamLivre(true);   // L = liga/desliga a câmera livre, SEM nada na tela
   }
 });
 camBox.addEventListener('click', () => copiar(camBox.dataset.trecho || ''));
 
 // Dev: câmera livre (toque no selo de versão) — 1 dedo gira, 2 dedos pan, pinça zoom, segurar 2s copia
 const camDevBox = document.getElementById('camDev');
-function abrirCamLivre() {
+function abrirCamLivre(silencioso) {
   freeCam = true; camLocked = false;
-  camDevBox.hidden = false;
-  showMsg('Câmera livre: 1 dedo gira · 2 dedos pan · pinça zoom · segure 2s copia');
+  if (!silencioso) {   // via toque no selo: mostra o box (tem o "Fechar"); via tecla L: nada na tela
+    camDevBox.hidden = false;
+    showMsg('Câmera livre: 1 dedo gira · 2 dedos pan · pinça zoom · segure 2s copia');
+  }
 }
 function fecharCamLivre() {
   freeCam = false; camLocked = true;
@@ -2370,7 +2372,7 @@ const EVENTOS = {
     // o texto "Indicadores" continua do 1.4 (persistente, sem sumir/voltar)
     { t: 3.8,  fn: esconderIndicador },                                      // "Indicadores..." some em fade
     { t: 5.0,  fn: () => mostrarIndicador('"Papel de tornassol"', true) },   // aparece no lugar (2px menor)
-    { t: 7.8,  fn: mostrarBlocoTornassol },                                  // bloquinho de papel azul (fade in) embaixo do H2CO3 + libera a interação
+    { t: 7.8,  fn: () => { mostrarBlocoTornassol(); irParaCamera({ theta: -0.012, phi: 1.534, dist: 22, target: [-0.14, 4.98, 0.76] }, true, 1500); } },  // papel azul (fade in) + câmera aproxima
     { t: 12.0, fn: () => mostrarIndicador('"Papel de tornassol <span class="azul">azul</span>"', true) },  // complementa com "azul"
   ]),
   'dialogo1.4B':  () => { /* toca quando o papel fica vermelho; sem coreografia; play no fim */ },
