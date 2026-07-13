@@ -316,8 +316,8 @@
   #eqLinha sup { font-size: .58em; vertical-align: super; }
   #eqLinha sub { font-size: .58em; vertical-align: sub; }
   #eqLinha .eqi { display: inline-block; opacity: 0; transform: scale(0); vertical-align: middle; }
-  #eqLinha .eqi.on { opacity: 1; animation: eqIn .55s cubic-bezier(.2, .9, .25, 1.6) both; }
-  #eqLinha .eqi.on.enfase { animation: eqPulsa .5s ease 2; }
+  #eqLinha .eqi.on { opacity: 1; transform: scale(1); animation: eqIn .55s cubic-bezier(.2, .9, .25, 1.6) both; }
+  #eqLinha .eqi.on.enfase { animation: eqPulsa .5s ease 2 both; }
   @keyframes eqIn {
     0%   { opacity: 0; transform: scale(0) translateY(-24px) rotate(-14deg); }
     55%  { opacity: 1; transform: scale(1.3) translateY(0) rotate(0); }
@@ -875,7 +875,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.05.0</div>
+<div id="versao">v1.06.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
