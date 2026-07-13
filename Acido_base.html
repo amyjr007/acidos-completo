@@ -315,7 +315,8 @@
   #eqLinha.show { opacity: 1; }
   #eqLinha sup { font-size: .58em; vertical-align: super; }
   #eqLinha sub { font-size: .58em; vertical-align: sub; }
-  #eqLinha .eqi { display: inline-block; opacity: 0; transform: scale(0); vertical-align: middle; }
+  #eqLinha .eqi { display: inline-block; position: relative; opacity: 0; transform: scale(0); vertical-align: middle; }
+  #eqLinha .grp { display: inline-block; position: relative; }
   #eqLinha .eqi.on { opacity: 1; transform: scale(1); animation: eqIn .55s cubic-bezier(.2, .9, .25, 1.6) both; }
   #eqLinha .eqi.on.enfase { animation: eqPulsa .5s ease 2 both; }
   @keyframes eqIn {
@@ -338,6 +339,34 @@
   @keyframes aguaEntra {
     0%   { opacity: 0; transform: translate(-150%, 0); }
     100% { opacity: 1; transform: translate(-50%, 0); }
+  }
+  /* rótulos anotados (Molécula / Íons abaixo, cátion / ânion acima) — entrada dramática */
+  #eqLinha .anot { position: absolute; left: 50%; white-space: nowrap; font-family: system-ui, sans-serif; font-weight: 800; font-size: .32em; opacity: 0; pointer-events: none; }
+  #eqLinha .anot.abaixo { top: 116%; transform: translateX(-50%) scale(0); color: #cfe8b0; }
+  #eqLinha .anot.acima  { bottom: 118%; transform: translateX(-50%) scale(0); color: #ffce7a; }
+  #eqLinha .anot.on { animation: anotIn .55s cubic-bezier(.2, .9, .25, 1.6) both; }
+  @keyframes anotIn {
+    0%   { opacity: 0; transform: translateX(-50%) scale(0) translateY(-12px); }
+    55%  { opacity: 1; transform: translateX(-50%) scale(1.2) translateY(0); }
+    100% { opacity: 1; transform: translateX(-50%) scale(1); }
+  }
+  /* "Equilíbrio de cargas" acima da equação e "Ionização" (verde ácido) abaixo de tudo */
+  #eqEquilibrio {
+    position: fixed; top: 13%; left: 0; right: 0; z-index: 41; text-align: center; padding: 0 16px;
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(18px, 5vw, 34px);
+    color: #ffce7a; text-shadow: 0 2px 12px rgba(0, 0, 0, .6); opacity: 0; pointer-events: none;
+  }
+  #eqIonizacao {
+    position: fixed; top: 33%; left: 0; right: 0; z-index: 41; text-align: center; padding: 0 16px;
+    font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(24px, 7vw, 46px);
+    color: #a6e534; text-shadow: 0 2px 14px rgba(0, 0, 0, .6), 0 0 22px rgba(166, 229, 52, .4);
+    opacity: 0; pointer-events: none;
+  }
+  #eqEquilibrio.show, #eqIonizacao.show { animation: eqLinhaIn .6s cubic-bezier(.2, .9, .25, 1.5) both; }
+  @keyframes eqLinhaIn {
+    0%   { opacity: 0; transform: scale(.55) translateY(-16px); }
+    60%  { opacity: 1; transform: scale(1.12); }
+    100% { opacity: 1; transform: scale(1); }
   }
   /* "Ácido" verde escuro no topo (sobre o quadro branco, dialogo1.2) */
   .st-verdeescuro {
@@ -875,7 +904,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.07.0</div>
+<div id="versao">v1.08.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -900,7 +929,9 @@
 <div id="substTitle">Substâncias Inorgânicas</div>
 <div id="indicadorTxt"></div>
 <div id="eqTitulo"></div>
-<div id="eqLinha"><span class="eqi" data-k="h">H</span><span class="eqi" data-k="c">C</span><span class="eqi" data-k="l">l</span><span class="eqi seta" data-k="seta"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="eqi" data-k="hmais">H<sup>+</sup></span><span class="eqi" data-k="mais">&nbsp;+&nbsp;</span><span class="eqi" data-k="cl">Cl<sup>&#8722;</sup></span></div>
+<div id="eqEquilibrio">Equilíbrio de cargas</div>
+<div id="eqLinha"><span class="grp" data-g="hcl"><span class="eqi" data-k="h">H</span><span class="eqi" data-k="c">C</span><span class="eqi" data-k="l">l</span><span class="anot abaixo" data-k="molecula">Molécula</span></span><span class="eqi seta" data-k="seta"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="grp" data-g="prod"><span class="eqi" data-k="hmais">H<sup>+</sup><span class="anot acima" data-k="cation">cátion</span></span><span class="eqi" data-k="mais">&nbsp;+&nbsp;</span><span class="eqi" data-k="cl">Cl<sup>&#8722;</sup><span class="anot acima" data-k="anion">ânion</span></span><span class="anot abaixo" data-k="ions">Íons</span></span></div>
+<div id="eqIonizacao">Ionização</div>
 <div id="substDesc"></div>
 
 <!-- Cena do dialogo1.1A: "Ácidos", não-ácidos (H2O/H2O2) e frascos de ácidos -->
@@ -2477,6 +2508,18 @@ const EVENTOS = {
     { t: 20.0, fn: () => eqEnfase('hmais') },                                     // enfatiza o H⁺
     { t: 21.0, fn: () => eqShow('cl') },                                          // Cl⁻
     { t: 23.0, fn: () => eqEnfase('cl') },                                        // enfatiza o Cl⁻
+    { t: 30.7, fn: () => eqPulsoGrp('hcl', 1) },                                  // pulsa o HCl
+    { t: 31.8, fn: () => anotShow('molecula') },                                  // "Molécula" abaixo do HCl (fade in)
+    { t: 34.0, fn: () => eqPulso('seta', 2) },                                    // enfatiza a seta + a água (2 pulsadas)
+    { t: 36.0, fn: () => anotShow('ions') },                                      // "Íons" abaixo dos produtos
+    { t: 36.8, fn: () => anotShow('cation') },                                    // "cátion" acima do H⁺ (entrada dramática)
+    { t: 37.6, fn: () => anotShow('anion') },                                     // "ânion" acima do Cl⁻ (entrada dramática)
+    { t: 41.0, fn: mostrarIonizacao },                                           // "Ionização" (verde ácido) abaixo de tudo
+    { t: 49.0, fn: () => eqPulso('hmais', 3) },                                   // 3 pulsadas no H⁺
+    { t: 53.0, fn: () => eqPulso('cl', 3) },                                      // 3 pulsadas no Cl⁻
+    { t: 56.0, fn: () => eqMaior('hmais') },                                      // aumenta e mantém o H⁺
+    { t: 57.3, fn: () => eqMaior('cl') },                                         // aumenta e mantém o Cl⁻
+    { t: 60.0, fn: mostrarEquilibrio },                                          // "Equilíbrio de cargas" acima da equação
   ]),
 };
 
@@ -3711,11 +3754,31 @@ function esconderIndicador() { $id('indicadorTxt').classList.remove('show'); }
 // ---- Equação de Arrhenius (dialogo1.5 / 1.5A) ----
 function mostrarEqTitulo() { const el = $id('eqTitulo'); el.textContent = 'Equação de Arrhenius'; el.classList.add('show'); }
 function esconderEqTitulo() { $id('eqTitulo').classList.remove('show'); }
-function eqReset() { $id('eqLinha').querySelectorAll('.eqi').forEach(e => e.classList.remove('on', 'enfase')); }
+const _eqEl = k => $id('eqLinha').querySelector('.eqi[data-k="' + k + '"]');
+function eqReset() {
+  $id('eqLinha').querySelectorAll('.eqi').forEach(e => { e.classList.remove('on', 'enfase'); e.style.animation = ''; e.style.transform = ''; e.style.transition = ''; });
+  $id('eqLinha').querySelectorAll('.anot').forEach(e => { e.classList.remove('on'); e.style.animation = ''; });
+  $id('eqLinha').querySelectorAll('.grp').forEach(e => { e.style.animation = ''; });
+  $id('eqEquilibrio').classList.remove('show'); $id('eqIonizacao').classList.remove('show');
+}
 function abrirEquacao() { eqReset(); $id('eqLinha').classList.add('show'); }      // deixa a linha visível (itens ainda ocultos)
 function esconderEquacao() { $id('eqLinha').classList.remove('show'); eqReset(); }
-function eqShow(k) { const e = $id('eqLinha').querySelector('.eqi[data-k="' + k + '"]'); if (e) e.classList.add('on'); }
-function eqEnfase(k) { const e = $id('eqLinha').querySelector('.eqi[data-k="' + k + '"]'); if (!e) return; e.classList.remove('enfase'); void e.offsetWidth; e.classList.add('enfase'); }
+function eqShow(k) { const e = _eqEl(k); if (e) e.classList.add('on'); }
+// pulso reutilizável (n vezes) — funciona em .eqi, .grp e .seta (a água pulsa junto)
+function _pulsarEl(e, n) { if (!e) return; e.style.animation = 'none'; void e.offsetWidth; e.style.animation = 'eqPulsa .45s ease ' + (n || 1) + ' both'; }
+function eqPulso(k, n) { _pulsarEl(_eqEl(k), n); }
+function eqPulsoGrp(g, n) { _pulsarEl($id('eqLinha').querySelector('.grp[data-g="' + g + '"]'), n); }
+function eqEnfase(k) { eqPulso(k, 2); }
+// aumenta de tamanho e MANTÉM (destaque permanente do íon)
+function eqMaior(k) {
+  const e = _eqEl(k); if (!e) return;
+  e.style.transition = 'none'; e.style.animation = 'none'; e.style.transform = 'scale(1)'; void e.offsetWidth;
+  e.style.transition = 'transform .45s cubic-bezier(.2, .9, .3, 1.5)'; e.style.transform = 'scale(1.35)';
+}
+// rótulos anotados (molecula, ions, cation, anion) com entrada dramática
+function anotShow(k) { const e = $id('eqLinha').querySelector('.anot[data-k="' + k + '"]'); if (e) e.classList.add('on'); }
+function mostrarEquilibrio() { $id('eqEquilibrio').classList.add('show'); }
+function mostrarIonizacao() { $id('eqIonizacao').classList.add('show'); }
 
 // os 3 ácidos voltam à bancada mostrando SÓ a etiqueta da fórmula (sem os nomes) — dialogo1.5A
 function mostrarAcidosSoEtiqueta() {
