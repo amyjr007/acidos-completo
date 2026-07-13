@@ -830,7 +830,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.01.0</div>
+<div id="versao">v1.02.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1588,11 +1588,12 @@ function esconderCoposAcidosFade() {
 }
 
 // ---- Papel de tornassol azul (dialogo1.4A) — arrastável ----
-const AZUL_TORNASSOL = 0x4a5fd0, VERMELHO_TORNASSOL = 0xcf3535, LITMUS_X = AC_X[1], LITMUS_Y = 1.3;   // na posição do H2CO3
+const AZUL_TORNASSOL = 0x4a5fd0, VERMELHO_TORNASSOL = 0xe11010, LITMUS_X = AC_X[1], LITMUS_Y = 1.3;   // na posição do H2CO3 (vermelho forte)
 const LITMUS_HH = 1.2, LITMUS_W = 0.5;   // meia-altura e largura da tira (+20%)
+const LITMUS_FUNDO = 1.5;                // centro da tira quando descansa no fundo do béquer d'água
 const litmusBloco = new THREE.Group(); litmusBloco.visible = false; scene.add(litmusBloco);
 let litmusAtivo = false, litmusDrag = null, litmusVermelhoUsado = false;
-let papel = null, papelUsado = null;
+let papel = null;
 
 const quedaTiras = [];   // tiras caindo (gravidade)
 // a tira mergulhada na ÁGUA (que virou ácida com os H+) fica vermelha; os ácidos sumiram
@@ -1618,7 +1619,12 @@ function criarTira(x, y) {
   return g;
 }
 function pintarContato(g, surfY) {
-  g._segs.forEach(s => { if (g.position.y + s.position.y < surfY) s.material.color.setHex(VERMELHO_TORNASSOL); });
+  g._segs.forEach(s => {
+    if (g.position.y + s.position.y < surfY) {
+      s.material.color.setHex(VERMELHO_TORNASSOL);
+      if (s.material.emissive) s.material.emissive.setHex(0x5a0000);   // realça o vermelho
+    }
+  });
 }
 function novaTiraAtiva() { papel = criarTira(LITMUS_X, LITMUS_Y); }
 function mostrarBlocoTornassol() {
@@ -1630,7 +1636,6 @@ function mostrarBlocoTornassol() {
   }
   litmusBloco.visible = true; litmusVermelhoUsado = false;
   if (papel) { scene.remove(papel); papel = null; }
-  if (papelUsado) { scene.remove(papelUsado); papelUsado = null; }
   novaTiraAtiva();
   litmusAtivo = true;
   fade3D(litmusBloco, 1, 700); fade3D(papel, 1, 700);   // entra em fade in
@@ -1652,7 +1657,6 @@ function limparTornassol() {
   litmusAtivo = false; litmusDrag = null;
   quedaTiras.length = 0;
   if (papel) { scene.remove(papel); papel = null; }
-  if (papelUsado) { scene.remove(papelUsado); papelUsado = null; }
   litmusBloco.visible = false;
   while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]);
 }
@@ -1661,11 +1665,11 @@ function tornarVermelho(g, surf) {
   pintarContato(g, surf); g._vermelho = true;
   if (!litmusVermelhoUsado) { litmusVermelhoUsado = true; if (typeof onPapelVermelho === 'function') onPapelVermelho(); }
 }
-// solta a tira: se já ficou vermelha, só vira a "anterior"; senão cai (e pode cair no líquido -> vermelha).
+// solta a tira: continua sendo a ativa (pode pegar de novo). Na água afunda até o fundo; no ar cai.
 function soltarPapel(g) {
-  if (!g._vermelho) { g._vy = 0; quedaTiras.push(g); }
-  papelUsado = g; papel = null;
-  novaTiraAtiva();
+  const surf = coposMergulho(g.position.x, g.position.y);
+  if (surf != null) { tornarVermelho(g, surf); g._vy = 0; quedaTiras.push(g); }   // na água -> afunda
+  else if (g.position.y > LITMUS_Y + 0.02) { g._vy = 0; quedaTiras.push(g); }      // no ar -> cai
 }
 
 // demonstração interativa (dialogo1.3B): o usuário enche e derrama a pipeta
@@ -1793,17 +1797,25 @@ renderer.domElement.addEventListener('pointerdown', e => {
   }
 
   if (litmusAtivo) {   // durante o papel de tornassol: só o papel é interativo
-    if (!papel) return;
     ndc.x = (e.clientX / innerWidth) * 2 - 1;
     ndc.y = -(e.clientY / innerHeight) * 2 + 1;
     raycaster.setFromCamera(ndc, camera);
-    const objs = [];
-    papel.traverse(o => { if (o.name === 'litmus') objs.push(o); });
-    litmusBloco.children.forEach(m => objs.push(m));
-    if (raycaster.intersectObjects(objs, false).length) {
-      if (papelUsado) { dissolverTira(papelUsado); papelUsado = null; }   // pegou uma nova -> a anterior dissolve
+    const iniciaArraste = () => {
+      const qi = quedaTiras.indexOf(papel); if (qi >= 0) quedaTiras.splice(qi, 1);   // se estava caindo/afundando, para
       raycaster.ray.intersectPlane(dragPlane, planePoint);
       litmusDrag = { id: e.pointerId, offX: planePoint.x - papel.position.x, offY: planePoint.y - papel.position.y, sx: e.clientX, sy: e.clientY, moved: false };
+    };
+    // 1) tocou a tira atual (onde ela estiver) -> arrasta ela de novo
+    if (papel) {
+      const objs = []; papel.traverse(o => { if (o.name === 'litmus') objs.push(o); });
+      if (raycaster.intersectObjects(objs, false).length) { iniciaArraste(); return; }
+    }
+    // 2) tocou o bloco -> pega uma tira NOVA (a atual dissolve)
+    if (raycaster.intersectObjects(litmusBloco.children, false).length) {
+      if (papel) dissolverTira(papel);
+      novaTiraAtiva();
+      iniciaArraste();
+      return;
     }
     return;
   }
@@ -2009,11 +2021,16 @@ function animate() {
     }
   }
 
-  // gravidade das tiras de tornassol soltas no ar (caem; se caírem no líquido, ficam vermelhas)
+  // gravidade das tiras de tornassol soltas no ar (caem; se caírem no líquido, afundam até o fundo e ficam vermelhas)
   for (let i = quedaTiras.length - 1; i >= 0; i--) {
     const g = quedaTiras[i];
     const surf = coposMergulho(g.position.x, g.position.y);
-    if (surf != null && !g._vermelho) { tornarVermelho(g, surf); quedaTiras.splice(i, 1); continue; }   // encostou no líquido
+    if (surf != null) {                                   // dentro do líquido: pinta (mais conforme afunda) e afunda devagar
+      tornarVermelho(g, surf);
+      g.position.y -= 1.8 * dt;
+      if (g.position.y <= LITMUS_FUNDO) { g.position.y = LITMUS_FUNDO; quedaTiras.splice(i, 1); }   // chegou no fundo do béquer
+      continue;
+    }
     g._vy = (g._vy || 0) - 12 * dt;
     g.position.y += g._vy * dt;           // cai reto (sem girar, pra não travar na boca)
     if (g.position.y <= LITMUS_Y) { g.position.y = LITMUS_Y; quedaTiras.splice(i, 1); }   // pousou na mesa
