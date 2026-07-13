@@ -875,7 +875,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.03.0</div>
+<div id="versao">v1.04.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2612,6 +2612,7 @@ const SUMARIO = [
   { titulo: 'Ácidos de Arrhenius',          faixa: idxFaixa('dialogo1.3') },
   { titulo: 'Exemplo prático de ionização', faixa: idxFaixa('dialogo1.3B') },
   { titulo: 'Os indicadores ácido-base',    faixa: idxFaixa('dialogo1.4'), acao: irParaIndicadores },
+  { titulo: 'A equação de ionização',       faixa: idxFaixa('dialogo1.5'), acao: irParaEquacao },
 ];
 
 SUMARIO.forEach(item => {
@@ -3753,6 +3754,27 @@ function montarCena14() {
 function irParaIndicadores() {
   montarCena14();
   const i = idxFaixa('dialogo1.4');
+  if (i >= 0) tocarFaixa(i);
+}
+// monta a cena como ao INÍCIO do 1.5 (fim dos indicadores): só a água; ácidos ocultos; sem papel; sem H+ ainda
+function montarCenaEquacao() {
+  limparHmais(); limparNomesAcido();
+  if (typeof limparRotuloAcido === 'function') limparRotuloAcido();
+  if (typeof limparTornassol === 'function') limparTornassol();
+  esconderIndicador(); esconderEqTitulo(); esconderEquacao();
+  reagents.forEach((r, i) => {
+    r.locked = false; escurecerCopo(i, false);
+    if (r.beaker) { restaurarOpacidade(r.beaker); fade3D(r.beaker, 0, 1); }   // os 3 ácidos ficam ocultos (sumiram no 1.4)
+    if (r.label)  { restaurarOpacidade(r.label);  r.label.visible = false; }
+  });
+  restaurarOpacidade(waterBeaker);      // só a água permanece
+  pipette.visible = false; pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
+  irParaCamera({ theta: -0.012, phi: 1.534, dist: 22, target: [-0.14, 4.98, 0.76] }, false);   // vista da água (como no 1.4A)
+}
+// navegação rápida "A equação de ionização": monta a cena e toca o 1.5
+function irParaEquacao() {
+  montarCenaEquacao();
+  const i = idxFaixa('dialogo1.5');
   if (i >= 0) tocarFaixa(i);
 }
 // H+ vira sobrescrito; caret pisca enquanto digita
