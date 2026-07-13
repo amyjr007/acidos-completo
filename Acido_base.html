@@ -350,6 +350,26 @@
     55%  { opacity: 1; transform: translateX(-50%) scale(1.2) translateY(0); }
     100% { opacity: 1; transform: translateX(-50%) scale(1); }
   }
+  /* colchete em U (identificação) abaixo do grupo: "molécula" sob HCl, "íons" sob os produtos */
+  #eqLinha .grp .marca { position: absolute; top: 106%; left: 0; right: 0; opacity: 0; pointer-events: none; }
+  #eqLinha .grp .marca .colchete {
+    display: block; height: .24em; margin: 0 .12em;
+    border: solid #7cc24a; border-width: 0 .05em .05em .05em; border-radius: 0 0 .05em .05em;
+  }
+  #eqLinha .grp .marca .rot {
+    display: block; text-align: center; margin-top: .05em;
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: .3em; color: #9ccf66;
+  }
+  #eqLinha .grp .marca.on { animation: marcaIn .5s ease both; transform-origin: center top; }
+  @keyframes marcaIn {
+    0%   { opacity: 0; transform: translateY(-6px) scale(.85); }
+    100% { opacity: 1; transform: none; }
+  }
+  /* fade-out (ao ir pro 1.5B): some as anotações, mantém título + equação */
+  #eqLinha .anot.fadeout { animation: eqSaiCentro .5s ease forwards !important; }
+  #eqLinha .marca.fadeout, #eqEquilibrio.fadeout, #eqIonizacao.fadeout { animation: eqSaiPlano .5s ease forwards !important; }
+  @keyframes eqSaiCentro { from { opacity: 1; transform: translateX(-50%) scale(1); } to { opacity: 0; transform: translateX(-50%) scale(1); } }
+  @keyframes eqSaiPlano  { from { opacity: 1; transform: none; } to { opacity: 0; transform: none; } }
   /* "Equilíbrio de cargas" acima da equação e "Ionização" (verde ácido) abaixo de tudo */
   #eqEquilibrio {
     position: fixed; top: 13%; left: 0; right: 0; z-index: 41; text-align: center; padding: 0 16px;
@@ -904,7 +924,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.08.0</div>
+<div id="versao">v1.09.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -930,7 +950,7 @@
 <div id="indicadorTxt"></div>
 <div id="eqTitulo"></div>
 <div id="eqEquilibrio">Equilíbrio de cargas</div>
-<div id="eqLinha"><span class="grp" data-g="hcl"><span class="eqi" data-k="h">H</span><span class="eqi" data-k="c">C</span><span class="eqi" data-k="l">l</span><span class="anot abaixo" data-k="molecula">Molécula</span></span><span class="eqi seta" data-k="seta"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="grp" data-g="prod"><span class="eqi" data-k="hmais">H<sup>+</sup><span class="anot acima" data-k="cation">cátion</span></span><span class="eqi" data-k="mais">&nbsp;+&nbsp;</span><span class="eqi" data-k="cl">Cl<sup>&#8722;</sup><span class="anot acima" data-k="anion">ânion</span></span><span class="anot abaixo" data-k="ions">Íons</span></span></div>
+<div id="eqLinha"><span class="grp" data-g="hcl"><span class="eqi" data-k="h">H</span><span class="eqi" data-k="c">C</span><span class="eqi" data-k="l">l</span><span class="marca" data-k="molecula"><span class="colchete"></span><span class="rot">molécula</span></span></span><span class="eqi seta" data-k="seta"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="grp" data-g="prod"><span class="eqi" data-k="hmais">H<sup>+</sup><span class="anot acima" data-k="cation">cátion</span></span><span class="eqi" data-k="mais">&nbsp;+&nbsp;</span><span class="eqi" data-k="cl">Cl<sup>&#8722;</sup><span class="anot acima" data-k="anion">ânion</span></span><span class="marca" data-k="ions"><span class="colchete"></span><span class="rot">íons</span></span></span></div>
 <div id="eqIonizacao">Ionização</div>
 <div id="substDesc"></div>
 
@@ -2309,6 +2329,7 @@ const FAIXAS = [
   { id: 'dialogo1.4B',  arquivo: 'audios/dialogo1.4B.mp3',  titulo: 'Diálogo 1.4B' },
   { id: 'dialogo1.5',   arquivo: 'audios/dialogo1.5.mp3',   titulo: 'Diálogo 1.5' },
   { id: 'dialogo1.5A',  arquivo: 'audios/dialogo1.5A.mp3',  titulo: 'Diálogo 1.5A' },
+  { id: 'dialogo1.5B',  arquivo: 'audios/dialogo1.5B.mp3',  titulo: 'Diálogo 1.5B' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -2520,6 +2541,10 @@ const EVENTOS = {
     { t: 56.0, fn: () => eqMaior('hmais') },                                      // aumenta e mantém o H⁺
     { t: 57.3, fn: () => eqMaior('cl') },                                         // aumenta e mantém o Cl⁻
     { t: 60.0, fn: mostrarEquilibrio },                                          // "Equilíbrio de cargas" acima da equação
+    { t: 63.0, fn: () => { eqNormal('hmais'); eqNormal('cl'); } },                // 1:03 -> H⁺ e Cl⁻ voltam ao tamanho normal
+  ]),
+  'dialogo1.5B':  () => rodarStory([
+    { t: 0.0, fn: fadeAnotacoesEquacao },   // some tudo em fade (menos título + equação); resto dos eventos a definir
   ]),
 };
 
@@ -3757,9 +3782,9 @@ function esconderEqTitulo() { $id('eqTitulo').classList.remove('show'); }
 const _eqEl = k => $id('eqLinha').querySelector('.eqi[data-k="' + k + '"]');
 function eqReset() {
   $id('eqLinha').querySelectorAll('.eqi').forEach(e => { e.classList.remove('on', 'enfase'); e.style.animation = ''; e.style.transform = ''; e.style.transition = ''; });
-  $id('eqLinha').querySelectorAll('.anot').forEach(e => { e.classList.remove('on'); e.style.animation = ''; });
+  $id('eqLinha').querySelectorAll('.anot, .marca').forEach(e => { e.classList.remove('on', 'fadeout'); e.style.animation = ''; });
   $id('eqLinha').querySelectorAll('.grp').forEach(e => { e.style.animation = ''; });
-  $id('eqEquilibrio').classList.remove('show'); $id('eqIonizacao').classList.remove('show');
+  ['eqEquilibrio', 'eqIonizacao'].forEach(id => $id(id).classList.remove('show', 'fadeout'));
 }
 function abrirEquacao() { eqReset(); $id('eqLinha').classList.add('show'); }      // deixa a linha visível (itens ainda ocultos)
 function esconderEquacao() { $id('eqLinha').classList.remove('show'); eqReset(); }
@@ -3776,9 +3801,17 @@ function eqMaior(k) {
   e.style.transition = 'transform .45s cubic-bezier(.2, .9, .3, 1.5)'; e.style.transform = 'scale(1.35)';
 }
 // rótulos anotados (molecula, ions, cation, anion) com entrada dramática
-function anotShow(k) { const e = $id('eqLinha').querySelector('.anot[data-k="' + k + '"]'); if (e) e.classList.add('on'); }
+function anotShow(k) { const e = $id('eqLinha').querySelector('.anot[data-k="' + k + '"], .marca[data-k="' + k + '"]'); if (e) e.classList.add('on'); }
 function mostrarEquilibrio() { $id('eqEquilibrio').classList.add('show'); }
 function mostrarIonizacao() { $id('eqIonizacao').classList.add('show'); }
+// volta um íon ao tamanho normal (desfaz o eqMaior)
+function eqNormal(k) { const e = _eqEl(k); if (!e) return; e.style.transition = 'transform .45s cubic-bezier(.2, .9, .3, 1.5)'; e.style.transform = 'scale(1)'; }
+// fade-out das anotações (ao ir pro 1.5B): some tudo menos o título e a equação
+function fadeAnotacoesEquacao() {
+  $id('eqLinha').querySelectorAll('.anot.on, .marca.on').forEach(e => e.classList.add('fadeout'));
+  ['eqEquilibrio', 'eqIonizacao'].forEach(id => { const e = $id(id); if (e.classList.contains('show')) e.classList.add('fadeout'); });
+  ['hmais', 'cl'].forEach(k => eqNormal(k));   // garante os íons no tamanho normal
+}
 
 // os 3 ácidos voltam à bancada mostrando SÓ a etiqueta da fórmula (sem os nomes) — dialogo1.5A
 function mostrarAcidosSoEtiqueta() {
