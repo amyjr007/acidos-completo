@@ -331,7 +331,7 @@
   #eqLinha .seta .arrow { display: inline-block; }
   #eqLinha .seta .agua {
     position: absolute; left: 50%; top: -.72em;
-    font-size: .46em; font-weight: 700; white-space: nowrap; color: #cdeaff;
+    font-size: .41em; font-weight: 700; white-space: nowrap; color: #cdeaff;
     opacity: 0; transform: translate(-150%, 0);
   }
   #eqLinha .seta.on .agua { animation: aguaEntra .7s ease .12s both; }
@@ -875,7 +875,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.06.0</div>
+<div id="versao">v1.07.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2472,7 +2472,7 @@ const EVENTOS = {
     { t: 13.0, fn: () => eqShow('c') },                                           // C
     { t: 13.2, fn: () => eqShow('l') },                                           // l  -> "HCl" letra a letra
     { t: 15.3, fn: () => eqShow('seta') },                                        // seta -> com a água (H₂O) entrando por cima
-    { t: 18.7, fn: () => eqShow('mais') },                                        // "+" dos produtos
+    { t: 20.8, fn: () => eqShow('mais') },                                        // "+" dos produtos
     { t: 19.0, fn: () => eqShow('hmais') },                                       // H⁺ (entrada dramática)
     { t: 20.0, fn: () => eqEnfase('hmais') },                                     // enfatiza o H⁺
     { t: 21.0, fn: () => eqShow('cl') },                                          // Cl⁻
