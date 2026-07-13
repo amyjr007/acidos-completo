@@ -875,7 +875,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.04.0</div>
+<div id="versao">v1.05.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1707,6 +1707,22 @@ function limparTornassol() {
   litmusBloco.visible = false;
   while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]);
 }
+// remove o papel de tornassol com FADE (ao sair da cena dos indicadores pra equação)
+function dissolverTornassol() {
+  litmusAtivo = false; litmusDrag = null; quedaTiras.length = 0;
+  const alvo = papel; papel = null;
+  const mats = [];
+  const coletar = raiz => raiz && raiz.traverse(o => { if (o.material && o.name !== 'litmus') { o.material.transparent = true; mats.push(o.material); } });
+  coletar(alvo); coletar(litmusBloco);
+  if (!mats.length) { limparTornassol(); return; }
+  const t0 = performance.now();
+  (function step() {
+    const k = Math.min(1, (performance.now() - t0) / 700);
+    mats.forEach(m => m.opacity = 1 - k);
+    if (k < 1) requestAnimationFrame(step);
+    else { if (alvo) scene.remove(alvo); litmusBloco.visible = false; while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]); }
+  })();
+}
 // a parte que toca o líquido fica vermelha (cumulativo, conforme mergulha); a 1ª a ficar vermelha dispara o 1.4B
 function tornarVermelho(g, surf) {
   pintarContato(g, surf); g._vermelho = true;
@@ -2494,9 +2510,12 @@ function tocarFaixa(i) {
   if (i < idxFaixa('dialogo1.2')) { irParaCamera(CAM_PADRAO, false); if (typeof mostrarAcidosBancada === 'function') mostrarAcidosBancada(); }
   const f = FAIXAS[i];
   if (f.id !== 'dialogo1.3B' && f.id !== 'dialogo1.3B1') $id('ajudaBtn').style.display = 'none';   // botão ajuda só na demo interativa
-  if (f.id !== 'dialogo1.4A' && f.id !== 'dialogo1.4B' && typeof limparTornassol === 'function') limparTornassol();   // papel só na cena dos indicadores
+  if (f.id !== 'dialogo1.4A' && f.id !== 'dialogo1.4B' && typeof limparTornassol === 'function') {   // papel só na cena dos indicadores
+    if (f.id === 'dialogo1.5' && typeof papel !== 'undefined' && papel && typeof dissolverTornassol === 'function') dissolverTornassol();   // ao ir pra equação: some em fade
+    else limparTornassol();
+  }
   if (f.id !== 'dialogo1.4' && f.id !== 'dialogo1.4A' && f.id !== 'dialogo1.4B') $id('indicadorTxt').classList.remove('show');   // texto dos indicadores só na família 1.4
-  if (f.id !== 'dialogo1.5' && f.id !== 'dialogo1.5A') { $id('eqTitulo').classList.remove('show'); if (typeof esconderEquacao === 'function') esconderEquacao(); }   // equação de Arrhenius só na família 1.5
+  if (i < idxFaixa('dialogo1.5')) { $id('eqTitulo').classList.remove('show'); if (typeof esconderEquacao === 'function') esconderEquacao(); }   // equação persiste daqui pra frente; só some ao voltar pra antes do 1.5
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
@@ -3729,7 +3748,7 @@ function iniciarCena14() {
   fade3D(pipette, 0, 600);         // pipeta some
 }
 // papel de tornassol ficou vermelho num béquer -> toca 1.4B (uma vez)
-function onPapelVermelho() { const i = idxFaixa('dialogo1.4B'); if (i >= 0) tocarFaixa(i); }
+function onPapelVermelho() { const i = idxFaixa('dialogo1.4B'); if (i >= 0) setTimeout(() => tocarFaixa(i), 1000); }   // 1s de respiro antes do áudio 1.4B
 
 // monta a bancada como no FIM do 1.3B2 (estado de entrada do 1.4): 3 ácidos com nome+etiqueta,
 // HCl/H2CO3 escuros, H+ na água, pipeta escondida, câmera na posição 8.
