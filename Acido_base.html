@@ -662,6 +662,7 @@
   #quiz4 .q4chip.arrastando { cursor: grabbing; box-shadow: 0 10px 26px rgba(0, 0, 0, .55); border-color: #a6e534; background: rgba(166, 229, 52, .2); }
   #quiz4 .q4chip.certo  { background: rgba(120, 220, 60, .32); border-color: #a6e534; color: #fff; }
   #quiz4 .q4chip.errado { background: rgba(230, 50, 50, .32); border-color: #ff5a5a; color: #fff; }
+  #quiz4 .q4letra { color: #f5b301; }
   #quiz4 .q4prods { display: inline-flex; align-items: baseline; gap: .28em; }
   /* efeito de troca entre uma equação e a próxima (sai pra esquerda, entra pela direita) */
   #quiz4 .q4stage.saindo   { animation: q4Sai .3s ease forwards; }
@@ -1222,7 +1223,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.22.0</div>
+<div id="versao">v1.23.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1300,7 +1301,7 @@
 <!-- Questão 4: arrastar a espécie correta pro slot (sequência de reações) -->
 <div id="quiz4">
   <div class="q4card">
-    <div class="q4num">Questão 4</div>
+    <div class="q4num" id="q4num">Questão 4</div>
     <div class="q4tit">Observe as reações a seguir e complete com a espécie química correta. Arraste sua resposta pro slot vazio pra completar a reação.</div>
     <div class="q4stage" id="q4stage">
       <div class="q4eq">
@@ -2993,6 +2994,7 @@ function tocarFaixa(i) {
   }
   if (f.id !== 'dialogo1.4' && f.id !== 'dialogo1.4A' && f.id !== 'dialogo1.4B') $id('indicadorTxt').classList.remove('show');   // texto dos indicadores só na família 1.4
   if (i < idxFaixa('dialogo1.5')) { $id('eqTitulo').classList.remove('show'); if (typeof esconderEquacao === 'function') esconderEquacao(); }   // equação persiste daqui pra frente; só some ao voltar pra antes do 1.5
+  if (i >= idxFaixa('dialogo1.3R')) { $id('tituloDef').classList.remove('show', 'subiu'); if (typeof desenharSlide === 'function') desenharSlide('', 0, false); }   // a definição de Arrhenius (título + quadro) some depois do 1.3
   if (f.id !== 'dialogo1.5Cy' && f.id !== 'dialogo1.5Cn') $id('quizCarga').classList.remove('show');   // quiz da carga só some ao sair (as respostas mantêm)
   if (typeof fecharQuiz1 === 'function') fecharQuiz1();   // some o botão/questão do quiz 1 e para a narração do exercício
   if (typeof fecharQuiz2 === 'function') fecharQuiz2();   // some a questão 2, limpa rótulos A/B/C, para os áudios e o tornassol
@@ -3081,7 +3083,8 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5C') { $id('playBtn').style.display = 'none'; mostrarQuizCarga(); return; }
   // fim do 1.5D: em vez do play, aparece o botão "Quiz" (abre a questão 1)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5D') { $id('playBtn').style.display = 'none'; mostrarQuizBtn(); return; }
-  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.4A') esconderIndicador();   // fim do 1.4A: todo o texto some em fade
+  // fim do 1.4A: some o texto e o play (força a interação do papel de tornassol; o 1.4B entra quando o papel fica vermelho)
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.4A') { esconderIndicador(); $id('playBtn').style.display = 'none'; return; }
   // fim do tutorial 1.1E -> botão de play vira "JOGAR"
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.1E') {
     jogarPronto = true;
@@ -4330,6 +4333,18 @@ function agendarTransicao(transAudio, proxFn, feedbackAudio) {
     _transTimers.push(setTimeout(tocarTrans, 800));
   }
 }
+// ao marcar a resposta, corta qualquer áudio de enunciado/quiz/dica que esteja tocando
+function pararAudiosDasQuestoes() {
+  [exLavaia1a, quiz1Audio, quiz2Audio, quiz3Audio, dica1Audio, dica2Audio, dica3Audio].forEach(pararAudioQuiz);
+}
+// fechar/minimizar o app (aba oculta) corta TODO áudio
+function pausarTodoAudio() {
+  try { player.pause(); } catch (e) {}
+  [exLavaia1a, quiz1Audio, quiz2Audio, quiz3Audio, dica1Audio, dica2Audio, dica3Audio, proximaAudio, maisumaAudio].forEach(a => { try { a.pause(); } catch (e) {} });
+  try { Object.values(sfx).forEach(a => a.pause()); } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) pausarTodoAudio(); });
+window.addEventListener('pagehide', pausarTodoAudio);
 // íons de cada frasco: A) Na⁺/OH⁻ 1:1 (base)  B) Ca²⁺/O²⁻ 1:1 (óxido)  C) H⁺/S²⁻ 2:1 (ácido H₂S — correto)
 const QUIZ1_IONS = {
   a: [{ t: 'Na', c: '+', n: 4 }, { t: 'OH', c: '&#8722;', n: 4 }],
@@ -4378,6 +4393,7 @@ function fecharQuiz1() {
 function responderQuiz1(letra, btn) {
   if (quiz1Resp) return;
   quiz1Resp = true;
+  pararAudiosDasQuestoes();   // corta o áudio que estiver tocando
   const certo = (letra === 'c');                 // C = H₂S, único ácido de Arrhenius
   const q = $id('quiz1');
   q.querySelectorAll('.q1opt').forEach(b => b.disabled = true);
@@ -4453,6 +4469,7 @@ function fecharQuiz2() {
 function responderQuiz2(letra, btn) {
   if (quiz2Resp) return;
   quiz2Resp = true;
+  pararAudiosDasQuestoes();   // corta o áudio que estiver tocando
   const certo = (letra === 'b');            // B (béquer do meio) é o ácido
   const q = $id('quiz2');
   q.querySelectorAll('.q2opt').forEach(b => b.disabled = true);
@@ -4497,6 +4514,7 @@ function fecharQuiz3() {
 function responderQuiz3(letra, btn) {
   if (quiz3Resp) return;
   quiz3Resp = true;
+  pararAudiosDasQuestoes();   // corta o áudio que estiver tocando
   const certo = (letra === 'a');            // H⁺ e Br⁻
   const q = $id('quiz3');
   q.querySelectorAll('.q3opt').forEach(b => b.disabled = true);
@@ -4520,11 +4538,14 @@ const QUIZ4 = [
   { esq: 'H<sub>2</sub>S',  p1: null, p2: 'S<sup>2&#8722;</sup>', opts: [{ t: 'H<sup>2+</sup>' }, { t: '2H<sup>+</sup>', ok: true }, { t: 'H<sup>+</sup>' }] },
   { esq: 'H<sub>2</sub>SO<sub>4</sub>', p1: '2H<sup>+</sup>', p2: null, opts: [{ t: 'SO<sub>4</sub><sup>&#8722;</sup>' }, { t: '2SO<sub>4</sub>' }, { t: 'SO<sub>4</sub><sup>2&#8722;</sup>', ok: true }] },
   { esq: null, p1: '2H<sup>+</sup>', p2: 'CO<sub>3</sub><sup>2&#8722;</sup>', opts: [{ t: 'H<sub>2</sub>CO<sub>3</sub>', ok: true }, { t: 'HCO<sub>3</sub>' }, { t: 'H<sub>2</sub>CO' }] },
+  { esq: null, p1: '4H<sup>+</sup>', p2: 'SiO<sub>4</sub><sup>4&#8722;</sup>', opts: [{ t: 'HSiO<sub>4</sub>' }, { t: 'H<sub>4</sub>SiO<sub>4</sub>', ok: true }, { t: '4HSiO<sub>4</sub>' }] },
 ];
+const Q4_LETRAS = 'abcdefghijklmnopqrstuvwxyz';
 let q4Idx = 0, q4Resp = false, q4Drag = null, _q4Timer = null;
 function q4Montar() {
   q4Resp = false;
   const eq = QUIZ4[q4Idx];
+  $id('q4num').innerHTML = `Questão 4 <span class="q4letra">${Q4_LETRAS[q4Idx]})</span>`;   // numera cada reação: a, b, c...
   const slotHTML = '<span class="q4slot" id="q4slot"></span>';
   const cel = v => (v == null ? slotHTML : `<span class="q4prod">${v}</span>`);
   $id('q4esq').innerHTML = eq.esq == null ? slotHTML : eq.esq;                         // slot pode ser o reagente
