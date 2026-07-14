@@ -533,17 +533,18 @@
     font-size: clamp(11px, 3.2vw, 14px); text-transform: uppercase; margin-bottom: .3em;
   }
   #quiz2 .q2q { display: block; }
-  /* botão de dica (questões 1 e 2) — brilha enquanto o áudio da dica toca */
+  /* botão de dica (todas as questões) — circular, posição padrão fixa; brilha enquanto o áudio toca */
   .dicaBtn {
-    display: inline-flex; align-items: center; gap: .4em; margin-top: 14px;
-    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(14px, 3.9vw, 17px);
-    color: #3a2a00; padding: .5em 1.35em; border: none; border-radius: 999px; cursor: pointer;
+    position: fixed; left: 16px; bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 62;
+    display: inline-flex; align-items: center; justify-content: center; padding: 0;
+    width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer;
+    font-size: clamp(23px, 6.4vw, 27px); line-height: 1;
     background: linear-gradient(145deg, #ffe08a, #f5b301);
-    box-shadow: 0 4px 14px rgba(240, 180, 10, .4);
+    box-shadow: 0 4px 14px rgba(240, 180, 10, .45);
     transition: box-shadow .2s ease, transform .15s ease;
   }
-  .dicaBtn .dicaLuz { font-size: 1.05em; line-height: 1; }
-  .dicaBtn:active { transform: scale(.94); }
+  .dicaBtn .dicaLuz { line-height: 1; }
+  .dicaBtn:active { transform: scale(.92); }
   .dicaBtn.tocando { animation: dicaGlow 1s ease-in-out infinite; }
   .dicaBtn.tocando .dicaLuz { animation: dicaLuzPulse 1s ease-in-out infinite; }
   @keyframes dicaGlow {
@@ -622,6 +623,19 @@
   }
   #quiz4 .q4eq sup { font-size: .58em; vertical-align: super; }
   #quiz4 .q4eq sub { font-size: .58em; vertical-align: sub; }
+  #quiz4 .q4seta { position: relative; display: inline-block; padding: 0 .06em; }
+  #quiz4 .q4agua {
+    position: absolute; left: 50%; top: -.72em; transform: translateX(-50%);
+    font-size: .32em; font-weight: 700; color: #cdeaff; white-space: nowrap;
+  }
+  #quiz4 .q4instr {
+    margin-top: 22px; font-family: system-ui, sans-serif; font-weight: 600; color: #cfe6a8;
+    font-size: clamp(13px, 3.4vw, 16px);
+  }
+  /* carga dos íons: mais pra cima e um pouco à direita do símbolo */
+  #quiz3 .q3eq sup, #quiz3 .q3opt sup, #quiz4 .q4eq sup, #quiz4 .q4chip sup {
+    vertical-align: baseline; position: relative; top: -.52em; left: .04em;
+  }
   #quiz4 .q4slot {
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 2.5em; min-height: 1.15em; padding: 0 .12em; border-bottom: 4px solid #a6e534;
@@ -1194,7 +1208,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.19.0</div>
+<div id="versao">v1.20.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1239,13 +1253,14 @@
       <button class="q1opt" data-c="b"><span class="q1letra">B</span><span class="q1beaker"></span></button>
       <button class="q1opt" data-c="c"><span class="q1letra">C</span><span class="q1beaker"></span></button>
     </div>
-    <button class="dicaBtn" id="dica1Btn"><span class="dicaLuz">&#128161;</span>Dica</button>
+    <button class="dicaBtn" id="dica1Btn" aria-label="Dica"><span class="dicaLuz">&#128161;</span></button>
   </div>
 </div>
 
 <!-- Questão 2: descobrir o ácido com o papel de tornassol (cena 3D) -->
 <div id="quiz2">
-  <div class="q2tit"><span class="q2num">Questão 2</span><span class="q2q">Qual dessas substâncias é um ácido inorgânico?</span><button class="dicaBtn" id="dica2Btn"><span class="dicaLuz">&#128161;</span>Dica</button></div>
+  <div class="q2tit"><span class="q2num">Questão 2</span><span class="q2q">Qual dessas substâncias é um ácido inorgânico?</span></div>
+  <button class="dicaBtn" id="dica2Btn" aria-label="Dica"><span class="dicaLuz">&#128161;</span></button>
   <div class="q2opts">
     <button class="q2opt" data-c="a">A</button>
     <button class="q2opt" data-c="b">B</button>
@@ -1264,7 +1279,7 @@
       <button class="q3opt" data-c="b">H<sup>&#8722;</sup> e Br<sup>+</sup></button>
       <button class="q3opt" data-c="c">2H<sup>+</sup> e Br<sup>2&#8722;</sup></button>
     </div>
-    <button class="dicaBtn" id="dica3Btn"><span class="dicaLuz">&#128161;</span>Dica</button>
+    <button class="dicaBtn" id="dica3Btn" aria-label="Dica"><span class="dicaLuz">&#128161;</span></button>
   </div>
 </div>
 
@@ -1275,12 +1290,13 @@
     <div class="q4tit">Observe as reações a seguir e complete com a espécie química correta. Arraste sua resposta pro slot vazio pra completar a reação.</div>
     <div class="q4eq">
       <span class="q4esq" id="q4esq"></span>
-      <span class="q4arrow">&#8594;</span>
+      <span class="q4seta"><span class="q4agua">H<sub>2</sub>O</span><span class="q4arrow">&#8594;</span></span>
       <span class="q4slot" id="q4slot"></span>
       <span class="q4mais">+</span>
       <span class="q4prod" id="q4prod"></span>
     </div>
     <div class="q4opts" id="q4opts"></div>
+    <div class="q4instr">Arraste a resposta pro espaço vazio da equação</div>
   </div>
 </div>
 <div id="substDesc"></div>
@@ -4439,7 +4455,7 @@ function abrirQuiz3() {
   q.querySelectorAll('.q3opt').forEach(b => { b.disabled = false; b.classList.remove('certo', 'errado'); });
   $id('q3eq').classList.remove('show');   // a equação do HBr só aparece ao acionar a dica
   q.classList.add('show');
-  tocarAudioQuiz(quiz3Audio);
+  setTimeout(() => { if (q.classList.contains('show')) tocarAudioQuiz(quiz3Audio); }, 1000);   // 1s de delay
 }
 function fecharQuiz3() {
   limparTransicao();
@@ -4460,8 +4476,9 @@ function responderQuiz3(letra, btn) {
   agendarTransicao(proximaAudio, irParaQuiz4);   // toca "próxima" e vai pra questão 4
 }
 $id('quiz3').querySelectorAll('.q3opt').forEach(b => b.addEventListener('click', () => responderQuiz3(b.dataset.c, b)));
-// dica 3: toca o áudio (com brilho) E revela a equação de ionização do HBr
+// dica 3: toca o áudio (com brilho) E revela a equação; a equação some quando o áudio da dica acaba
 $id('dica3Btn').addEventListener('click', () => $id('q3eq').classList.add('show'));
+dica3Audio.addEventListener('ended', () => $id('q3eq').classList.remove('show'));
 
 // ---- Quiz 4: arrastar a espécie química correta pro slot vazio (sequência de reações) ----
 // Cada resposta (erro OU acerto) troca pra próxima reação da lista (cicla). Mais reações entram aqui depois.
