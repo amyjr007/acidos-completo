@@ -306,15 +306,23 @@
   #eqTitulo.show { opacity: 1; }
   #eqLinha, #eqLinha2 {
     position: fixed; left: 0; right: 0; z-index: 41;
-    text-align: center; white-space: nowrap; padding: 0 8px;
+    display: flex; justify-content: center; align-items: baseline; gap: .12em;
+    white-space: nowrap; padding: 0 8px;
     font-family: "Cambria Math", Georgia, system-ui, serif; font-weight: 800;
-    font-size: clamp(30px, 10vw, 60px); color: #f2fbe4;
+    font-size: clamp(29px, 9.6vw, 58px); color: #f2fbe4;
     text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
     opacity: 0; pointer-events: none; transition: opacity .4s ease;
   }
   #eqLinha  { top: 21%; }
   #eqLinha2 { top: 32%; }
   #eqLinha.show, #eqLinha2.show { opacity: 1; }
+  /* colunas de largura fixa (iguais nas duas linhas) -> fórmulas alinhadas verticalmente */
+  .eqlinha .col-ac   { width: 3.4em; text-align: center; }
+  .eqlinha .col-seta { width: 1.7em; text-align: center; }
+  .eqlinha .col-prod { display: flex; justify-content: center; align-items: baseline; gap: .12em; }
+  .eqlinha .col-cat  { width: 2.0em; text-align: center; }
+  .eqlinha .col-plus { width: 1.0em; text-align: center; }
+  .eqlinha .col-ani  { width: 2.8em; text-align: center; }
   .eqlinha sup { font-size: .58em; vertical-align: super; }
   .eqlinha sub { font-size: .58em; vertical-align: sub; }
   .eqlinha .eqi { display: inline-block; position: relative; opacity: 0; transform: scale(0); vertical-align: middle; }
@@ -330,7 +338,7 @@
     0%, 100% { transform: scale(1); color: #f2fbe4; }
     50%      { transform: scale(1.45); color: #ffd27a; }
   }
-  .eqlinha .seta { position: relative; margin: 0 .3em; }
+  .eqlinha .seta { position: relative; margin: 0; }
   .eqlinha .seta .arrow { display: inline-block; }
   .eqlinha .seta .agua {
     position: absolute; left: 50%; top: -.72em;
@@ -945,7 +953,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.11.0</div>
+<div id="versao">v1.12.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -971,9 +979,9 @@
 <div id="indicadorTxt"></div>
 <div id="eqTitulo"></div>
 <div id="eqEquilibrio">Equilíbrio de cargas</div>
-<div id="eqLinha" class="eqlinha"><span class="grp" data-g="hcl"><span class="eqi" data-k="h">H</span><span class="eqi" data-k="c">C</span><span class="eqi" data-k="l">l</span><span class="marca" data-k="molecula"><span class="colchete"></span><span class="rot">molécula</span></span></span><span class="eqi seta" data-k="seta"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="grp" data-g="prod"><span class="eqi" data-k="hmais">H<sup>+</sup><span class="anot acima" data-k="cation">cátion</span></span><span class="eqi" data-k="mais">&nbsp;+&nbsp;</span><span class="eqi" data-k="cl">Cl<sup>&#8722;</sup><span class="anot acima" data-k="anion">ânion</span></span><span class="marca" data-k="ions"><span class="colchete"></span><span class="rot">íons</span></span></span></div>
+<div id="eqLinha" class="eqlinha"><span class="col-ac grp" data-g="hcl"><span class="eqi" data-k="h">H</span><span class="eqi" data-k="c">C</span><span class="eqi" data-k="l">l</span><span class="marca" data-k="molecula"><span class="colchete"></span><span class="rot">molécula</span></span></span><span class="col-seta eqi seta" data-k="seta"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="col-prod grp" data-g="prod"><span class="col-cat eqi" data-k="hmais">H<sup>+</sup><span class="anot acima" data-k="cation">cátion</span></span><span class="col-plus eqi" data-k="mais">+</span><span class="col-ani eqi" data-k="cl">Cl<sup>&#8722;</sup><span class="anot acima" data-k="anion">ânion</span></span><span class="marca" data-k="ions"><span class="colchete"></span><span class="rot">íons</span></span></span></div>
 <div id="eqIonizacao">Ionização</div>
-<div id="eqLinha2" class="eqlinha"><span class="grp" data-g="h2co3"><span class="eqi" data-k="ac-h2">H<sub>2</sub></span><span class="eqi" data-k="ac-co3">CO<sub>3</sub></span></span><span class="eqi seta" data-k="seta2"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="grp" data-g="h2co3-prod"><span class="slotp"><span class="eqi" data-k="p-2h">2H<sup>+</sup></span><span class="errado-wrap" data-k="p-wrong"><span class="alerta">&#9888;&#65039;</span><span class="err">H<sub>2</sub><sup>+</sup></span></span></span><span class="eqi" data-k="p-co3">&nbsp;+&nbsp;CO<sub>3</sub><sup class="carga">2&#8722;</sup></span></span></div>
+<div id="eqLinha2" class="eqlinha"><span class="col-ac grp" data-g="h2co3"><span class="eqi" data-k="ac-h2">H<sub>2</sub></span><span class="eqi" data-k="ac-co3">CO<sub>3</sub></span></span><span class="col-seta eqi seta" data-k="seta2"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="col-prod grp" data-g="h2co3-prod"><span class="col-cat slotp"><span class="eqi" data-k="p-2h">2H<sup>+</sup></span><span class="errado-wrap" data-k="p-wrong"><span class="alerta">&#9888;&#65039;</span><span class="err">H<sub>2</sub><sup>+</sup></span></span></span><span class="col-plus eqi" data-k="p-plus">+</span><span class="col-ani eqi" data-k="p-co3">CO<sub>3</sub><sup class="carga">2&#8722;</sup></span></span></div>
 <div id="substDesc"></div>
 
 <!-- Cena do dialogo1.1A: "Ácidos", não-ácidos (H2O/H2O2) e frascos de ácidos -->
@@ -2551,6 +2559,7 @@ const EVENTOS = {
     { t: 20.0, fn: () => eqEnfase('hmais') },                                     // enfatiza o H⁺
     { t: 21.0, fn: () => eqShow('cl') },                                          // Cl⁻
     { t: 23.0, fn: () => eqEnfase('cl') },                                        // enfatiza o Cl⁻
+    { t: 25.0, fn: () => pausarAudio(1000) },                                     // pausa de 1s e continua
     { t: 30.7, fn: () => eqPulsoGrp('hcl', 1) },                                  // pulsa o HCl
     { t: 31.8, fn: () => anotShow('molecula') },                                  // "Molécula" abaixo do HCl (fade in)
     { t: 34.0, fn: () => eqPulso('seta', 2) },                                    // enfatiza a seta + a água (2 pulsadas)
@@ -2578,8 +2587,8 @@ const EVENTOS = {
     { t: 27.0, fn: () => erradoHide('p-wrong') },                                  // some o H₂⁺ errado + ⚠ (fade)
     { t: 32.4, fn: () => eqPulso('ac-h2', 2) },                                    // enfatiza o H₂ do ácido
     { t: 34.5, fn: () => eqShow('p-2h') },                                         // 2H⁺ de volta
-    { t: 39.0, fn: () => eqMaior('ac-co3') },                                      // aumenta o CO₃ do ácido
-    { t: 44.0, fn: () => { eqNormal('ac-co3'); eqShow('p-co3'); } },               // CO₃ normal + aparece "+ CO₃"
+    { t: 39.8, fn: () => eqMaior('ac-co3') },                                      // aumenta o CO₃ do ácido
+    { t: 42.0, fn: () => { eqNormal('ac-co3'); eqShow('p-plus'); eqShow('p-co3'); } },  // CO₃ normal + aparece "+ CO₃" no produto
     { t: 50.0, fn: () => eqMaior('p-2h') },                                        // aumenta o 2H⁺
     { t: 53.0, fn: () => { eqNormal('p-2h'); cargaShow(); } },                     // 2H⁺ normal + "2−" em cima do CO₃ -> CO₃²⁻
   ]),
@@ -2673,6 +2682,15 @@ $id('ajudaBtn').addEventListener('click', () => {
 
 player.addEventListener('play',  () => { setIconePlay(true);  animRetomar(); });
 player.addEventListener('pause', () => { setIconePlay(false); animPausar(); });
+
+// pausa curta e automática no meio da faixa (ex.: 1.5A t25) — congela áudio + animações e retoma sozinho
+let _pausaTimer = null;
+function pausarAudio(ms) {
+  if (player.paused) return;
+  player.pause();
+  clearTimeout(_pausaTimer);
+  _pausaTimer = setTimeout(() => { const p = player.play(); if (p && p.catch) p.catch(() => {}); }, ms);
+}
 
 // Anel de progresso do tempo ao redor do play
 const RING_C = 232.5;   // 2*pi*37
