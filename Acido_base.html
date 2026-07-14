@@ -1244,7 +1244,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.25.0</div>
+<div id="versao">v1.26.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1820,6 +1820,7 @@ pipBody.add(hitBulb);
 pipBody.scale.setScalar(1.15);           // pipeta 15% maior (líquido enchendo mais visível)
 pipette.position.set(AC_X[0], 3.3, PLANE_Z); // flutuando acima do HCl
 scene.add(pipette);
+pipette.visible = false;   // começa escondida — a pipeta só aparece durante o dialogo1.3
 
 // estado da pipeta
 let pipFill = 0, pipTargetFill = 0;
