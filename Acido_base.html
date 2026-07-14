@@ -304,7 +304,7 @@
     opacity: 0; pointer-events: none; transition: opacity .7s ease;
   }
   #eqTitulo.show { opacity: 1; }
-  #eqLinha, #eqLinha2 {
+  #eqLinha, #eqLinha2, #eqLinha3 {
     position: fixed; left: 0; right: 0; z-index: 41;
     display: flex; justify-content: center; align-items: baseline; gap: .12em;
     white-space: nowrap; padding: 0 8px;
@@ -315,7 +315,8 @@
   }
   #eqLinha  { top: 21%; }
   #eqLinha2 { top: 32%; }
-  #eqLinha.show, #eqLinha2.show { opacity: 1; }
+  #eqLinha3 { top: 43%; }
+  #eqLinha.show, #eqLinha2.show, #eqLinha3.show { opacity: 1; }
   /* colunas de largura fixa (iguais nas duas linhas) -> fórmulas alinhadas verticalmente */
   .eqlinha .col-ac   { width: 3.4em; text-align: center; }
   .eqlinha .col-seta { width: 1.7em; text-align: center; }
@@ -417,6 +418,28 @@
     60%  { opacity: 1; transform: scale(1.35); }
     100% { opacity: 1; transform: scale(1); }
   }
+  /* quiz da carga (fim do 1.5C) */
+  #quizCarga {
+    position: fixed; left: 0; right: 0; top: 58%; z-index: 45; text-align: center; padding: 0 12px;
+    opacity: 0; pointer-events: none; transition: opacity .45s ease;
+  }
+  #quizCarga.show { opacity: 1; pointer-events: auto; }
+  #quizCarga .quizTit {
+    font-family: system-ui, sans-serif; font-weight: 800; color: #f2fbe4;
+    font-size: clamp(16px, 4.6vw, 26px); margin-bottom: .7em; text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
+  }
+  #quizCarga .quizOpts { display: flex; justify-content: center; gap: 14px; }
+  #quizCarga .opt {
+    font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(22px, 6.4vw, 34px);
+    min-width: 2.3em; padding: .28em .1em; border-radius: 14px; cursor: pointer; color: #eaf7d9;
+    background: rgba(255, 255, 255, .08); border: 2px solid rgba(166, 229, 52, .5);
+    transition: transform .15s ease, background .2s ease, border-color .2s ease;
+  }
+  #quizCarga .opt:hover { transform: translateY(-3px); background: rgba(166, 229, 52, .18); }
+  #quizCarga .opt:disabled { cursor: default; }
+  #quizCarga .opt.certo  { background: rgba(120, 220, 60, .35); border-color: #a6e534; color: #fff; transform: translateY(-2px) scale(1.06); }
+  #quizCarga .opt.errado { background: rgba(230, 50, 50, .32); border-color: #ff5a5a; color: #fff; }
+  #quizCarga .opt sup { font-size: .62em; }
   /* "Ácido" verde escuro no topo (sobre o quadro branco, dialogo1.2) */
   .st-verdeescuro {
     color: #0f4d18;
@@ -953,7 +976,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.12.0</div>
+<div id="versao">v1.13.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -981,7 +1004,9 @@
 <div id="eqEquilibrio">Equilíbrio de cargas</div>
 <div id="eqLinha" class="eqlinha"><span class="col-ac grp" data-g="hcl"><span class="eqi" data-k="h">H</span><span class="eqi" data-k="c">C</span><span class="eqi" data-k="l">l</span><span class="marca" data-k="molecula"><span class="colchete"></span><span class="rot">molécula</span></span></span><span class="col-seta eqi seta" data-k="seta"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="col-prod grp" data-g="prod"><span class="col-cat eqi" data-k="hmais">H<sup>+</sup><span class="anot acima" data-k="cation">cátion</span></span><span class="col-plus eqi" data-k="mais">+</span><span class="col-ani eqi" data-k="cl">Cl<sup>&#8722;</sup><span class="anot acima" data-k="anion">ânion</span></span><span class="marca" data-k="ions"><span class="colchete"></span><span class="rot">íons</span></span></span></div>
 <div id="eqIonizacao">Ionização</div>
-<div id="eqLinha2" class="eqlinha"><span class="col-ac grp" data-g="h2co3"><span class="eqi" data-k="ac-h2">H<sub>2</sub></span><span class="eqi" data-k="ac-co3">CO<sub>3</sub></span></span><span class="col-seta eqi seta" data-k="seta2"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="col-prod grp" data-g="h2co3-prod"><span class="col-cat slotp"><span class="eqi" data-k="p-2h">2H<sup>+</sup></span><span class="errado-wrap" data-k="p-wrong"><span class="alerta">&#9888;&#65039;</span><span class="err">H<sub>2</sub><sup>+</sup></span></span></span><span class="col-plus eqi" data-k="p-plus">+</span><span class="col-ani eqi" data-k="p-co3">CO<sub>3</sub><sup class="carga">2&#8722;</sup></span></span></div>
+<div id="eqLinha2" class="eqlinha"><span class="col-ac grp" data-g="h2co3"><span class="eqi" data-k="ac-h2">H<sub>2</sub></span><span class="eqi" data-k="ac-co3">CO<sub>3</sub></span></span><span class="col-seta eqi seta" data-k="seta2"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="col-prod grp" data-g="h2co3-prod"><span class="col-cat slotp"><span class="eqi" data-k="p-2h">2H<sup>+</sup></span><span class="errado-wrap" data-k="p-wrong"><span class="alerta">&#9888;&#65039;</span><span class="err">H<sub>2</sub><sup>+</sup></span></span></span><span class="col-plus eqi" data-k="p-plus">+</span><span class="col-ani eqi" data-k="p-co3">CO<sub>3</sub><sup class="carga" data-k="carga-co3">2&#8722;</sup></span></span></div>
+<div id="eqLinha3" class="eqlinha"><span class="col-ac grp" data-g="h3po4"><span class="eqi" data-k="ac-h3">H<sub>3</sub></span><span class="eqi" data-k="ac-po">PO</span><span class="eqi" data-k="ac-4"><sub>4</sub></span></span><span class="col-seta eqi seta" data-k="seta3"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="col-prod grp" data-g="po4-prod"><span class="col-cat eqi" data-k="p3-3h">3H<sup>+</sup></span><span class="col-plus eqi" data-k="p3-plus">+</span><span class="col-ani" data-g="po4"><span class="eqi" data-k="p3-P">P</span><span class="eqi" data-k="p3-O">O</span><span class="eqi" data-k="p3-4"><sub>4</sub></span><sup class="carga" data-k="carga-po4">3&#8722;</sup></span></span></div>
+<div id="quizCarga"><div class="quizTit">Qual é a carga do ânion?</div><div class="quizOpts"><button class="opt" data-v="-1">1<sup>&#8722;</sup></button><button class="opt" data-v="-2">2<sup>&#8722;</sup></button><button class="opt" data-v="-3">3<sup>&#8722;</sup></button></div></div>
 <div id="substDesc"></div>
 
 <!-- Cena do dialogo1.1A: "Ácidos", não-ácidos (H2O/H2O2) e frascos de ácidos -->
@@ -2360,6 +2385,9 @@ const FAIXAS = [
   { id: 'dialogo1.5',   arquivo: 'audios/dialogo1.5.mp3',   titulo: 'Diálogo 1.5' },
   { id: 'dialogo1.5A',  arquivo: 'audios/dialogo1.5A.mp3',  titulo: 'Diálogo 1.5A' },
   { id: 'dialogo1.5B',  arquivo: 'audios/dialogo1.5B.mp3',  titulo: 'Diálogo 1.5B' },
+  { id: 'dialogo1.5C',  arquivo: 'audios/dialogo1.5C.mp3',  titulo: 'Diálogo 1.5C' },
+  { id: 'dialogo1.5Cy', arquivo: 'audios/dialogo1.5Cy.mp3', titulo: 'Diálogo 1.5C (acerto)' },
+  { id: 'dialogo1.5Cn', arquivo: 'audios/dialogo1.5Cn.mp3', titulo: 'Diálogo 1.5C (erro)' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -2590,8 +2618,25 @@ const EVENTOS = {
     { t: 39.8, fn: () => eqMaior('ac-co3') },                                      // aumenta o CO₃ do ácido
     { t: 42.0, fn: () => { eqNormal('ac-co3'); eqShow('p-plus'); eqShow('p-co3'); } },  // CO₃ normal + aparece "+ CO₃" no produto
     { t: 50.0, fn: () => eqMaior('p-2h') },                                        // aumenta o 2H⁺
-    { t: 53.0, fn: () => { eqNormal('p-2h'); cargaShow(); } },                     // 2H⁺ normal + "2−" em cima do CO₃ -> CO₃²⁻
+    { t: 53.0, fn: () => { eqNormal('p-2h'); cargaShow('carga-co3'); } },          // 2H⁺ normal + "2−" em cima do CO₃ -> CO₃²⁻
   ]),
+  'dialogo1.5C':  () => rodarStory([
+    { t: 0.0,  fn: abrirEquacao3 },                                                // prepara a 3ª linha (H₃PO₄)
+    { t: 1.2,  fn: () => pulsarEtiqueta(2) },                                      // ênfase na etiqueta do H₃PO₄
+    { t: 4.6,  fn: () => eqShow('ac-h3') },                                        // H₃
+    { t: 6.0,  fn: () => eqShow('ac-po') },                                        // PO
+    { t: 7.0,  fn: () => eqShow('ac-4') },                                         // ₄  -> H₃PO₄
+    { t: 9.0,  fn: () => eqShow('seta3') },                                        // seta + H₂O
+    { t: 12.0, fn: () => eqMaior('ac-h3') },                                       // aumenta o H₃ do ácido
+    { t: 15.4, fn: () => { eqNormal('ac-h3'); eqShow('p3-3h'); } },                // H₃ normal + aparece 3H⁺ do outro lado
+    { t: 16.6, fn: () => eqPulso('p3-3h', 1) },                                    // pulsa o 3H⁺
+    { t: 18.0, fn: () => { eqMaior('ac-po'); eqMaior('ac-4'); } },                 // aumenta o PO₄ do ácido
+    { t: 22.0, fn: () => { eqNormal('ac-po'); eqNormal('ac-4'); eqShow('p3-plus'); eqShow('p3-P'); } },  // normal + "+" e "P" no produto
+    { t: 23.5, fn: () => eqShow('p3-O') },                                         // O
+    { t: 24.7, fn: () => eqShow('p3-4') },                                         // ₄  -> PO₄ (a carga entra no fim, via quiz)
+  ]),
+  'dialogo1.5Cy': () => rodarStory([]),   // narração do acerto (charge/efeitos já entram no responderCarga)
+  'dialogo1.5Cn': () => rodarStory([]),   // narração do erro
 };
 
 const player = new Audio();
@@ -2630,6 +2675,7 @@ function tocarFaixa(i) {
   }
   if (f.id !== 'dialogo1.4' && f.id !== 'dialogo1.4A' && f.id !== 'dialogo1.4B') $id('indicadorTxt').classList.remove('show');   // texto dos indicadores só na família 1.4
   if (i < idxFaixa('dialogo1.5')) { $id('eqTitulo').classList.remove('show'); if (typeof esconderEquacao === 'function') esconderEquacao(); }   // equação persiste daqui pra frente; só some ao voltar pra antes do 1.5
+  if (f.id !== 'dialogo1.5Cy' && f.id !== 'dialogo1.5Cn') $id('quizCarga').classList.remove('show');   // quiz da carga só some ao sair (as respostas mantêm)
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
@@ -2709,6 +2755,8 @@ player.addEventListener('ended', () => {
   setIconePlay(false);
   marcarAnel(1);
   $id('playBtn').style.display = '';   // volta o botão (caso a faixa que acabou o tivesse escondido)
+  // fim do 1.5C: em vez do play, abre o quiz da carga do ânion
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5C') { $id('playBtn').style.display = 'none'; mostrarQuizCarga(); return; }
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.4A') esconderIndicador();   // fim do 1.4A: todo o texto some em fade
   // fim do tutorial 1.1E -> botão de play vira "JOGAR"
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.1E') {
@@ -3326,7 +3374,8 @@ const sfx = {
   error: new Audio('audios/error.mp3'),
   statistics: new Audio('audios/statistics.mp3'),
   funfare: new Audio('audios/funfare.mp3'),
-  // applause: new Audio('audios/applause.mp3'),   // (arquivo ainda não existe)
+  lowscore: new Audio('audios/lowscore.mp3'),
+  // applause: new Audio('audios/applause.mp3'),   // (arquivo ainda não existe -> uso funfare)
 };
 function playSfx(name) {
   const a = sfx[name]; if (!a) return;
@@ -3842,12 +3891,13 @@ function _limparLinha(el) {
   el.querySelectorAll('.grp').forEach(e => { e.style.animation = ''; });
 }
 function eqReset() {
-  _limparLinha($id('eqLinha')); _limparLinha($id('eqLinha2'));
+  ['eqLinha', 'eqLinha2', 'eqLinha3'].forEach(id => _limparLinha($id(id)));
   ['eqEquilibrio', 'eqIonizacao'].forEach(id => $id(id).classList.remove('show', 'fadeout'));
 }
-function abrirEquacao() { eqReset(); $id('eqLinha2').classList.remove('show'); $id('eqLinha').classList.add('show'); }   // linha 1 (HCl) visível, itens ainda ocultos
-function abrirEquacao2() { _limparLinha($id('eqLinha2')); $id('eqLinha2').classList.add('show'); }                        // linha 2 (H₂CO₃) — não mexe na linha 1
-function esconderEquacao() { $id('eqLinha').classList.remove('show'); $id('eqLinha2').classList.remove('show'); eqReset(); }
+function abrirEquacao() { eqReset(); $id('eqLinha2').classList.remove('show'); $id('eqLinha3').classList.remove('show'); $id('eqLinha').classList.add('show'); }   // linha 1 (HCl) visível, itens ainda ocultos
+function abrirEquacao2() { _limparLinha($id('eqLinha2')); $id('eqLinha2').classList.add('show'); }                        // linha 2 (H₂CO₃) — não mexe na 1
+function abrirEquacao3() { _limparLinha($id('eqLinha3')); $id('eqLinha3').classList.add('show'); }                        // linha 3 (H₃PO₄) — não mexe nas 1 e 2
+function esconderEquacao() { ['eqLinha', 'eqLinha2', 'eqLinha3'].forEach(id => $id(id).classList.remove('show')); eqReset(); }
 // mostra um item (re-dispara a entrada dramática, limpando qualquer estado anterior de hide/aumento)
 function eqShow(k) { const e = _eqEl(k); if (!e) return; e.style.cssText = ''; e.classList.remove('on'); void e.offsetWidth; e.classList.add('on'); }
 // esconde um item em fade (some sem colapsar o espaço — mantém a largura do slot)
@@ -3870,7 +3920,7 @@ function anotShow(k) { const e = document.querySelector('.eqlinha .anot[data-k="
 // forma ERRADA "H₂⁺" (vermelho + ⚠) e a carga "2−" do CO₃²⁻ (2ª equação)
 function erradoShow(k) { const e = document.querySelector('.errado-wrap[data-k="' + k + '"]'); if (e) { e.classList.remove('fadeout'); e.classList.add('on'); } }
 function erradoHide(k) { const e = document.querySelector('.errado-wrap[data-k="' + k + '"]'); if (e) e.classList.add('fadeout'); }
-function cargaShow() { const e = document.querySelector('.eqlinha .carga'); if (e) e.classList.add('on'); }
+function cargaShow(k) { const e = document.querySelector('.eqlinha .carga[data-k="' + k + '"]'); if (e) e.classList.add('on'); }
 function mostrarEquilibrio() { $id('eqEquilibrio').classList.add('show'); }
 function mostrarIonizacao() { $id('eqIonizacao').classList.add('show'); }
 // fade-out das anotações (ao ir pro 1.5B): some tudo menos o título e a equação do HCl
@@ -3879,6 +3929,39 @@ function fadeAnotacoesEquacao() {
   ['eqEquilibrio', 'eqIonizacao'].forEach(id => { const e = $id(id); if (e.classList.contains('show')) e.classList.add('fadeout'); });
   ['hmais', 'cl'].forEach(k => eqNormal(k));   // garante os íons do HCl no tamanho normal
 }
+
+// ---- Quiz da carga do ânion (fim do dialogo1.5C) ----
+function mostrarQuizCarga() {
+  const q = $id('quizCarga');
+  q.classList.remove('resp');
+  q.querySelectorAll('.opt').forEach(b => { b.disabled = false; b.classList.remove('certo', 'errado'); });
+  q.classList.add('show');
+}
+function esconderQuizCarga() { $id('quizCarga').classList.remove('show'); }
+function responderCarga(val, btn) {
+  const q = $id('quizCarga');
+  if (q.classList.contains('resp')) return;   // já respondeu
+  q.classList.add('resp');
+  const certo = (val === -3);                 // PO₄³⁻ -> carga -3
+  q.querySelectorAll('.opt').forEach(b => b.disabled = true);
+  btn.classList.add(certo ? 'certo' : 'errado');
+  q.querySelector('.opt[data-v="-3"]').classList.add('certo');   // sempre destaca a correta
+  cargaShow('carga-po4');                      // coloca a carga certa (3−) no ânion, acertando ou errando
+  if (certo) {
+    playSfx('right'); playSfx('funfare'); festaConfete();
+    const i = idxFaixa('dialogo1.5Cy'); if (i >= 0) setTimeout(() => tocarFaixa(i), 500);
+  } else {
+    playSfx('error'); playSfx('lowscore');
+    const i = idxFaixa('dialogo1.5Cn'); if (i >= 0) setTimeout(() => tocarFaixa(i), 500);
+  }
+  setTimeout(esconderQuizCarga, 1800);
+}
+// rajada de confete comemorativa (vários focos perto do topo)
+function festaConfete() {
+  const w = innerWidth, y = innerHeight * 0.28;
+  [0.2, 0.35, 0.5, 0.65, 0.8].forEach((fx, i) => setTimeout(() => soltarConfete(w * fx, y), i * 130));
+}
+$id('quizCarga').querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => responderCarga(parseInt(b.dataset.v, 10), b)));
 
 // os 3 ácidos voltam à bancada mostrando SÓ a etiqueta da fórmula (sem os nomes) — dialogo1.5A
 function mostrarAcidosSoEtiqueta() {
