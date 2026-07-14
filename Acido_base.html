@@ -513,6 +513,45 @@
     0%, 100% { transform: translate(-50%, calc(-50% - 3px)); }
     50%      { transform: translate(-50%, calc(-50% + 3px)); }
   }
+  /* ---- Questão 2 (papel de tornassol na cena 3D) ---- */
+  #quiz2 {
+    position: fixed; inset: 0; z-index: 47; pointer-events: none;
+    opacity: 0; transition: opacity .45s ease;
+  }
+  #quiz2.show { opacity: 1; }
+  #quiz2 .q2tit {
+    position: absolute; left: 50%; top: calc(14px + env(safe-area-inset-top)); transform: translateX(-50%);
+    width: min(92vw, 620px); pointer-events: auto; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 800; color: #f2fbe4; line-height: 1.3;
+    font-size: clamp(15px, 4.2vw, 22px); text-shadow: 0 2px 12px rgba(0, 0, 0, .7);
+    background: linear-gradient(180deg, rgba(6, 20, 4, .82), rgba(6, 20, 4, .5));
+    border: 1px solid rgba(166, 229, 52, .35); border-radius: 16px; padding: 12px 16px;
+    backdrop-filter: blur(3px);
+  }
+  #quiz2 .q2num {
+    display: block; font-weight: 800; color: #a6e534; letter-spacing: .06em;
+    font-size: clamp(11px, 3.2vw, 14px); text-transform: uppercase; margin-bottom: .3em;
+  }
+  #quiz2 .q2dica {
+    display: block; font-weight: 600; color: #cfe6a8; margin-top: .5em;
+    font-size: clamp(12px, 3.2vw, 15px);
+  }
+  #quiz2 .q2dica b { color: #ff8c6b; }
+  #quiz2 .q2opts {
+    position: absolute; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    pointer-events: auto; display: flex; gap: clamp(14px, 5vw, 30px);
+  }
+  #quiz2 .q2opt {
+    font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(22px, 6.6vw, 34px);
+    width: 2.1em; height: 2.1em; border-radius: 50%; cursor: pointer; color: #eaf7d9;
+    background: rgba(10, 26, 6, .72); border: 2.5px solid rgba(166, 229, 52, .55);
+    box-shadow: 0 5px 16px rgba(0, 0, 0, .45);
+    transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  #quiz2 .q2opt:hover { transform: translateY(-3px); background: rgba(166, 229, 52, .18); }
+  #quiz2 .q2opt:disabled { cursor: default; }
+  #quiz2 .q2opt.certo  { background: rgba(120, 220, 60, .4); border-color: #a6e534; color: #fff; box-shadow: 0 0 22px rgba(166, 229, 52, .7); transform: translateY(-2px) scale(1.08); }
+  #quiz2 .q2opt.errado { background: rgba(230, 50, 50, .38); border-color: #ff5a5a; color: #fff; }
   /* "Ácido" verde escuro no topo (sobre o quadro branco, dialogo1.2) */
   .st-verdeescuro {
     color: #0f4d18;
@@ -1049,7 +1088,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.15.0</div>
+<div id="versao">v1.16.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1094,6 +1133,16 @@
       <button class="q1opt" data-c="b"><span class="q1letra">B</span><span class="q1beaker"></span></button>
       <button class="q1opt" data-c="c"><span class="q1letra">C</span><span class="q1beaker"></span></button>
     </div>
+  </div>
+</div>
+
+<!-- Questão 2: descobrir o ácido com o papel de tornassol (cena 3D) -->
+<div id="quiz2">
+  <div class="q2tit"><span class="q2num">Questão 2</span>Qual dessas substâncias é um ácido inorgânico?<span class="q2dica">Mergulhe o papel de tornassol azul: o ácido deixa o papel <b>vermelho</b>.</span></div>
+  <div class="q2opts">
+    <button class="q2opt" data-c="a">A</button>
+    <button class="q2opt" data-c="b">B</button>
+    <button class="q2opt" data-c="c">C</button>
   </div>
 </div>
 <div id="substDesc"></div>
@@ -1836,10 +1885,16 @@ const LITMUS_FUNDO = 1.5;                // centro da tira quando descansa no fu
 const litmusBloco = new THREE.Group(); litmusBloco.visible = false; scene.add(litmusBloco);
 let litmusAtivo = false, litmusDrag = null, litmusVermelhoUsado = false;
 let papel = null;
+let litmusSpawnX = LITMUS_X, litmusSpawnY = LITMUS_Y;   // onde nasce o bloco/tira (padrão: 1.4A). Quiz 2 usa outro ponto
+let quiz2Litmus = false;                                // no quiz 2 só o béquer do meio (B) avermelha
 
 const quedaTiras = [];   // tiras caindo (gravidade)
 // a tira mergulhada na ÁGUA (que virou ácida com os H+) fica vermelha; os ácidos sumiram
 function coposMergulho(x, y) {
+  if (quiz2Litmus) {   // quiz 2: só o béquer do MEIO (B = AC_X[1]) avermelha; A e C ficam azuis
+    if (Math.abs(x - AC_X[1]) < 0.95 && (y - LITMUS_HH) < ACID_SURF - 0.15) return ACID_SURF;
+    return null;
+  }
   // dentro da coluna de água E com a PONTA abaixo da superfície (margem, pra não disparar na boca)
   if (Math.abs(x - WATER_X) < 1.2 && (y - LITMUS_HH) < WATER_SURF - 0.2) return WATER_SURF;
   return null;
@@ -1868,12 +1923,13 @@ function pintarContato(g, surfY) {
     }
   });
 }
-function novaTiraAtiva() { papel = criarTira(LITMUS_X, LITMUS_Y); }
-function mostrarBlocoTornassol() {
+function novaTiraAtiva() { papel = criarTira(litmusSpawnX, litmusSpawnY); }
+function mostrarBlocoTornassol(spawnX = LITMUS_X, spawnY = LITMUS_Y) {
+  litmusSpawnX = spawnX; litmusSpawnY = spawnY;
   while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]);
   for (let i = 0; i < 7; i++) {
     const m = new THREE.Mesh(new THREE.BoxGeometry(LITMUS_W, LITMUS_HH * 2, 0.072), toonMat(AZUL_TORNASSOL));
-    m.position.set(LITMUS_X + (i - 3) * 0.06, LITMUS_Y, PLANE_Z - 0.28 + i * 0.04); m.rotation.z = 0.1;
+    m.position.set(litmusSpawnX + (i - 3) * 0.06, litmusSpawnY, PLANE_Z - 0.28 + i * 0.04); m.rotation.z = 0.1;
     litmusBloco.add(m);
   }
   litmusBloco.visible = true; litmusVermelhoUsado = false;
@@ -1901,6 +1957,7 @@ function limparTornassol() {
   if (papel) { scene.remove(papel); papel = null; }
   litmusBloco.visible = false;
   while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]);
+  quiz2Litmus = false; litmusSpawnX = LITMUS_X; litmusSpawnY = LITMUS_Y;   // volta ao padrão do 1.4A
 }
 // remove o papel de tornassol com FADE (ao sair da cena dos indicadores pra equação)
 function dissolverTornassol() {
@@ -2770,6 +2827,7 @@ function tocarFaixa(i) {
   if (i < idxFaixa('dialogo1.5')) { $id('eqTitulo').classList.remove('show'); if (typeof esconderEquacao === 'function') esconderEquacao(); }   // equação persiste daqui pra frente; só some ao voltar pra antes do 1.5
   if (f.id !== 'dialogo1.5Cy' && f.id !== 'dialogo1.5Cn') $id('quizCarga').classList.remove('show');   // quiz da carga só some ao sair (as respostas mantêm)
   if (typeof fecharQuiz1 === 'function') fecharQuiz1();   // some o botão/questão do quiz 1 e para a narração do exercício
+  if (typeof fecharQuiz2 === 'function') fecharQuiz2();   // some a questão 2, limpa rótulos A/B/C, para os áudios e o tornassol
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
@@ -4062,7 +4120,12 @@ $id('quizCarga').querySelectorAll('.opt').forEach(b => b.addEventListener('click
 
 // ---- Quiz 1: "Qual frasco é um ácido de Arrhenius?" (fim do dialogo1.5D) ----
 const exLavaia1a = new Audio('audios/Ex. lávaia1a.mp3');   // narração do enunciado
-exLavaia1a.preload = 'auto';
+const quiz1Audio = new Audio('audios/quiz1.mp3');          // toca junto ao abrir a questão 1
+const exEssaMaisDificil = new Audio('audios/Ex. essaémaisdificil.mp3');   // narração do enunciado da questão 2
+const quiz2Audio = new Audio('audios/quiz2.mp3');          // toca junto ao abrir a questão 2
+[exLavaia1a, quiz1Audio, exEssaMaisDificil, quiz2Audio].forEach(a => a.preload = 'auto');
+const tocarAudioQuiz = a => { try { a.currentTime = 0; const p = a.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} };
+const pararAudioQuiz = a => { try { a.pause(); a.currentTime = 0; } catch (e) {} };
 // íons de cada frasco: A) Na⁺/OH⁻ 1:1 (base)  B) Ca²⁺/O²⁻ 1:1 (óxido)  C) H⁺/S²⁻ 2:1 (ácido H₂S — correto)
 const QUIZ1_IONS = {
   a: [{ t: 'Na', c: '+', n: 4 }, { t: 'OH', c: '&#8722;', n: 4 }],
@@ -4070,6 +4133,7 @@ const QUIZ1_IONS = {
   c: [{ t: 'H', c: '+', n: 6 }, { t: 'S', c: '2&#8722;', n: 3 }],
 };
 let quiz1Resp = false;
+let _irQuiz2Timer = null;   // transição Q1 -> Q2 (cancelável se o usuário navegar antes)
 // espalha os íons dentro do béquer (grade com leve jitter pra não empilhar) e sorteia o tempo do bob
 function montarBequer(el, defs) {
   const total = defs.reduce((s, d) => s + d.n, 0);
@@ -4098,13 +4162,13 @@ function abrirQuiz1() {
   $id('quizBtn').classList.remove('show');
   montarQuiz1();
   $id('quiz1').classList.add('show');
-  try { exLavaia1a.currentTime = 0; const p = exLavaia1a.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+  tocarAudioQuiz(exLavaia1a); tocarAudioQuiz(quiz1Audio);   // enunciado + áudio "quiz1" juntos
 }
 // some botão + questão e para a narração do enunciado (ao navegar pra outra faixa)
 function fecharQuiz1() {
   $id('quizBtn').classList.remove('show');
   $id('quiz1').classList.remove('show');
-  try { exLavaia1a.pause(); exLavaia1a.currentTime = 0; } catch (e) {}
+  pararAudioQuiz(exLavaia1a); pararAudioQuiz(quiz1Audio);
 }
 function responderQuiz1(letra, btn) {
   if (quiz1Resp) return;
@@ -4116,9 +4180,83 @@ function responderQuiz1(letra, btn) {
   q.querySelector('.q1opt[data-c="c"]').classList.add('certo');   // sempre destaca a correta
   if (certo) { playSfx('right'); playSfx('funfare'); festaConfete(); }
   else       { playSfx('error'); playSfx('lowscore'); }
+  clearTimeout(_irQuiz2Timer);
+  _irQuiz2Timer = setTimeout(irParaQuiz2, 2400); // ao escolher a resposta, vai direto pra questão 2
 }
 $id('quizBtn').addEventListener('click', abrirQuiz1);
 $id('quiz1').querySelectorAll('.q1opt').forEach(b => b.addEventListener('click', () => responderQuiz1(b.dataset.c, b)));
+
+// ---- Quiz 2: "Qual substância é um ácido inorgânico?" (papel de tornassol na cena 3D) ----
+// rótulos 3D A/B/C acima dos 3 béqueres (mesmo estilo verde dos nomes dos ácidos)
+const quiz2Labels = [];
+function limparLabelsABC() { quiz2Labels.forEach(s => scene.remove(s)); quiz2Labels.length = 0; }
+function mostrarLabelsABC() {
+  limparLabelsABC();
+  ['A', 'B', 'C'].forEach((L, i) => {
+    const cv = document.createElement('canvas'); cv.width = 128; cv.height = 128;
+    const c = cv.getContext('2d');
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.shadowColor = 'rgba(166,229,52,0.9)'; c.shadowBlur = 20; c.fillStyle = '#a6e534';
+    c.font = 'bold 92px system-ui, sans-serif'; c.fillText(L, 64, 72);
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, opacity: 0, depthTest: false, fog: false }));
+    s.scale.set(1.15, 1.15, 1);
+    s.position.set(AC_X[i], 3.75, 1.5);   // acima de cada béquer
+    scene.add(s); quiz2Labels.push(s);
+    const t0 = animNow();
+    (function step() { const k = Math.min(1, (animNow() - t0) / 500); s.material.opacity = 0.98 * k; if (k < 1) requestAnimationFrame(step); })();
+  });
+}
+// monta a cena da questão 2: 3 béqueres (sem fórmula), câmera afastada, papel de tornassol azul
+const CAM_Q2 = { theta: -0.012, phi: 1.534, dist: 30, target: [2.7, 4.98, 0.76] };   // enquadra os 3 béqueres + o bloco de tiras
+function montarCenaQuiz2() {
+  esconderEquacao(); esconderEqTitulo(); limparHmais();
+  if (typeof limparNomesAcido === 'function') limparNomesAcido();
+  if (typeof limparRotuloAcido === 'function') limparRotuloAcido();
+  reagents.forEach((r, i) => {
+    r.locked = false; escurecerCopo(i, false);
+    if (r.beaker) { restaurarOpacidade(r.beaker); fade3D(r.beaker, 1, 600); }
+    if (r.label) r.label.visible = false;   // sem rótulo de fórmula (frascos anônimos)
+  });
+  fade3D(waterBeaker, 0, 400);              // some a água: só os 3 béqueres, como na imagem
+  pipette.visible = false; pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
+  irParaCamera(CAM_Q2, true, 1200);
+  mostrarLabelsABC();
+  quiz2Litmus = true;
+  mostrarBlocoTornassol(-1.0, 1.3);         // bloco de tiras azuis à ESQUERDA de A (ponto neutro); reusa a interação do 1.4A
+}
+let quiz2Resp = false;
+function irParaQuiz2() {
+  fecharQuiz1();
+  abrirQuiz2();
+}
+function abrirQuiz2() {
+  quiz2Resp = false;
+  const q = $id('quiz2');
+  q.querySelectorAll('.q2opt').forEach(b => { b.disabled = false; b.classList.remove('certo', 'errado'); });
+  montarCenaQuiz2();
+  q.classList.add('show');
+  tocarAudioQuiz(exEssaMaisDificil); tocarAudioQuiz(quiz2Audio);   // enunciado + áudio "quiz2" juntos
+}
+function fecharQuiz2() {
+  clearTimeout(_irQuiz2Timer);   // cancela transição Q1->Q2 pendente (ex.: navegou antes)
+  $id('quiz2').classList.remove('show');
+  quiz2Litmus = false;
+  limparLabelsABC();
+  if (typeof limparTornassol === 'function') limparTornassol();
+  pararAudioQuiz(exEssaMaisDificil); pararAudioQuiz(quiz2Audio);
+}
+function responderQuiz2(letra, btn) {
+  if (quiz2Resp) return;
+  quiz2Resp = true;
+  const certo = (letra === 'b');            // B (béquer do meio) é o ácido
+  const q = $id('quiz2');
+  q.querySelectorAll('.q2opt').forEach(b => b.disabled = true);
+  btn.classList.add(certo ? 'certo' : 'errado');
+  q.querySelector('.q2opt[data-c="b"]').classList.add('certo');   // sempre destaca a correta
+  if (certo) { playSfx('right'); playSfx('funfare'); festaConfete(); }
+  else       { playSfx('error'); playSfx('lowscore'); }
+}
+$id('quiz2').querySelectorAll('.q2opt').forEach(b => b.addEventListener('click', () => responderQuiz2(b.dataset.c, b)));
 
 // os 3 ácidos voltam à bancada mostrando SÓ a etiqueta da fórmula (sem os nomes) — dialogo1.5A
 function mostrarAcidosSoEtiqueta() {
@@ -4151,7 +4289,10 @@ function iniciarCena14() {
   fade3D(pipette, 0, 600);         // pipeta some
 }
 // papel de tornassol ficou vermelho num béquer -> toca 1.4B (uma vez)
-function onPapelVermelho() { const i = idxFaixa('dialogo1.4B'); if (i >= 0) setTimeout(() => tocarFaixa(i), 1000); }   // 1s de respiro antes do áudio 1.4B
+function onPapelVermelho() {
+  if (quiz2Litmus) return;   // quiz 2: o vermelho no béquer B é a própria dica; não dispara o 1.4B
+  const i = idxFaixa('dialogo1.4B'); if (i >= 0) setTimeout(() => tocarFaixa(i), 1000);   // 1s de respiro antes do áudio 1.4B
+}
 
 // monta a bancada como no FIM do 1.3B2 (estado de entrada do 1.4): 3 ácidos com nome+etiqueta,
 // HCl/H2CO3 escuros, H+ na água, pipeta escondida, câmera na posição 8.
