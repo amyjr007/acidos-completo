@@ -671,7 +671,27 @@
   @keyframes q4Entra { from { opacity: 0; transform: translateX(46px); } to { opacity: 1; transform: none; } }
   /* efeito de transição ao ABRIR cada questão (entrada do card) */
   @keyframes quizPop { from { opacity: 0; transform: translateY(28px) scale(.95); } to { opacity: 1; transform: none; } }
-  #quiz1.show .q1card, #quiz3.show .q3card, #quiz4.show .q4card { animation: quizPop .5s cubic-bezier(.2, .8, .3, 1.2) both; }
+  #quiz1.show .q1card, #quiz3.show .q3card, #quiz4.show .q4card, #quizFim.show .qfCard { animation: quizPop .5s cubic-bezier(.2, .8, .3, 1.2) both; }
+  /* ---- Card de nota final ---- */
+  #quizFim {
+    position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+    padding: 20px; opacity: 0; pointer-events: none; transition: opacity .45s ease;
+    background: radial-gradient(circle at 50% 40%, rgba(6, 20, 4, .82), rgba(3, 10, 2, .95));
+  }
+  #quizFim.show { opacity: 1; pointer-events: auto; }
+  #quizFim .qfCard { text-align: center; width: 100%; max-width: 420px; }
+  #quizFim .qfTit { font-family: system-ui, sans-serif; font-weight: 900; color: #a6e534; font-size: clamp(20px, 5.6vw, 28px); margin-bottom: .15em; }
+  #quizFim .qfNota { font-family: system-ui, sans-serif; font-weight: 900; color: #f2fbe4; font-size: clamp(58px, 18vw, 88px); line-height: 1.05; text-shadow: 0 3px 16px rgba(0, 0, 0, .5); }
+  #quizFim .qfNota small { font-size: .36em; opacity: .55; font-weight: 800; }
+  #quizFim .qfSub { font-family: system-ui, sans-serif; font-weight: 600; color: #cfe8a8; font-size: clamp(14px, 4vw, 17px); margin-top: .1em; }
+  #quizFim .qfPlay {
+    margin-top: 26px; width: 62px; height: 62px; border-radius: 50%; border: none; cursor: pointer; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(145deg, #b4f04a, #7fc400); box-shadow: 0 6px 18px rgba(120, 200, 40, .5);
+    animation: quizBtnPulse 1.8s ease-in-out infinite;
+  }
+  #quizFim .qfPlay svg { width: 26px; height: 26px; fill: #0a1a06; margin-left: 3px; }
+  #quizFim .qfPlay:active { transform: scale(.93); }
   #quiz2 .q2opts {
     position: absolute; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%);
     pointer-events: auto; display: flex; gap: clamp(14px, 5vw, 30px);
@@ -1223,7 +1243,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.23.0</div>
+<div id="versao">v1.24.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1312,6 +1332,16 @@
       <div class="q4opts" id="q4opts"></div>
     </div>
     <div class="q4instr">Arraste a resposta pro espaço vazio da equação</div>
+  </div>
+</div>
+
+<!-- Card de nota final do quiz -->
+<div id="quizFim">
+  <div class="qfCard">
+    <div class="qfTit">Fim do quiz!</div>
+    <div class="qfNota" id="qfNota">0,0<small>/10</small></div>
+    <div class="qfSub" id="qfSub">0 de 0 acertos</div>
+    <button id="qfPlay" class="qfPlay" aria-label="Continuar"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
   </div>
 </div>
 <div id="substDesc"></div>
@@ -3000,6 +3030,7 @@ function tocarFaixa(i) {
   if (typeof fecharQuiz2 === 'function') fecharQuiz2();   // some a questão 2, limpa rótulos A/B/C, para os áudios e o tornassol
   if (typeof fecharQuiz3 === 'function') fecharQuiz3();   // some a questão 3 e para os áudios
   if (typeof fecharQuiz4 === 'function') fecharQuiz4();   // some a questão 4 (arrastar)
+  if (typeof fecharQuizFim === 'function') fecharQuizFim();   // some o card de nota final
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
@@ -4352,6 +4383,7 @@ const QUIZ1_IONS = {
   c: [{ t: 'H', c: '+', n: 6 }, { t: 'S', c: '2&#8722;', n: 3 }],
 };
 let quiz1Resp = false;
+let quizAcertos = 0, quizTotal = 0;   // pontuação do quiz inteiro (Q1..Q4)
 // espalha os íons dentro do béquer (grade com leve jitter pra não empilhar) e sorteia o tempo do bob
 function montarBequer(el, defs) {
   const total = defs.reduce((s, d) => s + d.n, 0);
@@ -4378,6 +4410,7 @@ function montarQuiz1() {
 function mostrarQuizBtn() { $id('quizBtn').classList.add('show'); }
 function abrirQuiz1() {
   $id('quizBtn').classList.remove('show');
+  quizAcertos = 0; quizTotal = 0;   // zera a pontuação no começo do quiz
   montarQuiz1();
   $id('dica1Btn').style.display = '';   // questão 1 tem dica
   $id('quiz1').classList.add('show');
@@ -4395,6 +4428,7 @@ function responderQuiz1(letra, btn) {
   quiz1Resp = true;
   pararAudiosDasQuestoes();   // corta o áudio que estiver tocando
   const certo = (letra === 'c');                 // C = H₂S, único ácido de Arrhenius
+  quizTotal++; if (certo) quizAcertos++;
   const q = $id('quiz1');
   q.querySelectorAll('.q1opt').forEach(b => b.disabled = true);
   btn.classList.add(certo ? 'certo' : 'errado');
@@ -4471,6 +4505,7 @@ function responderQuiz2(letra, btn) {
   quiz2Resp = true;
   pararAudiosDasQuestoes();   // corta o áudio que estiver tocando
   const certo = (letra === 'b');            // B (béquer do meio) é o ácido
+  quizTotal++; if (certo) quizAcertos++;
   const q = $id('quiz2');
   q.querySelectorAll('.q2opt').forEach(b => b.disabled = true);
   btn.classList.add(certo ? 'certo' : 'errado');
@@ -4516,6 +4551,7 @@ function responderQuiz3(letra, btn) {
   quiz3Resp = true;
   pararAudiosDasQuestoes();   // corta o áudio que estiver tocando
   const certo = (letra === 'a');            // H⁺ e Br⁻
+  quizTotal++; if (certo) quizAcertos++;
   const q = $id('quiz3');
   q.querySelectorAll('.q3opt').forEach(b => b.disabled = true);
   btn.classList.add(certo ? 'certo' : 'errado');
@@ -4595,6 +4631,7 @@ function q4PointerUp(e) {
 function q4Responder(ok, chip) {
   if (q4Resp) return;
   q4Resp = true;
+  quizTotal++; if (ok) quizAcertos++;
   const slot = $id('q4slot');
   slot.innerHTML = chip.innerHTML;
   slot.classList.add(ok ? 'certo' : 'errado');
@@ -4609,10 +4646,11 @@ function q4Responder(ok, chip) {
   _q4Timer = setTimeout(q4Proxima, 1900);   // a reação e as respostas mudam a cada erro ou acerto
 }
 function q4Proxima() {   // efeito de troca entre uma equação e a próxima (sai pra esquerda, entra pela direita)
+  if (q4Idx >= QUIZ4.length - 1) { mostrarQuizFim(); return; }   // acabou a última reação -> card de nota
   const stage = $id('q4stage');
   stage.classList.remove('entrando'); stage.classList.add('saindo');
   setTimeout(() => {
-    q4Idx = (q4Idx + 1) % QUIZ4.length;
+    q4Idx++;
     q4Montar();
     stage.classList.remove('saindo'); stage.classList.add('entrando');
   }, 320);
@@ -4624,6 +4662,20 @@ function abrirQuiz4() {
   $id('quiz4').classList.add('show');
 }
 function fecharQuiz4() { clearTimeout(_q4Timer); $id('quiz4').classList.remove('show'); }
+
+// ---- Card de nota final (fim do quiz) ----
+function mostrarQuizFim() {
+  fecharQuiz4();
+  const nota = quizTotal ? (quizAcertos / quizTotal) * 10 : 0;
+  $id('qfNota').innerHTML = nota.toFixed(1).replace('.', ',') + '<small>/10</small>';
+  $id('qfSub').textContent = quizAcertos + ' de ' + quizTotal + ' acertos';
+  $id('quizFim').classList.add('show');
+  playSfx('statistics');
+  if (nota >= 6) festaConfete();
+}
+function fecharQuizFim() { $id('quizFim').classList.remove('show'); }
+// botão de play do card: continua (some o card e o play volta pra seguir o audiobook)
+$id('qfPlay').addEventListener('click', () => { fecharQuizFim(); $id('playBtn').style.display = ''; });
 
 // os 3 ácidos voltam à bancada mostrando SÓ a etiqueta da fórmula (sem os nomes) — dialogo1.5A
 function mostrarAcidosSoEtiqueta() {
