@@ -440,6 +440,79 @@
   #quizCarga .opt.certo  { background: rgba(120, 220, 60, .35); border-color: #a6e534; color: #fff; transform: translateY(-2px) scale(1.06); }
   #quizCarga .opt.errado { background: rgba(230, 50, 50, .32); border-color: #ff5a5a; color: #fff; }
   #quizCarga .opt sup { font-size: .62em; }
+  /* ---- Botão "Quiz" (fim do dialogo1.5D) ---- */
+  #quizBtn {
+    position: fixed; right: 16px; bottom: calc(12px + env(safe-area-inset-bottom)); transform: scale(.9);
+    z-index: 60; display: none; opacity: 0; pointer-events: none;
+    font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: .04em;
+    font-size: clamp(16px, 4.6vw, 21px); color: #0a1a06; padding: .6em 1.7em;
+    border: none; border-radius: 999px; cursor: pointer;
+    background: linear-gradient(145deg, #c6ff5a, #8fd41f);
+    box-shadow: 0 6px 22px rgba(120, 200, 40, .45), inset 0 2px 4px rgba(255, 255, 255, .5);
+    transition: opacity .4s ease, transform .25s ease;
+  }
+  #quizBtn.show { display: inline-block; opacity: 1; pointer-events: auto; transform: scale(1); animation: quizBtnPulse 1.8s ease-in-out infinite; }
+  #quizBtn:active { transform: scale(.94); }
+  @keyframes quizBtnPulse {
+    0%, 100% { box-shadow: 0 6px 22px rgba(120, 200, 40, .45), inset 0 2px 4px rgba(255, 255, 255, .5); }
+    50%      { box-shadow: 0 6px 30px rgba(166, 229, 52, .8),  inset 0 2px 4px rgba(255, 255, 255, .5); }
+  }
+  /* ---- Questão 1 (frascos com íons) ---- */
+  #quiz1 {
+    position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+    padding: 16px; opacity: 0; pointer-events: none; transition: opacity .45s ease;
+    background: radial-gradient(circle at 50% 40%, rgba(6, 20, 4, .72), rgba(3, 10, 2, .9));
+  }
+  #quiz1.show { opacity: 1; pointer-events: auto; }
+  #quiz1 .q1card { width: 100%; max-width: 720px; text-align: center; }
+  #quiz1 .q1num {
+    font-family: system-ui, sans-serif; font-weight: 800; color: #a6e534; letter-spacing: .06em;
+    font-size: clamp(12px, 3.4vw, 15px); text-transform: uppercase; margin-bottom: .35em;
+  }
+  #quiz1 .q1tit {
+    font-family: system-ui, sans-serif; font-weight: 800; color: #f2fbe4; line-height: 1.25;
+    font-size: clamp(17px, 4.8vw, 26px); margin-bottom: 1.1em; text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
+  }
+  #quiz1 .q1opts { display: flex; justify-content: center; gap: clamp(10px, 3vw, 22px); flex-wrap: wrap; }
+  #quiz1 .q1opt {
+    position: relative; flex: 0 0 auto; padding: 10px 10px 14px; border-radius: 18px; cursor: pointer;
+    background: rgba(255, 255, 255, .05); border: 2px solid rgba(166, 229, 52, .35);
+    transition: transform .16s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  #quiz1 .q1opt:hover { transform: translateY(-4px); background: rgba(166, 229, 52, .12); border-color: rgba(166, 229, 52, .6); }
+  #quiz1 .q1opt:disabled { cursor: default; }
+  #quiz1 .q1opt.certo  { background: rgba(120, 220, 60, .22); border-color: #a6e534; box-shadow: 0 0 26px rgba(166, 229, 52, .6); transform: translateY(-2px) scale(1.03); }
+  #quiz1 .q1opt.errado { background: rgba(230, 50, 50, .2);  border-color: #ff5a5a; box-shadow: 0 0 22px rgba(255, 90, 90, .5); }
+  #quiz1 .q1letra {
+    display: block; font-family: system-ui, sans-serif; font-weight: 900; color: #eaf7d9;
+    font-size: clamp(18px, 4.4vw, 24px); margin-bottom: 8px;
+  }
+  #quiz1 .q1opt.certo .q1letra  { color: #bfff6a; }
+  #quiz1 .q1opt.errado .q1letra { color: #ff8f8f; }
+  /* béquer com solução e íons flutuando */
+  #quiz1 .q1beaker {
+    position: relative; display: block; overflow: hidden;
+    width: clamp(96px, 26vw, 150px); height: clamp(120px, 32vw, 186px);
+    border: 3px solid rgba(210, 240, 255, .55); border-top: none;
+    border-radius: 6px 6px 18px 18px / 6px 6px 26px 26px;
+    background: linear-gradient(180deg, rgba(150, 220, 255, .05) 0%, rgba(120, 200, 255, .1) 22%, rgba(90, 180, 240, .18) 100%);
+    box-shadow: inset 0 -14px 26px rgba(80, 170, 230, .25), inset 0 0 12px rgba(200, 240, 255, .15);
+  }
+  #quiz1 .q1beaker::before {   /* lábio/boca do béquer */
+    content: ''; position: absolute; top: -3px; left: -6px; right: -6px; height: 6px;
+    border: 3px solid rgba(210, 240, 255, .55); border-bottom: none; border-radius: 4px 4px 0 0;
+  }
+  #quiz1 .ion {
+    position: absolute; font-family: system-ui, sans-serif; font-weight: 800; white-space: nowrap;
+    font-size: clamp(11px, 3vw, 17px); color: #c6ff5a; transform: translate(-50%, -50%);
+    text-shadow: 0 0 8px rgba(166, 229, 52, .95), 0 0 3px rgba(198, 255, 90, .9);
+    animation: ionBob 3.2s ease-in-out infinite;
+  }
+  #quiz1 .ion sup { font-size: .66em; }
+  @keyframes ionBob {
+    0%, 100% { transform: translate(-50%, calc(-50% - 3px)); }
+    50%      { transform: translate(-50%, calc(-50% + 3px)); }
+  }
   /* "Ácido" verde escuro no topo (sobre o quadro branco, dialogo1.2) */
   .st-verdeescuro {
     color: #0f4d18;
@@ -976,7 +1049,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.14.0</div>
+<div id="versao">v1.15.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1007,6 +1080,22 @@
 <div id="eqLinha2" class="eqlinha"><span class="col-ac grp" data-g="h2co3"><span class="eqi" data-k="ac-h2">H<sub>2</sub></span><span class="eqi" data-k="ac-co3">CO<sub>3</sub></span></span><span class="col-seta eqi seta" data-k="seta2"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="col-prod grp" data-g="h2co3-prod"><span class="col-cat slotp"><span class="eqi" data-k="p-2h">2H<sup>+</sup></span><span class="errado-wrap" data-k="p-wrong"><span class="alerta">&#9888;&#65039;</span><span class="err">H<sub>2</sub><sup>+</sup></span></span></span><span class="col-plus eqi" data-k="p-plus">+</span><span class="col-ani eqi" data-k="p-co3">CO<sub>3</sub><sup class="carga" data-k="carga-co3">2&#8722;</sup></span></span></div>
 <div id="eqLinha3" class="eqlinha"><span class="col-ac grp" data-g="h3po4"><span class="eqi" data-k="ac-h3">H<sub>3</sub></span><span class="eqi" data-k="ac-po">PO</span><span class="eqi" data-k="ac-4"><sub>4</sub></span></span><span class="col-seta eqi seta" data-k="seta3"><span class="agua">H<sub>2</sub>O</span><span class="arrow">&#8594;</span></span><span class="col-prod grp" data-g="po4-prod"><span class="col-cat eqi" data-k="p3-3h">3H<sup>+</sup></span><span class="col-plus eqi" data-k="p3-plus">+</span><span class="col-ani" data-g="po4"><span class="eqi" data-k="p3-P">P</span><span class="eqi" data-k="p3-O">O</span><span class="eqi" data-k="p3-4"><sub>4</sub></span><sup class="carga" data-k="carga-po4">3&#8722;</sup></span></span></div>
 <div id="quizCarga"><div class="quizTit">Qual é a carga do ânion?</div><div class="quizOpts"><button class="opt" data-v="-1">1<sup>&#8722;</sup></button><button class="opt" data-v="-2">2<sup>&#8722;</sup></button><button class="opt" data-v="-3">3<sup>&#8722;</sup></button></div></div>
+
+<!-- Botão "Quiz" (aparece no fim do dialogo1.5D) -->
+<button id="quizBtn">Quiz</button>
+
+<!-- Questão 1 do quiz: qual frasco é um ácido de Arrhenius -->
+<div id="quiz1">
+  <div class="q1card">
+    <div class="q1num">Questão 1</div>
+    <div class="q1tit">Qual desses frascos contém um ácido de Arrhenius?</div>
+    <div class="q1opts">
+      <button class="q1opt" data-c="a"><span class="q1letra">A</span><span class="q1beaker"></span></button>
+      <button class="q1opt" data-c="b"><span class="q1letra">B</span><span class="q1beaker"></span></button>
+      <button class="q1opt" data-c="c"><span class="q1letra">C</span><span class="q1beaker"></span></button>
+    </div>
+  </div>
+</div>
 <div id="substDesc"></div>
 
 <!-- Cena do dialogo1.1A: "Ácidos", não-ácidos (H2O/H2O2) e frascos de ácidos -->
@@ -2388,6 +2477,7 @@ const FAIXAS = [
   { id: 'dialogo1.5C',  arquivo: 'audios/dialogo1.5C.mp3',  titulo: 'Diálogo 1.5C' },
   { id: 'dialogo1.5Cy', arquivo: 'audios/dialogo1.5Cy.mp3', titulo: 'Diálogo 1.5C (acerto)' },
   { id: 'dialogo1.5Cn', arquivo: 'audios/dialogo1.5Cn.mp3', titulo: 'Diálogo 1.5C (erro)' },
+  { id: 'dialogo1.5D',  arquivo: 'audios/dialogo1.5D.mp3',  titulo: 'Diálogo 1.5D' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -2637,6 +2727,9 @@ const EVENTOS = {
   ]),
   'dialogo1.5Cy': () => rodarStory([]),   // narração do acerto (charge/efeitos já entram no responderCarga)
   'dialogo1.5Cn': () => rodarStory([]),   // narração do erro
+  'dialogo1.5D':  () => rodarStory([
+    { t: 0.0, fn: () => { esconderEquacao(); esconderEqTitulo(); irParaCamera(CAM_2, true, 1500); } },   // limpa a equação e vira pro quadro (posição 2)
+  ]),
 };
 
 const player = new Audio();
@@ -2676,6 +2769,7 @@ function tocarFaixa(i) {
   if (f.id !== 'dialogo1.4' && f.id !== 'dialogo1.4A' && f.id !== 'dialogo1.4B') $id('indicadorTxt').classList.remove('show');   // texto dos indicadores só na família 1.4
   if (i < idxFaixa('dialogo1.5')) { $id('eqTitulo').classList.remove('show'); if (typeof esconderEquacao === 'function') esconderEquacao(); }   // equação persiste daqui pra frente; só some ao voltar pra antes do 1.5
   if (f.id !== 'dialogo1.5Cy' && f.id !== 'dialogo1.5Cn') $id('quizCarga').classList.remove('show');   // quiz da carga só some ao sair (as respostas mantêm)
+  if (typeof fecharQuiz1 === 'function') fecharQuiz1();   // some o botão/questão do quiz 1 e para a narração do exercício
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
@@ -2757,6 +2851,8 @@ player.addEventListener('ended', () => {
   $id('playBtn').style.display = '';   // volta o botão (caso a faixa que acabou o tivesse escondido)
   // fim do 1.5C: em vez do play, abre o quiz da carga do ânion
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5C') { $id('playBtn').style.display = 'none'; mostrarQuizCarga(); return; }
+  // fim do 1.5D: em vez do play, aparece o botão "Quiz" (abre a questão 1)
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5D') { $id('playBtn').style.display = 'none'; mostrarQuizBtn(); return; }
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.4A') esconderIndicador();   // fim do 1.4A: todo o texto some em fade
   // fim do tutorial 1.1E -> botão de play vira "JOGAR"
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.1E') {
@@ -2803,6 +2899,7 @@ const SUMARIO = [
   { titulo: 'Exemplo prático de ionização', faixa: idxFaixa('dialogo1.3B') },
   { titulo: 'Os indicadores ácido-base',    faixa: idxFaixa('dialogo1.4'), acao: irParaIndicadores },
   { titulo: 'A equação de ionização',       faixa: idxFaixa('dialogo1.5'), acao: irParaEquacao },
+  { titulo: 'Quiz',                         faixa: idxFaixa('dialogo1.5D') },
 ];
 
 SUMARIO.forEach(item => {
@@ -3962,6 +4059,66 @@ function festaConfete() {
   [0.2, 0.35, 0.5, 0.65, 0.8].forEach((fx, i) => setTimeout(() => soltarConfete(w * fx, y), i * 130));
 }
 $id('quizCarga').querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => responderCarga(parseInt(b.dataset.v, 10), b)));
+
+// ---- Quiz 1: "Qual frasco é um ácido de Arrhenius?" (fim do dialogo1.5D) ----
+const exLavaia1a = new Audio('audios/Ex. lávaia1a.mp3');   // narração do enunciado
+exLavaia1a.preload = 'auto';
+// íons de cada frasco: A) Na⁺/OH⁻ 1:1 (base)  B) Ca²⁺/O²⁻ 1:1 (óxido)  C) H⁺/S²⁻ 2:1 (ácido H₂S — correto)
+const QUIZ1_IONS = {
+  a: [{ t: 'Na', c: '+', n: 4 }, { t: 'OH', c: '&#8722;', n: 4 }],
+  b: [{ t: 'Ca', c: '2+', n: 4 }, { t: 'O', c: '2&#8722;', n: 4 }],
+  c: [{ t: 'H', c: '+', n: 6 }, { t: 'S', c: '2&#8722;', n: 3 }],
+};
+let quiz1Resp = false;
+// espalha os íons dentro do béquer (grade com leve jitter pra não empilhar) e sorteia o tempo do bob
+function montarBequer(el, defs) {
+  const total = defs.reduce((s, d) => s + d.n, 0);
+  const cols = Math.ceil(Math.sqrt(total)), linhas = Math.ceil(total / cols);
+  const itens = [];
+  defs.forEach(d => { for (let i = 0; i < d.n; i++) itens.push(d); });
+  for (let i = itens.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [itens[i], itens[j]] = [itens[j], itens[i]]; }
+  el.innerHTML = itens.map((d, i) => {
+    const col = i % cols, lin = Math.floor(i / cols);
+    const x = ((col + 0.5) / cols) * 100 + (Math.random() - 0.5) * 14;
+    const y = 20 + ((lin + 0.5) / linhas) * 74 + (Math.random() - 0.5) * 10;   // deixa a boca do béquer livre no topo
+    const cx = Math.max(11, Math.min(89, x)), cy = Math.max(20, Math.min(94, y));
+    return `<span class="ion" style="left:${cx.toFixed(1)}%;top:${cy.toFixed(1)}%;animation-delay:${(-Math.random() * 3.2).toFixed(2)}s">${d.t}<sup>${d.c}</sup></span>`;
+  }).join('');
+}
+function montarQuiz1() {
+  quiz1Resp = false;
+  const q = $id('quiz1');
+  q.querySelectorAll('.q1opt').forEach(b => {
+    b.disabled = false; b.classList.remove('certo', 'errado');
+    montarBequer(b.querySelector('.q1beaker'), QUIZ1_IONS[b.dataset.c]);
+  });
+}
+function mostrarQuizBtn() { $id('quizBtn').classList.add('show'); }
+function abrirQuiz1() {
+  $id('quizBtn').classList.remove('show');
+  montarQuiz1();
+  $id('quiz1').classList.add('show');
+  try { exLavaia1a.currentTime = 0; const p = exLavaia1a.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+}
+// some botão + questão e para a narração do enunciado (ao navegar pra outra faixa)
+function fecharQuiz1() {
+  $id('quizBtn').classList.remove('show');
+  $id('quiz1').classList.remove('show');
+  try { exLavaia1a.pause(); exLavaia1a.currentTime = 0; } catch (e) {}
+}
+function responderQuiz1(letra, btn) {
+  if (quiz1Resp) return;
+  quiz1Resp = true;
+  const certo = (letra === 'c');                 // C = H₂S, único ácido de Arrhenius
+  const q = $id('quiz1');
+  q.querySelectorAll('.q1opt').forEach(b => b.disabled = true);
+  btn.classList.add(certo ? 'certo' : 'errado');
+  q.querySelector('.q1opt[data-c="c"]').classList.add('certo');   // sempre destaca a correta
+  if (certo) { playSfx('right'); playSfx('funfare'); festaConfete(); }
+  else       { playSfx('error'); playSfx('lowscore'); }
+}
+$id('quizBtn').addEventListener('click', abrirQuiz1);
+$id('quiz1').querySelectorAll('.q1opt').forEach(b => b.addEventListener('click', () => responderQuiz1(b.dataset.c, b)));
 
 // os 3 ácidos voltam à bancada mostrando SÓ a etiqueta da fórmula (sem os nomes) — dialogo1.5A
 function mostrarAcidosSoEtiqueta() {
