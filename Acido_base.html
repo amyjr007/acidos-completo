@@ -317,13 +317,13 @@
   #eqLinha2 { top: 32%; }
   #eqLinha3 { top: 43%; }
   #eqLinha.show, #eqLinha2.show, #eqLinha3.show { opacity: 1; }
-  /* colunas de largura fixa (iguais nas duas linhas) -> fórmulas alinhadas verticalmente */
-  .eqlinha .col-ac   { width: 3.4em; text-align: center; }
-  .eqlinha .col-seta { width: 1.7em; text-align: center; }
-  .eqlinha .col-prod { display: flex; justify-content: center; align-items: baseline; gap: .12em; }
-  .eqlinha .col-cat  { width: 2.0em; text-align: center; }
-  .eqlinha .col-plus { width: 1.0em; text-align: center; }
-  .eqlinha .col-ani  { width: 2.8em; text-align: center; }
+  /* colunas de largura FIXA e travada (flex:none + min-width:0) -> iguais nas 3 linhas -> fórmulas alinhadas */
+  .eqlinha .col-ac   { width: 3.4em; text-align: center; flex: none; min-width: 0; }
+  .eqlinha .col-seta { width: 1.7em; text-align: center; flex: none; min-width: 0; }
+  .eqlinha .col-prod { display: flex; justify-content: center; align-items: baseline; gap: .12em; flex: none; }
+  .eqlinha .col-cat  { width: 2.0em; text-align: center; flex: none; min-width: 0; }
+  .eqlinha .col-plus { width: 1.0em; text-align: center; flex: none; min-width: 0; }
+  .eqlinha .col-ani  { width: 2.9em; text-align: center; flex: none; min-width: 0; }
   .eqlinha sup { font-size: .58em; vertical-align: super; }
   .eqlinha sub { font-size: .58em; vertical-align: sub; }
   .eqlinha .eqi { display: inline-block; position: relative; opacity: 0; transform: scale(0); vertical-align: middle; }
@@ -976,7 +976,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.13.0</div>
+<div id="versao">v1.14.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
