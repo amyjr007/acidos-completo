@@ -533,15 +533,20 @@
     font-size: clamp(11px, 3.2vw, 14px); text-transform: uppercase; margin-bottom: .3em;
   }
   #quiz2 .q2q { display: block; }
-  /* botão de dica (todas as questões) — circular, posição padrão fixa; brilha enquanto o áudio toca */
+  /* botão de dica (todas as questões) — circular, mesma posição do play (canto inferior direito) */
   .dicaBtn {
-    position: fixed; left: 16px; bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 62;
+    position: fixed; right: 18px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 62;
     display: inline-flex; align-items: center; justify-content: center; padding: 0;
-    width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer;
-    font-size: clamp(23px, 6.4vw, 27px); line-height: 1;
+    width: 53px; height: 53px; border-radius: 50%; border: none; cursor: pointer;
+    font-size: clamp(22px, 6.2vw, 26px); line-height: 1;
     background: linear-gradient(145deg, #ffe08a, #f5b301);
     box-shadow: 0 4px 14px rgba(240, 180, 10, .45);
     transition: box-shadow .2s ease, transform .15s ease;
+  }
+  .dicaBtn::after {   /* rótulo discreto "Dicas" em cima do botão */
+    content: "Dicas"; position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%);
+    font-family: system-ui, sans-serif; font-weight: 700; font-size: 10px; letter-spacing: .03em;
+    color: rgba(255, 235, 170, .8); text-shadow: 0 1px 3px rgba(0, 0, 0, .6); white-space: nowrap; pointer-events: none;
   }
   .dicaBtn .dicaLuz { line-height: 1; }
   .dicaBtn:active { transform: scale(.92); }
@@ -574,7 +579,7 @@
   /* equação de ionização do HBr (aparece só quando a dica é acionada) */
   #quiz3 .q3eq {
     opacity: 0; pointer-events: none; transition: opacity .5s ease;
-    font-family: "Cambria Math", Georgia, system-ui, serif; font-weight: 800; color: #f2fbe4;
+    font-family: "Cambria Math", Georgia, system-ui, serif; font-weight: 800; color: #f5b301;
     font-size: clamp(22px, 6.4vw, 38px); white-space: nowrap;
     display: flex; justify-content: center; align-items: baseline; gap: .3em;
     margin: 2px 0 14px; text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
@@ -585,7 +590,7 @@
   #quiz3 .q3seta { position: relative; display: inline-block; padding: 0 .1em; }
   #quiz3 .q3agua {
     position: absolute; left: 50%; top: -.72em; transform: translateX(-50%);
-    font-size: .4em; font-weight: 700; color: #cdeaff; white-space: nowrap;
+    font-size: .4em; font-weight: 700; color: #ffdf8a; white-space: nowrap;
   }
   #quiz3 .q3opts { display: flex; flex-direction: column; align-items: center; gap: 12px; }
   #quiz3 .q3opt {
@@ -657,6 +662,15 @@
   #quiz4 .q4chip.arrastando { cursor: grabbing; box-shadow: 0 10px 26px rgba(0, 0, 0, .55); border-color: #a6e534; background: rgba(166, 229, 52, .2); }
   #quiz4 .q4chip.certo  { background: rgba(120, 220, 60, .32); border-color: #a6e534; color: #fff; }
   #quiz4 .q4chip.errado { background: rgba(230, 50, 50, .32); border-color: #ff5a5a; color: #fff; }
+  #quiz4 .q4prods { display: inline-flex; align-items: baseline; gap: .28em; }
+  /* efeito de troca entre uma equação e a próxima (sai pra esquerda, entra pela direita) */
+  #quiz4 .q4stage.saindo   { animation: q4Sai .3s ease forwards; }
+  #quiz4 .q4stage.entrando { animation: q4Entra .42s cubic-bezier(.2, .8, .3, 1.2) both; }
+  @keyframes q4Sai   { to   { opacity: 0; transform: translateX(-46px); } }
+  @keyframes q4Entra { from { opacity: 0; transform: translateX(46px); } to { opacity: 1; transform: none; } }
+  /* efeito de transição ao ABRIR cada questão (entrada do card) */
+  @keyframes quizPop { from { opacity: 0; transform: translateY(28px) scale(.95); } to { opacity: 1; transform: none; } }
+  #quiz1.show .q1card, #quiz3.show .q3card, #quiz4.show .q4card { animation: quizPop .5s cubic-bezier(.2, .8, .3, 1.2) both; }
   #quiz2 .q2opts {
     position: absolute; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%);
     pointer-events: auto; display: flex; gap: clamp(14px, 5vw, 30px);
@@ -1208,7 +1222,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.20.0</div>
+<div id="versao">v1.21.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1288,14 +1302,14 @@
   <div class="q4card">
     <div class="q4num">Questão 4</div>
     <div class="q4tit">Observe as reações a seguir e complete com a espécie química correta. Arraste sua resposta pro slot vazio pra completar a reação.</div>
-    <div class="q4eq">
-      <span class="q4esq" id="q4esq"></span>
-      <span class="q4seta"><span class="q4agua">H<sub>2</sub>O</span><span class="q4arrow">&#8594;</span></span>
-      <span class="q4slot" id="q4slot"></span>
-      <span class="q4mais">+</span>
-      <span class="q4prod" id="q4prod"></span>
+    <div class="q4stage" id="q4stage">
+      <div class="q4eq">
+        <span class="q4esq" id="q4esq"></span>
+        <span class="q4seta"><span class="q4agua">H<sub>2</sub>O</span><span class="q4arrow">&#8594;</span></span>
+        <span class="q4prods" id="q4prods"></span>
+      </div>
+      <div class="q4opts" id="q4opts"></div>
     </div>
-    <div class="q4opts" id="q4opts"></div>
     <div class="q4instr">Arraste a resposta pro espaço vazio da equação</div>
   </div>
 </div>
@@ -4291,16 +4305,30 @@ const pararAudioQuiz = a => { try { a.pause(); a.currentTime = 0; } catch (e) {}
 exLavaia1a.addEventListener('ended', () => {
   setTimeout(() => { if ($id('quiz1').classList.contains('show')) tocarAudioQuiz(quiz1Audio); }, 1000);
 });
-// transição entre questões: toca o áudio ("próxima"/"maisuma") logo após o feedback e depois avança
-let _transTimers = [];
+// transição entre questões: o áudio ("próxima"/"maisuma") só toca DEPOIS do feedback terminar (nunca junto); aí avança
+let _transTimers = [], _transToken = 0;
 function limparTransicao() {
+  _transToken++;   // invalida qualquer transição pendente
   _transTimers.forEach(clearTimeout); _transTimers = [];
   pararAudioQuiz(proximaAudio); pararAudioQuiz(maisumaAudio);
 }
-function agendarTransicao(transAudio, proxFn) {
+function agendarTransicao(transAudio, proxFn, feedbackAudio) {
   limparTransicao();
-  _transTimers.push(setTimeout(() => tocarAudioQuiz(transAudio), 800));   // deixa o feedback tocar antes
-  _transTimers.push(setTimeout(proxFn, 2600));                            // depois passa pra próxima questão
+  const token = _transToken, vivo = () => token === _transToken;
+  const tocarTrans = () => {
+    if (!vivo()) return;
+    tocarAudioQuiz(transAudio);
+    const ir = () => { transAudio.removeEventListener('ended', ir); if (vivo()) proxFn(); };
+    transAudio.addEventListener('ended', ir);                                 // avança quando a transição terminar
+    _transTimers.push(setTimeout(() => { transAudio.removeEventListener('ended', ir); if (vivo()) proxFn(); }, 5000));   // fallback
+  };
+  if (feedbackAudio) {   // espera o áudio de feedback (funfare/lowscore) acabar antes de tocar a transição
+    const onEnd = () => { feedbackAudio.removeEventListener('ended', onEnd); if (vivo()) tocarTrans(); };
+    feedbackAudio.addEventListener('ended', onEnd);
+    _transTimers.push(setTimeout(() => { feedbackAudio.removeEventListener('ended', onEnd); if (vivo()) tocarTrans(); }, 5000));   // fallback caso 'ended' não dispare
+  } else {
+    _transTimers.push(setTimeout(tocarTrans, 800));
+  }
 }
 // íons de cada frasco: A) Na⁺/OH⁻ 1:1 (base)  B) Ca²⁺/O²⁻ 1:1 (óxido)  C) H⁺/S²⁻ 2:1 (ácido H₂S — correto)
 const QUIZ1_IONS = {
@@ -4356,7 +4384,7 @@ function responderQuiz1(letra, btn) {
   q.querySelector('.q1opt[data-c="c"]').classList.add('certo');   // sempre destaca a correta
   if (certo) { playSfx('right'); playSfx('funfare'); festaConfete(); }
   else       { playSfx('error'); playSfx('lowscore'); }
-  agendarTransicao(proximaAudio, irParaQuiz2);   // toca "próxima" e vai pra questão 2
+  agendarTransicao(proximaAudio, irParaQuiz2, certo ? sfx.funfare : sfx.lowscore);   // "próxima" só depois do feedback -> Q2
 }
 $id('quizBtn').addEventListener('click', abrirQuiz1);
 $id('quiz1').querySelectorAll('.q1opt').forEach(b => b.addEventListener('click', () => responderQuiz1(b.dataset.c, b)));
@@ -4430,7 +4458,7 @@ function responderQuiz2(letra, btn) {
   q.querySelector('.q2opt[data-c="b"]').classList.add('certo');   // sempre destaca a correta
   if (certo) { playSfx('right'); playSfx('funfare'); festaConfete(); }
   else       { playSfx('error'); playSfx('lowscore'); }
-  agendarTransicao(maisumaAudio, irParaQuiz3);   // toca "maisuma" e vai pra questão 3
+  agendarTransicao(maisumaAudio, irParaQuiz3, certo ? sfx.funfare : sfx.lowscore);   // "maisuma" só depois do feedback -> Q3
 }
 $id('quiz2').querySelectorAll('.q2opt').forEach(b => b.addEventListener('click', () => responderQuiz2(b.dataset.c, b)));
 
@@ -4473,7 +4501,7 @@ function responderQuiz3(letra, btn) {
   q.querySelector('.q3opt[data-c="a"]').classList.add('certo');   // sempre destaca a correta
   if (certo) { playSfx('right'); playSfx('funfare'); festaConfete(); }
   else       { playSfx('error'); playSfx('lowscore'); }
-  agendarTransicao(proximaAudio, irParaQuiz4);   // toca "próxima" e vai pra questão 4
+  agendarTransicao(proximaAudio, irParaQuiz4, certo ? sfx.funfare : sfx.lowscore);   // "próxima" só depois do feedback -> Q4
 }
 $id('quiz3').querySelectorAll('.q3opt').forEach(b => b.addEventListener('click', () => responderQuiz3(b.dataset.c, b)));
 // dica 3: toca o áudio (com brilho) E revela a equação; a equação some quando o áudio da dica acaba
@@ -4482,17 +4510,20 @@ dica3Audio.addEventListener('ended', () => $id('q3eq').classList.remove('show'))
 
 // ---- Quiz 4: arrastar a espécie química correta pro slot vazio (sequência de reações) ----
 // Cada resposta (erro OU acerto) troca pra próxima reação da lista (cicla). Mais reações entram aqui depois.
+// p1/p2 = produtos dos dois lados do "+"; o que for null vira o slot vazio (pode ser à esquerda OU à direita)
 const QUIZ4 = [
-  { esq: 'HI',            prod: 'I<sup>&#8722;</sup>',  opts: [{ t: 'H<sup>+</sup>', ok: true }, { t: 'H<sup>&#8722;</sup>' }, { t: 'H<sup>2+</sup>' }] },
-  { esq: 'H<sub>2</sub>S', prod: 'S<sup>2&#8722;</sup>', opts: [{ t: 'H<sup>2+</sup>' }, { t: '2H<sup>+</sup>', ok: true }, { t: 'H<sup>+</sup>' }] },
+  { esq: 'HI',              p1: null, p2: 'I<sup>&#8722;</sup>',  opts: [{ t: 'H<sup>+</sup>', ok: true }, { t: 'H<sup>&#8722;</sup>' }, { t: 'H<sup>2+</sup>' }] },
+  { esq: 'H<sub>2</sub>S',  p1: null, p2: 'S<sup>2&#8722;</sup>', opts: [{ t: 'H<sup>2+</sup>' }, { t: '2H<sup>+</sup>', ok: true }, { t: 'H<sup>+</sup>' }] },
+  { esq: 'H<sub>2</sub>SO<sub>4</sub>', p1: '2H<sup>+</sup>', p2: null, opts: [{ t: 'SO<sub>4</sub><sup>&#8722;</sup>' }, { t: '2SO<sub>4</sub>' }, { t: 'SO<sub>4</sub><sup>2&#8722;</sup>', ok: true }] },
 ];
 let q4Idx = 0, q4Resp = false, q4Drag = null, _q4Timer = null;
 function q4Montar() {
   q4Resp = false;
   const eq = QUIZ4[q4Idx];
   $id('q4esq').innerHTML = eq.esq;
-  $id('q4prod').innerHTML = eq.prod;
-  const slot = $id('q4slot'); slot.innerHTML = ''; slot.className = 'q4slot';
+  const slotHTML = '<span class="q4slot" id="q4slot"></span>';
+  const lado = p => (p == null ? slotHTML : `<span class="q4prod">${p}</span>`);
+  $id('q4prods').innerHTML = lado(eq.p1) + '<span class="q4mais">+</span>' + lado(eq.p2);   // slot fica onde estiver o null
   const opts = $id('q4opts'); opts.innerHTML = '';
   eq.opts.forEach(o => {
     const b = document.createElement('button');
@@ -4551,9 +4582,17 @@ function q4Responder(ok, chip) {
   clearTimeout(_q4Timer);
   _q4Timer = setTimeout(q4Proxima, 1900);   // a reação e as respostas mudam a cada erro ou acerto
 }
-function q4Proxima() { q4Idx = (q4Idx + 1) % QUIZ4.length; q4Montar(); }
+function q4Proxima() {   // efeito de troca entre uma equação e a próxima (sai pra esquerda, entra pela direita)
+  const stage = $id('q4stage');
+  stage.classList.remove('entrando'); stage.classList.add('saindo');
+  setTimeout(() => {
+    q4Idx = (q4Idx + 1) % QUIZ4.length;
+    q4Montar();
+    stage.classList.remove('saindo'); stage.classList.add('entrando');
+  }, 320);
+}
 function irParaQuiz4() { fecharQuiz3(); abrirQuiz4(); }
-function abrirQuiz4() { q4Idx = 0; q4Montar(); $id('quiz4').classList.add('show'); }
+function abrirQuiz4() { q4Idx = 0; $id('q4stage').classList.remove('saindo', 'entrando'); q4Montar(); $id('quiz4').classList.add('show'); }
 function fecharQuiz4() { clearTimeout(_q4Timer); $id('quiz4').classList.remove('show'); }
 
 // os 3 ácidos voltam à bancada mostrando SÓ a etiqueta da fórmula (sem os nomes) — dialogo1.5A
