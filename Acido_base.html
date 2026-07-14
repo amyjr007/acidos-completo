@@ -1222,7 +1222,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.21.0</div>
+<div id="versao">v1.22.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -4364,6 +4364,7 @@ function mostrarQuizBtn() { $id('quizBtn').classList.add('show'); }
 function abrirQuiz1() {
   $id('quizBtn').classList.remove('show');
   montarQuiz1();
+  $id('dica1Btn').style.display = '';   // questão 1 tem dica
   $id('quiz1').classList.add('show');
   tocarAudioQuiz(exLavaia1a);   // 1º o enunciado; ao terminar, o "quiz1" entra (listener 'ended')
 }
@@ -4436,6 +4437,7 @@ function abrirQuiz2() {
   quiz2Resp = false;
   const q = $id('quiz2');
   q.querySelectorAll('.q2opt').forEach(b => { b.disabled = false; b.classList.remove('certo', 'errado'); });
+  $id('dica2Btn').style.display = '';   // questão 2 tem dica
   montarCenaQuiz2();
   q.classList.add('show');
   setTimeout(() => { if (q.classList.contains('show')) tocarAudioQuiz(quiz2Audio); }, 1000);   // só o "quiz2", com 1s de delay
@@ -4482,6 +4484,7 @@ function abrirQuiz3() {
   const q = $id('quiz3');
   q.querySelectorAll('.q3opt').forEach(b => { b.disabled = false; b.classList.remove('certo', 'errado'); });
   $id('q3eq').classList.remove('show');   // a equação do HBr só aparece ao acionar a dica
+  $id('dica3Btn').style.display = '';     // questão 3 tem dica
   q.classList.add('show');
   setTimeout(() => { if (q.classList.contains('show')) tocarAudioQuiz(quiz3Audio); }, 1000);   // 1s de delay
 }
@@ -4510,20 +4513,22 @@ dica3Audio.addEventListener('ended', () => $id('q3eq').classList.remove('show'))
 
 // ---- Quiz 4: arrastar a espécie química correta pro slot vazio (sequência de reações) ----
 // Cada resposta (erro OU acerto) troca pra próxima reação da lista (cicla). Mais reações entram aqui depois.
-// p1/p2 = produtos dos dois lados do "+"; o que for null vira o slot vazio (pode ser à esquerda OU à direita)
+// esq = reagente; p1/p2 = produtos dos dois lados do "+". O campo que for null vira o slot vazio
+// (pode ser o reagente à esquerda da seta OU um dos produtos à direita).
 const QUIZ4 = [
   { esq: 'HI',              p1: null, p2: 'I<sup>&#8722;</sup>',  opts: [{ t: 'H<sup>+</sup>', ok: true }, { t: 'H<sup>&#8722;</sup>' }, { t: 'H<sup>2+</sup>' }] },
   { esq: 'H<sub>2</sub>S',  p1: null, p2: 'S<sup>2&#8722;</sup>', opts: [{ t: 'H<sup>2+</sup>' }, { t: '2H<sup>+</sup>', ok: true }, { t: 'H<sup>+</sup>' }] },
   { esq: 'H<sub>2</sub>SO<sub>4</sub>', p1: '2H<sup>+</sup>', p2: null, opts: [{ t: 'SO<sub>4</sub><sup>&#8722;</sup>' }, { t: '2SO<sub>4</sub>' }, { t: 'SO<sub>4</sub><sup>2&#8722;</sup>', ok: true }] },
+  { esq: null, p1: '2H<sup>+</sup>', p2: 'CO<sub>3</sub><sup>2&#8722;</sup>', opts: [{ t: 'H<sub>2</sub>CO<sub>3</sub>', ok: true }, { t: 'HCO<sub>3</sub>' }, { t: 'H<sub>2</sub>CO' }] },
 ];
 let q4Idx = 0, q4Resp = false, q4Drag = null, _q4Timer = null;
 function q4Montar() {
   q4Resp = false;
   const eq = QUIZ4[q4Idx];
-  $id('q4esq').innerHTML = eq.esq;
   const slotHTML = '<span class="q4slot" id="q4slot"></span>';
-  const lado = p => (p == null ? slotHTML : `<span class="q4prod">${p}</span>`);
-  $id('q4prods').innerHTML = lado(eq.p1) + '<span class="q4mais">+</span>' + lado(eq.p2);   // slot fica onde estiver o null
+  const cel = v => (v == null ? slotHTML : `<span class="q4prod">${v}</span>`);
+  $id('q4esq').innerHTML = eq.esq == null ? slotHTML : eq.esq;                         // slot pode ser o reagente
+  $id('q4prods').innerHTML = cel(eq.p1) + '<span class="q4mais">+</span>' + cel(eq.p2); // ou um dos produtos
   const opts = $id('q4opts'); opts.innerHTML = '';
   eq.opts.forEach(o => {
     const b = document.createElement('button');
@@ -4592,7 +4597,11 @@ function q4Proxima() {   // efeito de troca entre uma equação e a próxima (sa
   }, 320);
 }
 function irParaQuiz4() { fecharQuiz3(); abrirQuiz4(); }
-function abrirQuiz4() { q4Idx = 0; $id('q4stage').classList.remove('saindo', 'entrando'); q4Montar(); $id('quiz4').classList.add('show'); }
+function abrirQuiz4() {
+  ['dica1Btn', 'dica2Btn', 'dica3Btn'].forEach(id => $id(id).style.display = 'none');   // questão 4 NÃO tem dica
+  q4Idx = 0; $id('q4stage').classList.remove('saindo', 'entrando'); q4Montar();
+  $id('quiz4').classList.add('show');
+}
 function fecharQuiz4() { clearTimeout(_q4Timer); $id('quiz4').classList.remove('show'); }
 
 // os 3 ácidos voltam à bancada mostrando SÓ a etiqueta da fórmula (sem os nomes) — dialogo1.5A
