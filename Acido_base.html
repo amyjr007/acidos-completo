@@ -1004,30 +1004,33 @@
   .c11c-frascos.pulseO .fO { animation: oPulsa .55s ease-in-out 2; }
   /* ---- Cena do dialogo1.6: classificação dos ácidos ---- */
   #cena16 { position: fixed; inset: 0; z-index: 42; pointer-events: none; }
-  #cena16 .c16-titulo {
-    position: absolute; top: 5.5%; left: 0; right: 0; text-align: center;
+  #cena16 .c16-titulo {   /* "escrito na parede": mesma fonte do "Ácidos de Arrhenius", sem brilho */
+    position: absolute; top: calc(5.5% + 0.55em); left: 0; right: 0; text-align: center;
     font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: .5px;
-    font-size: clamp(23px, 6.4vw, 40px); color: #0f4d18;
-    text-shadow: 0 2px 9px rgba(255, 255, 255, .85), 0 0 2px rgba(255, 255, 255, .9);
+    font-size: clamp(24px, 6.6vw, 40px); line-height: 1.15; color: #0f4d18;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .18);
     opacity: 0; transform: translateY(22px) scale(.94);
     transition: opacity .6s ease, transform .6s cubic-bezier(.2, .9, .25, 1.35);
   }
   #cena16 .c16-titulo.show { opacity: 1; transform: none; }
-  #cena16 .c16-sub {
-    position: absolute; top: 15%; left: 0; right: 0; text-align: center;
+  #cena16 .c16-sub {   /* branco, sem brilho */
+    position: absolute; top: 16%; left: 0; right: 0; text-align: center;
     font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(15px, 4.4vw, 25px);
-    color: #14361b; text-shadow: 0 2px 8px rgba(255, 255, 255, .82);
+    color: #ffffff; text-shadow: 0 1px 3px rgba(0, 0, 0, .5);
     opacity: 0; transform: translateY(20px);
     transition: opacity .6s ease, transform .6s cubic-bezier(.2, .9, .25, 1.3);
   }
   #cena16 .c16-sub.show { opacity: 1; transform: none; }
+  /* estantes fixas na "parede" (posição absoluta) — o zoom é um scale a partir da coluna direita */
   #cena16 .c16-estantes {
-    position: absolute; left: 50%; top: 23%; transform: translateX(-50%);
+    position: absolute; left: 0; right: 0; top: 23%;
     display: flex; gap: clamp(12px, 4vw, 44px); align-items: flex-start; justify-content: center;
-    width: min(94vw, 720px);
+    transform: scale(1); transform-origin: 70% 38%;
+    transition: transform .8s cubic-bezier(.3, .8, .35, 1);
   }
+  #cena16.zoom-dir .c16-estantes { transform: scale(1.95); }   /* zoom in na coluna direita */
   #cena16 .c16-col {
-    flex: 1 1 0; min-width: 0; opacity: 0; transform: translateY(30px);
+    flex: 0 0 auto; width: min(42vw, 300px); opacity: 0; transform: translateY(30px);
     transition: opacity .6s ease, transform .6s cubic-bezier(.2, .9, .25, 1.2), filter .6s ease;
   }
   #cena16.montada .c16-col { opacity: 1; transform: none; }
@@ -1287,7 +1290,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.29.0</div>
+<div id="versao">v1.30.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3058,9 +3061,9 @@ const EVENTOS = {
     { t: 16.0, fn: mostrarCena16Estantes },                         // duas colunas de frascos (hidrácidos | oxiácidos)
     { t: 19.0, fn: () => cena16Ilumina('esq') },                    // esquerda destaca, direita escurece
     { t: 24.7, fn: () => cena16Nome('esq') },                       // "Hidrácidos" no topo da estante esquerda
-    { t: 31.0, fn: () => cena16Ilumina('dir') },                    // escurece a esquerda, ilumina a direita
+    { t: 31.0, fn: () => { cena16Ilumina('dir'); cena16FormulaGrande(true); cena16Zoom('dir'); } },  // ilumina a direita + fórmulas grandes (sem nome) + zoom na coluna direita
     { t: 36.4, fn: () => cena16Nome('dir') },                       // "Oxiácidos" no topo da estante direita
-    { t: 39.2, fn: () => cena16Ilumina('esq') },                    // escurece a direita, clareia a esquerda
+    { t: 39.2, fn: () => { cena16Zoom(null); cena16Ilumina('esq'); } },  // tira o zoom (mostra as duas prateleiras) + clareia a esquerda
     { t: 40.0, fn: () => cena16Pulsa('esq') },                      // pulsa "Hidrácidos"
     { t: 40.8, fn: () => cena16Ilumina('dir') },                    // inverte a iluminação
     { t: 42.4, fn: () => cena16Pulsa('dir') },                      // destaca "Oxiácidos"
@@ -3393,7 +3396,7 @@ function fnFrasco(cx, by, cfg, id, defs) {
   const lw = cfg.lw || 72, lh = cfg.lh || 46, lx = cx - lw / 2;
   const ly = by - (cfg.lyoff || 26) - lh;      // canto inferior do rótulo a cfg.lyoff acima da base
   const ffF = cfg.ff || 15.5, ffN = cfg.fn || 8;
-  const fY = ly + lh * 0.52, nY = ly + lh * 0.87;   // fórmula em cima, nome embaixo (proporcional à altura)
+  const fY = cfg.n ? ly + lh * 0.52 : ly + lh * 0.64, nY = ly + lh * 0.87;   // sem nome -> fórmula centralizada no rótulo
   const label = '<g>' +
     '<rect x="' + lx + '" y="' + ly + '" width="' + lw + '" height="' + lh + '" rx="5" fill="#efe4c6" stroke="#c9b587" stroke-width="1.5"/>' +
     '<rect x="' + lx + '" y="' + ly + '" width="' + lw + '" height="' + lh + '" rx="5" fill="url(#gLabel)"/>' +
@@ -4778,25 +4781,31 @@ const C16_OXI = [     // 6 oxiácidos mais famosos (com oxigênio)
 ];
 const C16_CX = [80, 220], C16_BY = [150, 320, 490];
 // monta uma estante (coluna) com 6 frascos: 2 por prateleira, 3 prateleiras finas
-function montarEstante16(el, itens, idBase) {
+// grande = fórmula maior e SEM o nome do ácido no rótulo
+function montarEstante16(el, itens, idBase, grande) {
   const defs = []; let bottles = '', shelves = '', id = idBase;
   itens.forEach((it, i) => {
     const cx = C16_CX[i % 2], by = C16_BY[(i / 2) | 0];
     const cfg = { g: 'rgba(214,232,240,0.16)', s: '#8a5a25', t: 'liq', l: 0.8,
-      c: it.c || 'rgba(150,200,225,0.5)', f: it.f, n: it.n, hs: 0.58, w2: 30, lw: 70, lh: 33, ff: 13, fn: 6.5, lyoff: 15 };
+      c: it.c || 'rgba(150,200,225,0.5)', f: it.f, n: grande ? '' : it.n,
+      hs: 0.58, w2: 30, lw: 70, lh: grande ? 27 : 33, ff: grande ? 21 : 13, fn: 6.5, lyoff: 15 };
     bottles += fnFrasco(cx, by, cfg, id++, defs);
   });
   C16_BY.forEach(by => { shelves += '<rect x="6" y="' + (by + 3) + '" width="288" height="8" rx="3" fill="#7a5a30" stroke="#3a2916" stroke-width="1.6"/>'; });
   el.innerHTML = '<svg viewBox="0 0 300 520" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><defs>' + gLabelDef + defs.join('') + '</defs>' + shelves + bottles + '</svg>';
 }
-let cena16Montada = false;
+function cena16FormulaGrande(on) {   // remonta as duas estantes (fórmula grande sem nome, ou normal)
+  montarEstante16($id('c16fEsq'), C16_HIDRA, 1600, on);
+  montarEstante16($id('c16fDir'), C16_OXI, 1620, on);
+}
+function cena16Zoom(qual) { cena16El.classList.toggle('zoom-dir', qual === 'dir'); }   // zoom in na coluna direita
 function iniciarCena16() {
   cena16El.setAttribute('aria-hidden', 'false');
-  cena16El.classList.remove('montada');
+  cena16El.classList.remove('montada', 'zoom-dir');
   cena16El.querySelectorAll('.c16-col').forEach(c => c.classList.remove('apagada'));
   cena16El.querySelectorAll('.c16-nome').forEach(n => n.classList.remove('show', 'pulsa'));
   cena16El.querySelector('.c16-sub').classList.remove('show');
-  if (!cena16Montada) { montarEstante16($id('c16fEsq'), C16_HIDRA, 1600); montarEstante16($id('c16fDir'), C16_OXI, 1620); cena16Montada = true; }
+  cena16FormulaGrande(false);   // (re)monta no tamanho normal, com nomes
   cena16El.querySelector('.c16-titulo').classList.add('show');   // título no topo (t0)
 }
 // t2: some o cenário 3D em fade, deixando só o quadro + o título
@@ -4823,7 +4832,7 @@ function cena16Pulsa(qual) {
 }
 function esconderCena16() {
   cena16El.setAttribute('aria-hidden', 'true');
-  cena16El.classList.remove('montada');
+  cena16El.classList.remove('montada', 'zoom-dir');
   cena16El.querySelector('.c16-titulo').classList.remove('show');
   cena16El.querySelector('.c16-sub').classList.remove('show');
   cena16El.querySelectorAll('.c16-nome').forEach(n => n.classList.remove('show', 'pulsa'));
