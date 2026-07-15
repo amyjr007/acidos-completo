@@ -1023,7 +1023,7 @@
   #cena16 .c16-sub.show { opacity: 1; transform: none; }
   /* estantes fixas na "parede" (posição absoluta) — o zoom é um scale a partir da coluna direita */
   #cena16 .c16-estantes {
-    position: absolute; left: 0; right: 0; top: 23%;
+    position: absolute; left: 0; right: 0; top: 27%;
     display: flex; gap: clamp(12px, 4vw, 44px); align-items: flex-start; justify-content: center;
     transform: scale(1); transform-origin: 50% 42%;
     transition: transform .8s cubic-bezier(.3, .8, .35, 1);
@@ -1291,7 +1291,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.31.0</div>
+<div id="versao">v1.32.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3062,6 +3062,7 @@ const EVENTOS = {
     { t: 16.0, fn: mostrarCena16Estantes },                         // duas colunas de frascos (hidrácidos | oxiácidos)
     { t: 19.0, fn: () => { cena16Ilumina('esq'); cena16Zoom('esq'); } },  // ilumina a esquerda + zoom enquadrando a coluna esquerda
     { t: 24.7, fn: () => cena16Nome('esq') },                       // "Hidrácidos" no topo da estante esquerda
+    { t: 29.0, fn: () => pausarAudio(2000) },                       // pausa de 2s
     { t: 31.0, fn: () => { cena16Ilumina('dir'); cena16FormulaGrande(true); cena16Zoom('dir'); } },  // ilumina a direita + fórmulas grandes (sem nome) + zoom na coluna direita
     { t: 36.4, fn: () => cena16Nome('dir') },                       // "Oxiácidos" no topo da estante direita
     { t: 39.2, fn: () => { cena16Zoom(null); cena16Ilumina('esq'); } },  // tira o zoom (mostra as duas prateleiras) + clareia a esquerda
@@ -3201,6 +3202,8 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5D') { $id('playBtn').style.display = 'none'; mostrarQuizBtn(); return; }
   // fim do 1.4A: some o texto e o play (força a interação do papel de tornassol; o 1.4B entra quando o papel fica vermelho)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.4A') { esconderIndicador(); $id('playBtn').style.display = 'none'; return; }
+  // fim do 1.6: as duas colunas ficam iluminadas (a iluminação volta em fade)
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.6' && typeof cena16IluminaAmbas === 'function') cena16IluminaAmbas();
   // fim do tutorial 1.1E -> botão de play vira "JOGAR"
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.1E') {
     jogarPronto = true;
@@ -4788,8 +4791,8 @@ function montarEstante16(el, itens, idBase, grande) {
   itens.forEach((it, i) => {
     const cx = C16_CX[i % 2], by = C16_BY[(i / 2) | 0];
     const cfg = { g: 'rgba(214,232,240,0.16)', s: '#8a5a25', t: 'liq', l: 0.8,
-      c: it.c || 'rgba(150,200,225,0.5)', f: it.f, n: grande ? '' : it.n,
-      hs: 0.58, w2: 30, lw: 70, lh: grande ? 27 : 33, ff: grande ? 21 : 13, fn: 6.5, lyoff: 15 };
+      c: it.c || 'rgba(150,200,225,0.5)', f: it.f, n: grande ? '' : it.n,   // frascos 15% maiores (prateleiras mantêm o tamanho)
+      hs: 0.667, w2: 34.5, lw: 80, lh: grande ? 31 : 38, ff: grande ? 24 : 15, fn: 7.5, lyoff: 17 };
     bottles += fnFrasco(cx, by, cfg, id++, defs);
   });
   C16_BY.forEach(by => { shelves += '<rect x="6" y="' + (by + 3) + '" width="288" height="8" rx="3" fill="#7a5a30" stroke="#3a2916" stroke-width="1.6"/>'; });
@@ -4829,6 +4832,7 @@ function cena16Ilumina(qual) {   // acende uma coluna e apaga a outra (fade)
   $id('c16Esq').classList.toggle('apagada', qual !== 'esq');
   $id('c16Dir').classList.toggle('apagada', qual !== 'dir');
 }
+function cena16IluminaAmbas() { $id('c16Esq').classList.remove('apagada'); $id('c16Dir').classList.remove('apagada'); }   // as duas acesas (fade)
 function cena16Nome(qual) { (qual === 'esq' ? $id('c16Esq') : $id('c16Dir')).querySelector('.c16-nome').classList.add('show'); }
 function cena16Pulsa(qual) {
   const el = (qual === 'esq' ? $id('c16Esq') : $id('c16Dir')).querySelector('.c16-nome');
