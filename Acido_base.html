@@ -685,14 +685,16 @@
   #quizFim .qfNota { font-family: system-ui, sans-serif; font-weight: 900; color: #f2fbe4; font-size: clamp(58px, 18vw, 88px); line-height: 1.05; text-shadow: 0 3px 16px rgba(0, 0, 0, .5); }
   #quizFim .qfNota small { font-size: .36em; opacity: .55; font-weight: 800; }
   #quizFim .qfSub { font-family: system-ui, sans-serif; font-weight: 600; color: #cfe8a8; font-size: clamp(14px, 4vw, 17px); margin-top: .1em; }
-  #quizFim .qfPlay {
-    margin-top: 26px; width: 62px; height: 62px; border-radius: 50%; border: none; cursor: pointer; padding: 0;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: linear-gradient(145deg, #b4f04a, #7fc400); box-shadow: 0 6px 18px rgba(120, 200, 40, .5);
-    animation: quizBtnPulse 1.8s ease-in-out infinite;
+  #quizFim .qfBtns { margin-top: 26px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  #quizFim .qfBtns button {
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(15px, 4.2vw, 18px);
+    padding: .7em 1.9em; border-radius: 999px; cursor: pointer; border: 2px solid transparent;
+    transition: transform .15s ease, background .2s ease, border-color .2s ease;
   }
-  #quizFim .qfPlay svg { width: 26px; height: 26px; fill: #0a1a06; margin-left: 3px; }
-  #quizFim .qfPlay:active { transform: scale(.93); }
+  #quizFim .qfBtns button:active { transform: scale(.95); }
+  #quizFim .qfPrim { color: #0a1a06; border: none; background: linear-gradient(145deg, #b4f04a, #7fc400); box-shadow: 0 6px 18px rgba(120, 200, 40, .45); }
+  #quizFim .qfSec { color: #a6e534; background: transparent; border-color: rgba(166, 229, 52, .55); }
+  #quizFim .qfSec:hover { background: rgba(166, 229, 52, .12); }
   #quiz2 .q2opts {
     position: absolute; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%);
     pointer-events: auto; display: flex; gap: clamp(14px, 5vw, 30px);
@@ -1000,6 +1002,47 @@
   .c11a-frascos.pulseH .fH { animation: hPulsa .55s ease-in-out 2; }
   .c11b-frascos.pulseOH .fOH { animation: ohPulsa .55s ease-in-out 2; }
   .c11c-frascos.pulseO .fO { animation: oPulsa .55s ease-in-out 2; }
+  /* ---- Cena do dialogo1.6: classificação dos ácidos ---- */
+  #cena16 { position: fixed; inset: 0; z-index: 42; pointer-events: none; }
+  #cena16 .c16-titulo {
+    position: absolute; top: 5.5%; left: 0; right: 0; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: .5px;
+    font-size: clamp(23px, 6.4vw, 40px); color: #0f4d18;
+    text-shadow: 0 2px 9px rgba(255, 255, 255, .85), 0 0 2px rgba(255, 255, 255, .9);
+    opacity: 0; transform: translateY(22px) scale(.94);
+    transition: opacity .6s ease, transform .6s cubic-bezier(.2, .9, .25, 1.35);
+  }
+  #cena16 .c16-titulo.show { opacity: 1; transform: none; }
+  #cena16 .c16-sub {
+    position: absolute; top: 15%; left: 0; right: 0; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(15px, 4.4vw, 25px);
+    color: #14361b; text-shadow: 0 2px 8px rgba(255, 255, 255, .82);
+    opacity: 0; transform: translateY(20px);
+    transition: opacity .6s ease, transform .6s cubic-bezier(.2, .9, .25, 1.3);
+  }
+  #cena16 .c16-sub.show { opacity: 1; transform: none; }
+  #cena16 .c16-estantes {
+    position: absolute; left: 50%; top: 23%; transform: translateX(-50%);
+    display: flex; gap: clamp(12px, 4vw, 44px); align-items: flex-start; justify-content: center;
+    width: min(94vw, 720px);
+  }
+  #cena16 .c16-col {
+    flex: 1 1 0; min-width: 0; opacity: 0; transform: translateY(30px);
+    transition: opacity .6s ease, transform .6s cubic-bezier(.2, .9, .25, 1.2), filter .6s ease;
+  }
+  #cena16.montada .c16-col { opacity: 1; transform: none; }
+  #cena16 .c16-col.apagada { filter: brightness(.3) saturate(.45); }
+  #cena16 .c16-frascos svg { display: block; width: 100%; height: auto; max-height: 60vh; }
+  #cena16 .c16-nome {
+    text-align: center; font-family: system-ui, sans-serif; font-weight: 900;
+    font-size: clamp(15px, 4.4vw, 25px); color: #0f4d18; margin-bottom: 4px;
+    text-shadow: 0 2px 8px rgba(255, 255, 255, .82);
+    opacity: 0; transform: translateY(-10px) scale(.9);
+    transition: opacity .5s ease, transform .5s cubic-bezier(.2, .9, .25, 1.4);
+  }
+  #cena16 .c16-nome.show { opacity: 1; transform: none; }
+  #cena16 .c16-nome.pulsa { animation: c16Pulsa .5s ease-in-out 2; }
+  @keyframes c16Pulsa { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.28); color: #1c7a2c; } }
   @keyframes hPulsa {
     0%, 100% { fill: #2c2013; transform: scale(1); }
     50%      { fill: #baf34f; transform: scale(1.5); }
@@ -1244,7 +1287,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.26.0</div>
+<div id="versao">v1.27.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1342,7 +1385,10 @@
     <div class="qfTit">Fim do quiz!</div>
     <div class="qfNota" id="qfNota">0,0<small>/10</small></div>
     <div class="qfSub" id="qfSub">0 de 0 acertos</div>
-    <button id="qfPlay" class="qfPlay" aria-label="Continuar"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+    <div class="qfBtns">
+      <button id="qfRefazer" class="qfSec">Refazer</button>
+      <button id="qfContinuar" class="qfPrim">Continuar</button>
+    </div>
   </div>
 </div>
 <div id="substDesc"></div>
@@ -1373,6 +1419,22 @@
 <div id="cena11d" aria-hidden="true">
   <div class="c11d-titulo">Sais</div>
   <div class="c11d-frascos"></div>
+</div>
+
+<!-- Cena do dialogo1.6: classificação dos ácidos (quanto ao oxigênio) -->
+<div id="cena16" aria-hidden="true">
+  <div class="c16-titulo">Classificação dos ácidos</div>
+  <div class="c16-sub">a) Quanto à presença de oxigênio</div>
+  <div class="c16-estantes">
+    <div class="c16-col" id="c16Esq">
+      <div class="c16-nome">Hidrácidos</div>
+      <div class="c16-frascos" id="c16fEsq"></div>
+    </div>
+    <div class="c16-col" id="c16Dir">
+      <div class="c16-nome">Oxiácidos</div>
+      <div class="c16-frascos" id="c16fDir"></div>
+    </div>
+  </div>
 </div>
 
 <!-- Minigame de identificação (dialogo1.1E + jogo) -->
@@ -2736,6 +2798,7 @@ const FAIXAS = [
   { id: 'dialogo1.5Cy', arquivo: 'audios/dialogo1.5Cy.mp3', titulo: 'Diálogo 1.5C (acerto)' },
   { id: 'dialogo1.5Cn', arquivo: 'audios/dialogo1.5Cn.mp3', titulo: 'Diálogo 1.5C (erro)' },
   { id: 'dialogo1.5D',  arquivo: 'audios/dialogo1.5D.mp3',  titulo: 'Diálogo 1.5D' },
+  { id: 'dialogo1.6',   arquivo: 'audios/dialogo1.6.mp3',   titulo: 'Diálogo 1.6' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -2988,6 +3051,20 @@ const EVENTOS = {
   'dialogo1.5D':  () => rodarStory([
     { t: 0.0, fn: () => { esconderEquacao(); esconderEqTitulo(); irParaCamera(CAM_2, true, 1500); } },   // limpa a equação e vira pro quadro (posição 2)
   ]),
+  'dialogo1.6':   () => rodarStory([
+    { t: 0.0,  fn: iniciarCena16 },                                   // "Classificação dos ácidos" no topo do quadro
+    { t: 2.0,  fn: () => { limparTelaCena16(); irParaCamera(CAM_2, true, 2000); } },  // limpa a cena (fade) + câmera pra posição 2 (chega ~4s)
+    { t: 11.7, fn: mostrarCena16Sub },                               // subtítulo "a) Quanto à presença de oxigênio"
+    { t: 16.0, fn: mostrarCena16Estantes },                         // duas colunas de frascos (hidrácidos | oxiácidos)
+    { t: 19.0, fn: () => cena16Ilumina('esq') },                    // esquerda destaca, direita escurece
+    { t: 24.7, fn: () => cena16Nome('esq') },                       // "Hidrácidos" no topo da estante esquerda
+    { t: 31.0, fn: () => cena16Ilumina('dir') },                    // escurece a esquerda, ilumina a direita
+    { t: 36.4, fn: () => cena16Nome('dir') },                       // "Oxiácidos" no topo da estante direita
+    { t: 39.2, fn: () => cena16Ilumina('esq') },                    // escurece a direita, clareia a esquerda
+    { t: 40.0, fn: () => cena16Pulsa('esq') },                      // pulsa "Hidrácidos"
+    { t: 40.8, fn: () => cena16Ilumina('dir') },                    // inverte a iluminação
+    { t: 42.4, fn: () => cena16Pulsa('dir') },                      // destaca "Oxiácidos"
+  ]),
 };
 
 const player = new Audio();
@@ -3034,6 +3111,7 @@ function tocarFaixa(i) {
   if (typeof fecharQuiz3 === 'function') fecharQuiz3();   // some a questão 3 e para os áudios
   if (typeof fecharQuiz4 === 'function') fecharQuiz4();   // some a questão 4 (arrastar)
   if (typeof fecharQuizFim === 'function') fecharQuizFim();   // some o card de nota final
+  if (f.id !== 'dialogo1.6' && typeof esconderCena16 === 'function') esconderCena16();   // cena da classificação só no 1.6
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
@@ -4683,8 +4761,73 @@ function mostrarQuizFim() {
   if (nota >= 6) festaConfete();
 }
 function fecharQuizFim() { $id('quizFim').classList.remove('show'); }
-// botão de play do card: continua (some o card e o play volta pra seguir o audiobook)
-$id('qfPlay').addEventListener('click', () => { fecharQuizFim(); $id('playBtn').style.display = ''; });
+// Refazer: reinicia o quiz na questão 1. Continuar: segue pro dialogo1.6
+$id('qfRefazer').addEventListener('click', () => { fecharQuizFim(); abrirQuiz1(); });
+$id('qfContinuar').addEventListener('click', () => { fecharQuizFim(); const i = idxFaixa('dialogo1.6'); if (i >= 0) tocarFaixa(i); });
+
+// ---- Cena do dialogo1.6: classificação dos ácidos (hidrácidos x oxiácidos) ----
+const cena16El = $id('cena16');
+const C16_HIDRA = [   // 6 hidrácidos mais comuns (sem oxigênio)
+  { f: 'HF', n: 'Fluorídrico' }, { f: 'HCl', n: 'Clorídrico' }, { f: 'HBr', n: 'Bromídrico' },
+  { f: 'HI', n: 'Iodídrico' }, { f: 'H2S', n: 'Sulfídrico' }, { f: 'HCN', n: 'Cianídrico' },
+];
+const C16_OXI = [     // 6 oxiácidos mais famosos (com oxigênio)
+  { f: 'H2SO4', n: 'Sulfúrico' }, { f: 'HNO3', n: 'Nítrico' }, { f: 'H3PO4', n: 'Fosfórico' },
+  { f: 'H2CO3', n: 'Carbônico' }, { f: 'HClO', n: 'Hipocloroso' }, { f: 'HClO4', n: 'Perclórico' },
+];
+const C16_CX = [80, 220], C16_BY = [150, 320, 490];
+// monta uma estante (coluna) com 6 frascos: 2 por prateleira, 3 prateleiras finas
+function montarEstante16(el, itens, idBase) {
+  const defs = []; let bottles = '', shelves = '', id = idBase;
+  itens.forEach((it, i) => {
+    const cx = C16_CX[i % 2], by = C16_BY[(i / 2) | 0];
+    const cfg = { g: 'rgba(214,232,240,0.16)', s: '#8a5a25', t: 'liq', l: 0.8,
+      c: it.c || 'rgba(150,200,225,0.5)', f: it.f, n: it.n, hs: 0.58, w2: 30, lw: 70, lh: 33, ff: 13, fn: 6.5, lyoff: 15 };
+    bottles += fnFrasco(cx, by, cfg, id++, defs);
+  });
+  C16_BY.forEach(by => { shelves += '<rect x="6" y="' + (by + 3) + '" width="288" height="8" rx="3" fill="#7a5a30" stroke="#3a2916" stroke-width="1.6"/>'; });
+  el.innerHTML = '<svg viewBox="0 0 300 520" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><defs>' + gLabelDef + defs.join('') + '</defs>' + shelves + bottles + '</svg>';
+}
+let cena16Montada = false;
+function iniciarCena16() {
+  cena16El.setAttribute('aria-hidden', 'false');
+  cena16El.classList.remove('montada');
+  cena16El.querySelectorAll('.c16-col').forEach(c => c.classList.remove('apagada'));
+  cena16El.querySelectorAll('.c16-nome').forEach(n => n.classList.remove('show', 'pulsa'));
+  cena16El.querySelector('.c16-sub').classList.remove('show');
+  if (!cena16Montada) { montarEstante16($id('c16fEsq'), C16_HIDRA, 1600); montarEstante16($id('c16fDir'), C16_OXI, 1620); cena16Montada = true; }
+  cena16El.querySelector('.c16-titulo').classList.add('show');   // título no topo (t0)
+}
+// t2: some o cenário 3D em fade, deixando só o quadro + o título
+function limparTelaCena16() {
+  reagents.forEach(r => { if (r.beaker) fade3D(r.beaker, 0, 900); if (r.label) r.label.visible = false; });
+  if (typeof waterBeaker !== 'undefined') fade3D(waterBeaker, 0, 900);
+  if (typeof limparHmais === 'function') limparHmais();
+  if (typeof limparNomesAcido === 'function') limparNomesAcido();
+  if (typeof limparLabelsABC === 'function') limparLabelsABC();
+  if (typeof limparTornassol === 'function') limparTornassol();
+  esconderEquacao(); esconderEqTitulo();
+  pipette.visible = false;
+}
+function mostrarCena16Sub() { cena16El.querySelector('.c16-sub').classList.add('show'); }
+function mostrarCena16Estantes() { cena16El.classList.add('montada'); }
+function cena16Ilumina(qual) {   // acende uma coluna e apaga a outra (fade)
+  $id('c16Esq').classList.toggle('apagada', qual !== 'esq');
+  $id('c16Dir').classList.toggle('apagada', qual !== 'dir');
+}
+function cena16Nome(qual) { (qual === 'esq' ? $id('c16Esq') : $id('c16Dir')).querySelector('.c16-nome').classList.add('show'); }
+function cena16Pulsa(qual) {
+  const el = (qual === 'esq' ? $id('c16Esq') : $id('c16Dir')).querySelector('.c16-nome');
+  el.classList.remove('pulsa'); void el.offsetWidth; el.classList.add('pulsa');
+}
+function esconderCena16() {
+  cena16El.setAttribute('aria-hidden', 'true');
+  cena16El.classList.remove('montada');
+  cena16El.querySelector('.c16-titulo').classList.remove('show');
+  cena16El.querySelector('.c16-sub').classList.remove('show');
+  cena16El.querySelectorAll('.c16-nome').forEach(n => n.classList.remove('show', 'pulsa'));
+  cena16El.querySelectorAll('.c16-col').forEach(c => c.classList.remove('apagada'));
+}
 
 // os 3 ácidos voltam à bancada mostrando SÓ a etiqueta da fórmula (sem os nomes) — dialogo1.5A
 function mostrarAcidosSoEtiqueta() {
