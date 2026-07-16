@@ -1147,8 +1147,17 @@
   #quizMini2 .qm2-formula.eq { font-size: clamp(20px, 6.4vw, 40px); }   /* equação (exceções) menor pra caber */
   #quizMini2 .qm2-formula sub { font-size: .58em; vertical-align: sub; }
   #quizMini2 .qm2-formula sup { font-size: .58em; vertical-align: super; }
-  #quizMini2 .qm2-formula.entra { animation: qmEntra .6s cubic-bezier(.2, .9, .25, 1.6) forwards; }
-  #quizMini2 .qm2-formula.sai { animation: qmSai .5s cubic-bezier(.5, 0, .75, 0) forwards; }
+  #quizMini2 .qm2-formula.entra { animation: qm2Entra .6s cubic-bezier(.2, .9, .25, 1.6) forwards; }
+  #quizMini2 .qm2-formula.sai { animation: qm2Sai .5s cubic-bezier(.5, 0, .75, 0) forwards; }
+  @keyframes qm2Entra {   /* fórmula já é centralizada por text-align: sem translateX */
+    0%   { opacity: 0; transform: scale(.25) translateY(-70px) rotate(-14deg); }
+    62%  { opacity: 1; transform: scale(1.14) translateY(0) rotate(0); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes qm2Sai {
+    0%   { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(.35) translateY(70px) rotate(12deg); }
+  }
   #quizMini2 .qm2-opts {
     position: absolute; left: 0; right: 0; bottom: calc(7% + 2.6rem + env(safe-area-inset-bottom));   /* 1,5 linhas acima */
     display: flex; justify-content: center; gap: clamp(10px, 3vw, 18px); pointer-events: none; flex-wrap: wrap;
@@ -1428,7 +1437,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.40.0</div>
+<div id="versao">v1.41.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
