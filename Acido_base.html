@@ -1523,7 +1523,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.49.0</div>
+<div id="versao">v1.50.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3633,6 +3633,7 @@ const SUMARIO = [
   { titulo: 'Classificação dos ácidos',     faixa: idxFaixa('dialogo1.6') },
   { titulo: 'Quiz 2',                       faixa: idxFaixa('dialogo1.6A') },
   { titulo: 'Quiz 3',                       faixa: idxFaixa('dialogo1.7B') },
+  { titulo: 'Classificação quanto à força', faixa: idxFaixa('dialogo1.8') },
 ];
 
 SUMARIO.forEach(item => {
@@ -5339,6 +5340,14 @@ function c17aReset() {
 const cena18El = $id('cena18');
 // prepara a cena: "c)" começa fora da tela, à esquerda (o título do 1.6 e o "b)" do 1.7 continuam na tela)
 function c18Iniciar() {
+  // garante título "Classificação dos ácidos" + subtítulo "b)" na tela (também quando se pula direto pro 1.8 pelo sumário)
+  cena16El.setAttribute('aria-hidden', 'false');
+  cena16El.querySelector('.c16-titulo').classList.add('show');
+  cena17El.setAttribute('aria-hidden', 'false');
+  cena17El.classList.remove('acidos', 'equacoes');
+  if (typeof c17aReset === 'function') c17aReset();   // limpa alerta/exceções do 1.7A que possam ter ficado
+  const subB = cena17El.querySelector('.c17-sub');
+  subB.classList.add('show'); subB.style.transition = 'none'; subB.style.transform = 'translateX(0)'; subB.style.opacity = '1';
   cena18El.setAttribute('aria-hidden', 'false');
   const subC = cena18El.querySelector('.c18-sub');
   subC.classList.remove('show'); subC.style.transition = 'none'; subC.style.transform = 'translateX(-130vw)'; subC.style.opacity = '1';
