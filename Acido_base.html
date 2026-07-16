@@ -1055,6 +1055,14 @@
     color: #ffffff; text-shadow: 0 1px 3px rgba(0, 0, 0, .5); opacity: 0;
   }
   #cena17 .c17-sub.show { opacity: 1; }
+  /* ---- Cena do dialogo1.8: força dos ácidos (subtítulo "c)") ---- */
+  #cena18 { position: fixed; inset: 0; z-index: 43; pointer-events: none; }
+  #cena18 .c18-sub {
+    position: absolute; top: 16%; left: 0; right: 0; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(15px, 4.4vw, 25px);
+    color: #ffffff; text-shadow: 0 1px 3px rgba(0, 0, 0, .5); opacity: 0;
+  }
+  #cena18 .c18-sub.show { opacity: 1; }
   #cena17 .c17-eqs {
     position: absolute; left: 0; right: 0; top: 31%;
     display: flex; flex-direction: column; align-items: center; gap: clamp(12px, 4.2vh, 34px);
@@ -1435,7 +1443,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.44.0</div>
+<div id="versao">v1.45.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1589,6 +1597,11 @@
 <div id="cena17" aria-hidden="true">
   <div class="c17-sub">b) Quanto aos H ionizáveis</div>
   <div class="c17-eqs" id="c17eqs"></div>
+</div>
+
+<!-- Cena do dialogo1.8: classificação quanto à força dos ácidos -->
+<div id="cena18" aria-hidden="true">
+  <div class="c18-sub">c) Quanto à força dos ácidos</div>
 </div>
 
 <!-- Quiz rápido entre 1.6 e 1.7: hidrácido x oxiácido -->
@@ -3001,6 +3014,7 @@ const FAIXAS = [
   { id: 'dialogo1.7',   arquivo: 'audios/dialogo1.7.mp3',   titulo: 'Diálogo 1.7' },
   { id: 'dialogo1.7A',  arquivo: 'audios/dialogo1.7A.mp3',  titulo: 'Diálogo 1.7A' },
   { id: 'dialogo1.7B',  arquivo: 'audios/dialogo1.7B.mp3',  titulo: 'Diálogo 1.7B (quiz)' },
+  { id: 'dialogo1.8',   arquivo: 'audios/dialogo1.8.mp3',   titulo: 'Diálogo 1.8' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -3298,6 +3312,10 @@ const EVENTOS = {
     { t: 0.0,  fn: iniciarQuizMini2 },                             // some as equações; fica título + subtítulo "b)"
     { t: 1.2,  fn: () => qm2Mostrar(0) },                          // 1ª questão (fórmula/equação entra dramático)
   ]),
+  'dialogo1.8':   () => rodarStory([
+    { t: 0.0,  fn: c18Iniciar },                                   // prepara a cena (mantém o título do 1.6 e o "b)" do 1.7)
+    { t: 0.4,  fn: c18Deslizar },                                  // "b)" sai pra direita; "c)" entra pela esquerda (0,4s->3,4s)
+  ]),
 };
 
 const player = new Audio();
@@ -3345,8 +3363,9 @@ function tocarFaixa(i) {
   if (typeof fecharQuiz4 === 'function') fecharQuiz4();   // some a questão 4 (arrastar)
   if (typeof fecharQuizFim === 'function') fecharQuizFim();   // some o card de nota final
   if (typeof limparOverlaysQuiz === 'function') limparOverlaysQuiz();   // garante que nenhum overlay de quiz/cena fique sobreposto
-  if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes e no 1.7
-  if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações (H ionizáveis)
+  if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e no 1.8
+  if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até o 1.8 pra poder deslizar pra fora)
+  if (f.id !== 'dialogo1.8' && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") só no 1.8
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
@@ -5141,6 +5160,28 @@ function esconderCena17() {
   const subB = cena17El.querySelector('.c17-sub'); subB.classList.remove('show'); subB.style.cssText = '';
 }
 
+// ---- Cena do dialogo1.8: força dos ácidos (subtítulo "c)") ----
+const cena18El = $id('cena18');
+// prepara a cena: "c)" começa fora da tela, à esquerda (o título do 1.6 e o "b)" do 1.7 continuam na tela)
+function c18Iniciar() {
+  cena18El.setAttribute('aria-hidden', 'false');
+  const subC = cena18El.querySelector('.c18-sub');
+  subC.classList.remove('show'); subC.style.transition = 'none'; subC.style.transform = 'translateX(-130vw)'; subC.style.opacity = '1';
+}
+// "b)" desliza pra direita (sai) e "c)" entra pela esquerda — igual ao 1.7
+function c18Deslizar() {
+  const subB = cena17El.querySelector('.c17-sub');
+  subB.style.transition = 'transform 3s ease'; subB.style.transform = 'translateX(130vw)';
+  const subC = cena18El.querySelector('.c18-sub');
+  void subC.offsetWidth;
+  subC.style.transition = 'transform 3s ease'; subC.style.transform = 'translateX(0)';
+  subC.classList.add('show');
+}
+function esconderCena18() {
+  cena18El.setAttribute('aria-hidden', 'true');
+  const subC = cena18El.querySelector('.c18-sub'); subC.classList.remove('show'); subC.style.cssText = '';
+}
+
 // ---- Quiz rápido entre 1.6 e 1.7 (hidrácido x oxiácido) ----
 const quizMiniEl = $id('quizMini');
 // esconde TODOS os overlays de quiz/card (evita que uma cena fique sobreposta a outra)
@@ -5150,6 +5191,9 @@ function limparOverlaysQuiz() {
   document.querySelectorAll('.dicaBtn').forEach(b => { b.style.display = 'none'; });
 }
 const qmIssoAudio = new Audio('audios/isso!.mp3');
+// elogio de acerto: reveza aleatoriamente entre "isso!", "muito bem!" e "boa!" (quiz 2 e quiz 3)
+const qmElogios = [qmIssoAudio, new Audio('audios/muitobem!.mp3'), new Audio('audios/boa!.mp3')];
+const qmElogio = () => qmElogios[Math.floor(Math.random() * qmElogios.length)];
 const qmApplause = new Audio('audios/applause.mp3');
 const qmD16W = new Audio('audios/dialogo1.6W.mp3');
 const qmD16R = new Audio('audios/dialogo1.6R.mp3');
@@ -5158,7 +5202,7 @@ const qmTransAudios = [
   new Audio('audios/eesseaqui.mp3'), new Audio('audios/maisesse.mp3'),
   new Audio('audios/eesseaqui.mp3'), new Audio('audios/maisesse.mp3'), new Audio('audios/sómaisesse.mp3'),
 ];
-[qmIssoAudio, qmApplause, qmD16W, qmD16R].concat(qmTransAudios).forEach(a => a.preload = 'auto');
+qmElogios.concat([qmApplause, qmD16W, qmD16R], qmTransAudios).forEach(a => a.preload = 'auto');
 const QM_POOL = [
   { f: 'HF', t: 'hidra' }, { f: 'HCl', t: 'hidra' }, { f: 'HBr', t: 'hidra' }, { f: 'HI', t: 'hidra' }, { f: 'H2S', t: 'hidra' }, { f: 'HCN', t: 'hidra' },
   { f: 'H2SO4', t: 'oxi' }, { f: 'HNO3', t: 'oxi' }, { f: 'H3PO4', t: 'oxi' }, { f: 'H2CO3', t: 'oxi' }, { f: 'HClO', t: 'oxi' }, { f: 'HClO4', t: 'oxi' }, { f: 'H4SiO4', t: 'oxi' },
@@ -5210,7 +5254,7 @@ function qmResponder(val, btn) {
   quizMiniEl.querySelector('.qm-opt[data-v="' + acido.t + '"]').classList.add('certo');   // destaca a correta
   let feedback;
   if (certo) {
-    qmAcertos++; playSfx('funfare'); tocarAudioQuiz(qmApplause); festaConfete(); tocarAudioQuiz(qmIssoAudio); feedback = qmIssoAudio;   // funfare + applause + confete + "isso!"
+    qmAcertos++; playSfx('funfare'); tocarAudioQuiz(qmApplause); festaConfete(); const elg = qmElogio(); tocarAudioQuiz(elg); feedback = elg;   // funfare + applause + confete + elogio aleatório
   } else {
     playSfx('error'); playSfx('lowscore');
     feedback = (acido.t === 'hidra') ? qmD16W : qmD16R;   // era hidrácido -> 1.6W ; era oxiácido -> 1.6R
@@ -5244,7 +5288,7 @@ function esconderQuizMini() {
   qmToken++;
   quizMiniEl.setAttribute('aria-hidden', 'true'); quizMiniEl.classList.remove('show');
   $id('qmFim').classList.remove('show');
-  [qmIssoAudio, qmApplause, qmD16W, qmD16R].concat(qmTransAudios).forEach(pararAudioQuiz);
+  qmElogios.concat([qmApplause, qmD16W, qmD16R], qmTransAudios).forEach(pararAudioQuiz);
 }
 quizMiniEl.querySelectorAll('.qm-opt').forEach(b => { const h = () => qmResponder(b.dataset.v, b); b.addEventListener('click', h); b.addEventListener('pointerup', h); });
 $id('qmRefazer').addEventListener('click', () => { const i = idxFaixa('dialogo1.6A'); if (i >= 0) tocarFaixa(i); });     // refaz o quiz (reinicia o 1.6A)
@@ -5296,8 +5340,8 @@ function qm2Mostrar(i) {
   $id('qm2Num').textContent = 'Questão ' + (i + 1);
   quizMini2El.querySelectorAll('.qm2-opt').forEach(b => { b.disabled = false; b.classList.remove('certo', 'errado'); });
   const q = qm2Questoes[i], el = $id('qm2Formula');
-  el.classList.toggle('eq', !!q.exc);
-  el.innerHTML = q.exc ? q.eq : fmtFormula(q.f);   // exceção -> equação de ionização; normal -> só a fórmula
+  el.classList.remove('eq');
+  el.innerHTML = fmtFormula(q.f);   // começa SEMPRE só com a fórmula (nas exceções a equação só aparece após responder)
   el.classList.remove('sai'); void el.offsetWidth; el.classList.add('entra');
   quizMini2El.classList.add('show');
 }
@@ -5306,6 +5350,12 @@ function qm2UmaVez(audio, fn, fallbackMs) {
   const run = () => { if (done) return; done = true; if (audio) audio.removeEventListener('ended', run); clearTimeout(t); if (tok !== qm2Token) return; fn(); };
   const t = setTimeout(run, fallbackMs);
   if (audio) audio.addEventListener('ended', run); else run();
+}
+// exceção: troca a fórmula pela equação de ionização (fica na tela junto com o áudio, até ele terminar)
+function qm2MostrarEquacao(q) {
+  const el = $id('qm2Formula');
+  el.classList.add('eq'); el.innerHTML = q.eq;
+  el.classList.remove('sai', 'entra'); void el.offsetWidth; el.classList.add('entra');
 }
 function qm2Responder(cat) {
   if (qm2Resp || !quizMini2El.classList.contains('show')) return; qm2Resp = true;
@@ -5321,13 +5371,14 @@ function qm2Responder(cat) {
     else if (q.exc) {                                                        // par H3PO2/H3BO3
       narr = qm2ParExcAcertado ? qm2R2PO2BO3 : qm2RH3BO3PO2;                 // 1ª acerto do par -> atual; 2ª -> R2
       qm2ParExcAcertado = true;
-    } else narr = qmIssoAudio;
+    } else narr = qmElogio();
     tocarAudioQuiz(narr);
+    if (q.exc) qm2MostrarEquacao(q);   // revela a equação de ionização junto com o áudio
   } else {
     playSfx('error'); playSfx('lowscore');
     narr = q.exc === 'po3' ? qm2WH3PO3 : (q.exc ? qm2WH3PO2BO3 : qm2R[q.cat]);
-    const nn = narr, tok = qm2Token;
-    setTimeout(() => { if (tok === qm2Token) tocarAudioQuiz(nn); }, 900);
+    const nn = narr, tok = qm2Token, qq = q;
+    setTimeout(() => { if (tok === qm2Token) { tocarAudioQuiz(nn); if (qq.exc) qm2MostrarEquacao(qq); } }, 900);
   }
   qm2UmaVez(narr, qm2Depois, 25000);   // avança só quando o áudio de feedback termina (o fallback é só rede de segurança)
 }
@@ -5354,11 +5405,11 @@ function esconderQuizMini2() {
   qm2Token++;
   quizMini2El.setAttribute('aria-hidden', 'true'); quizMini2El.classList.remove('show');
   $id('qm2Fim').classList.remove('show');
-  [qmIssoAudio, qmApplause, qm2REH3PO3, qm2WH3PO3, qm2RH3BO3PO2, qm2R2PO2BO3, qm2WH3PO2BO3].concat(qm2R.slice(1)).forEach(pararAudioQuiz);
+  qmElogios.concat([qmApplause, qm2REH3PO3, qm2WH3PO3, qm2RH3BO3PO2, qm2R2PO2BO3, qm2WH3PO2BO3], qm2R.slice(1)).forEach(pararAudioQuiz);
 }
 quizMini2El.querySelectorAll('.qm2-opt').forEach(b => { const h = () => qm2Responder(parseInt(b.dataset.cat, 10)); b.addEventListener('click', h); b.addEventListener('pointerup', h); });
 $id('qm2Refazer').addEventListener('click', () => { const i = idxFaixa('dialogo1.7B'); if (i >= 0) tocarFaixa(i); });   // refaz o quiz 2
-$id('qm2Continuar').addEventListener('click', () => { esconderQuizMini2(); const pb = $id('playBtn'); pb.style.display = ''; faixaTerminou = true; });   // segue o audiobook
+$id('qm2Continuar').addEventListener('click', () => { esconderQuizMini2(); const i = idxFaixa('dialogo1.8'); if (i >= 0) tocarFaixa(i); });   // ao continuar: toca o 1.8 (força) — "b)" desliza pra fora e "c)" entra pela esquerda
 
 // os 3 ácidos voltam à bancada mostrando SÓ a etiqueta da fórmula (sem os nomes) — dialogo1.5A
 function mostrarAcidosSoEtiqueta() {
