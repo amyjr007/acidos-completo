@@ -1523,7 +1523,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.52.0</div>
+<div id="versao">v1.53.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2193,6 +2193,22 @@ bench18.forEach(item => {
   item.beaker = b;
 });
 
+// Ácidos líquidos do 1.8 (comparação de força com a pipeta): HNO2 na ponta esquerda, HCl no meio.
+// pos/locked/name compatíveis com tipContainer (pipReagentes = acidos18 durante o 1.8).
+const acidos18 = [
+  { name: 'HNO₂', parts: [{ t: 'HNO' }, { t: '2', sub: true }], pos: [-1.8, 0.3, 1.5], locked: false },
+  { name: 'HCl',  parts: [{ t: 'HCl' }],                        pos: [1.0, 0.3, 1.5],  locked: false },
+];
+acidos18.forEach(a => {
+  const b = makeBeaker(1.1, 2.6, 0xe6f2fa, 0.5, 0.14);
+  a.label = addLabel(b, a.parts, 1.1, 2.6);
+  b.position.set(a.pos[0], a.pos[1], a.pos[2]);
+  b.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  b.visible = false;
+  scene.add(b);
+  a.beaker = b;
+});
+
 // (sombras fake removidas — sem efeitos de sombra)
 
 // ---------- Pipeta ----------
@@ -2253,11 +2269,13 @@ let squeezeTime = -10;
 const ACID_SURF = 0.3 + 2.6 * 0.5 + 0.06;
 const WATER_SURF = 0.3 + 3.4 * 0.62 + 0.06;
 
+// água/ácidos que a pipeta reconhece — 1.3B usa o padrão; o 1.8 troca (ver setPipetaCena)
+let pipAguaX = WATER_X, pipReagentes = reagents, pip18Ativo = false, pipDragBloqueada = false;
 function tipContainer() {
   const x = pipette.position.x, y = pipette.position.y;
-  if (Math.abs(x - WATER_X) < 1.5 && y < WATER_SURF) return { name: 'água', color: 0x4aa8e8 };
-  for (const r of reagents) {
-    if (r.locked) continue;   // copo bloqueado (ex.: HCl/H2CO3 no 1.3B) não pode ser usado
+  if (Math.abs(x - pipAguaX) < 1.5 && y < WATER_SURF) return { name: 'água', color: 0x4aa8e8 };
+  for (const r of pipReagentes) {
+    if (r.locked) continue;   // copo bloqueado não pode ser usado
     if (Math.abs(x - r.pos[0]) < 0.95 && y < ACID_SURF) return { name: r.name, color: 0xdcedf7 };
   }
   return null;
@@ -2265,12 +2283,11 @@ function tipContainer() {
 // ponta sobre um copo BLOQUEADO (pra dar um aviso claro em vez de silêncio)
 function tipSobreCopoBloqueado() {
   const x = pipette.position.x, y = pipette.position.y;
-  return reagents.some(r => r.locked && Math.abs(x - r.pos[0]) < 0.95 && y < ACID_SURF);
+  return pipReagentes.some(r => r.locked && Math.abs(x - r.pos[0]) < 0.95 && y < ACID_SURF);
 }
 
-// escurece/restaura um copo (indica "inativo" no 1.3B). Reversível.
-function escurecerCopo(idx, on) {
-  const b = reagents[idx] && reagents[idx].beaker;
+// escurece/restaura um béquer (indica "inativo"). Reversível.
+function escurecerBeaker(b, on) {
   if (!b) return;
   b.traverse(o => {
     if (!o.material) return;
@@ -2282,6 +2299,7 @@ function escurecerCopo(idx, on) {
     });
   });
 }
+function escurecerCopo(idx, on) { escurecerBeaker(reagents[idx] && reagents[idx].beaker, on); }
 
 // gotas
 const drops = [];
@@ -2293,8 +2311,8 @@ function spawnDrop() {
   drops.push({ mesh: d, vy: 0 });
 }
 function dropFloorY(x) {
-  if (Math.abs(x - WATER_X) < 1.4) return WATER_SURF; // água
-  for (const r of reagents) if (Math.abs(x - r.pos[0]) < 0.95) return ACID_SURF;
+  if (Math.abs(x - pipAguaX) < 1.4) return WATER_SURF; // água
+  for (const r of pipReagentes) if (Math.abs(x - r.pos[0]) < 0.95) return ACID_SURF;
   return 0.36; // bancada
 }
 
@@ -2407,7 +2425,7 @@ function mostrarHmais() {
   for (let i = 0; i < 7; i++) {
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: hmaisTex, transparent: true, opacity: 0, depthTest: false, fog: false }));
     const sc = 0.55 + Math.random() * 0.35; s.scale.set(sc, sc, sc);
-    s.position.set(WATER_X + (Math.random() - 0.5) * 2.0, 0.7 + Math.random() * (WATER_SURF - 1.0), 1.5 + (Math.random() - 0.5) * 1.4);
+    s.position.set(pipAguaX + (Math.random() - 0.5) * 2.0, 0.7 + Math.random() * (WATER_SURF - 1.0), 1.5 + (Math.random() - 0.5) * 1.4);
     s.userData = { phase: Math.random() * 6.28, base: s.position.y, amp: 0.06 + Math.random() * 0.08 };
     scene.add(s); hmaisSprites.push(s);
   }
@@ -2768,7 +2786,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
     return;
   }
 
-  if (!pipDrag) {
+  if (!pipDrag && !pipDragBloqueada) {
     const part = raycastPipette(e);
     if (part) {
       raycaster.ray.intersectPlane(dragPlane, planePoint);
@@ -3014,6 +3032,11 @@ function animate() {
         }
       }
     }
+  }
+  // pipeta interativa do 1.8 (só HNO2): ao pingar na água, aparecem H+ (poucos — ácido fraco)
+  if (pip18Ativo && demoInterativo.expelindo && pipFill < 0.05) {
+    demoInterativo.expelindo = false;
+    if (Math.abs(pipette.position.x - pipAguaX) < 1.6) mostrarHmais();
   }
 
   // mãozinha de OK acompanhando o frasco de HCl (projeta a posição 3D na tela)
@@ -3494,12 +3517,24 @@ const EVENTOS = {
     { t: 1.0,  fn: () => qm2Mostrar(0) },                          // 1ª questão entra 1s depois do áudio começar
   ]),
   'dialogo1.8':   () => rodarStory([
-    { t: 0.0,  fn: c18Iniciar },                                   // prepara a cena (mantém o título do 1.6 e o "b)" do 1.7)
+    { t: 0.0,  fn: c18Iniciar },                                   // prepara a cena (título do 1.6 + "b)" do 1.7)
     { t: 0.0,  fn: c18BancadaInicio },                             // béquer com água (direita) entra no início
-    { t: 0.4,  fn: c18Deslizar },                                  // "b)" sai pra direita; "c)" entra pela esquerda (0,4s->3,4s)
-    { t: 13.0, fn: () => irParaCamera({ theta: -0.002, phi: 1.534, dist: 22.73, target: [0.2, 5.23, 0.77] }, true, 1500) },   // enquadra a bancada
-    { t: 31.0, fn: c18Frascos },                                   // entra o balão gerador de HCl (esquerda)
-    { t: 38.0, fn: montarAparato },                                // PROVISÓRIO: monta o aparato (me diga o tempo do "monte o aparato" que eu ajusto)
+    { t: 0.4,  fn: c18Deslizar },                                  // "b)" sai; "c)" entra pela esquerda
+    { t: 10.0, fn: () => stShow('center', 'Ácidos corroem vários materiais') },
+    { t: 12.0, fn: stSair },
+    { t: 15.0, fn: () => stShow('center', 'A força de um ácido não tem a ver com poder de corrosão!') },
+    { t: 18.0, fn: stSair },
+    { t: 20.0, fn: () => stShow('center', 'A força tem a ver com a capacidade de liberar H<sup>+</sup> em solução.') },
+    { t: 23.5, fn: () => stShow('center', 'Quanto mais H<sup>+</sup> ele libera, mais forte é o ácido!') },   // embaixo do anterior
+    { t: 29.0, fn: stSair },
+    { t: 30.0, fn: () => irParaCamera({ theta: -0.002, phi: 1.534, dist: 26.0, target: [0.6, 5.0, 0.77] }, true, 1800) },   // vai pra bancada (só a água)
+    { t: 33.0, fn: c18Acidos },                                    // os dois ácidos à esquerda da água (HNO2 na ponta, HCl no meio)
+    { t: 56.0, fn: c18EscurecerHCl },                              // HCl escuro (e travado)
+    { t: 58.0, fn: c18Pipeta },                                    // pipeta aparece (travada) em cima da água
+    { t: 63.0, fn: () => stShow('top', 'Cada sugada só puxa 10 moléculas') },
+    { t: 69.0, fn: stSair },
+    { t: 70.0, fn: () => stShow('top', 'Isso é só uma simulação') },
+    { t: 77.0, fn: () => { stSair(); c18PipetaInterativa(); } },   // some o texto; libera a pipeta (interação igual ao 1.3B, só o HNO2)
   ]),
 };
 
@@ -5424,21 +5459,47 @@ function esconderCena18() {
   const subC = cena18El.querySelector('.c18-sub'); subC.classList.remove('show'); subC.style.cssText = '';
   c18EsconderBancada();
 }
-// bancada do 1.8: balão de HCl (esquerda) + béquer com água (direita) + aparato (toggle)
+// bancada do 1.8: béquer com água (direita) + HNO2/HCl líquidos (esquerda) + pipeta
+let cena18Pipeta = false;
 function c18EsconderBancada() {
   bench18.forEach(item => { item.beaker.visible = false; if (item.label) item.label.visible = false; });
+  acidos18.forEach(a => { a.beaker.visible = false; if (a.label) a.label.visible = false; escurecerBeaker(a.beaker, false); a.locked = false; });
   if (aparato18) aparato18.visible = false;
+  if (cena18Pipeta) {   // só reseta a pipeta se ela estava no modo do 1.8 (não mexe no 1.3B)
+    cena18Pipeta = false; pip18Ativo = false; pipDragBloqueada = false; pipAguaX = WATER_X; pipReagentes = reagents;
+    pipette.visible = false; pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
+    if (typeof limparHmais === 'function') limparHmais();
+  }
 }
 function c18BancadaInicio() {
   if (typeof esconderAcidosBancada === 'function') esconderAcidosBancada();   // some os 3 ácidos da bancada + pipeta
-  if (waterBeaker.visible) fade3D(waterBeaker, 0, 300);                       // a água principal (esquerda) não faz parte do 1.8
+  if (waterBeaker.visible) fade3D(waterBeaker, 0, 300);                       // a água principal do 1.3/1.4 não faz parte do 1.8
   c18EsconderBancada();
   const ag = bench18.find(it => it.water);
-  if (ag) fade3D(ag.beaker, 1, 700);                                          // béquer de água (direita) entra no início
+  if (ag) fade3D(ag.beaker, 1, 700);                                          // béquer de água (direita) entra no início ("a princípio, só a água")
 }
-function c18Frascos() {   // 31s: entra o balão gerador de HCl (esquerda)
-  const fl = bench18.find(it => it.flask);
-  if (fl) { if (fl.label) fl.label.visible = true; fade3D(fl.beaker, 1, 800); }
+function c18Acidos() {   // 33s: entram os dois ácidos à esquerda da água (HNO2 na ponta, HCl no meio)
+  acidos18.forEach(a => { if (a.label) a.label.visible = true; fade3D(a.beaker, 1, 800); });
+}
+function c18EscurecerHCl() {   // 56s: HCl escuro e travado (a pipeta só vai pegar o HNO2)
+  const hcl = acidos18.find(a => a.name === 'HCl');
+  if (hcl) { escurecerBeaker(hcl.beaker, true); hcl.locked = true; }
+}
+function c18Pipeta() {   // 58s: pipeta aparece (travada) em cima da água
+  cena18Pipeta = true; pipDragBloqueada = true;
+  const wx = bench18.find(it => it.water).beaker.position.x;
+  pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
+  pipette.position.set(wx, 4.2, PLANE_Z);
+  fade3D(pipette, 1, 700);
+}
+function c18PipetaInterativa() {   // 1:17: libera o movimento; interação igual ao 1.3B (só o HNO2)
+  const wx = bench18.find(it => it.water).beaker.position.x;
+  pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
+  pipette.position.set(wx, 4.2, PLANE_Z);
+  if (!pipette.visible) fade3D(pipette, 1, 500);
+  pipAguaX = wx; pipReagentes = acidos18; pip18Ativo = true; pipDragBloqueada = false;
+  demoInterativo = { ativo: false, encheu: false, derramou: false, expelindo: false };
+  $id('ajudaBtn').style.display = '';
 }
 
 // ---- Aparato de transferência do gás: tubo de vidro + funil invertido + válvula (abre/fecha) ----
