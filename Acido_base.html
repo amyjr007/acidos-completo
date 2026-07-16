@@ -1082,8 +1082,8 @@
   #cena17 .c17-lab .c17-p1, #cena17 .c17-lab .c17-p2 { opacity: 0; transition: opacity .4s ease; }
   #cena17 .c17-lab .c17-p1.show, #cena17 .c17-lab .c17-p2.show { opacity: 1; }
   /* ---- Quiz rápido (hidrácido x oxiácido) entre 1.6 e 1.7 ---- */
-  #quizMini { position: fixed; inset: 0; z-index: 44; pointer-events: none; opacity: 0; transition: opacity .4s ease; }
-  #quizMini.show { opacity: 1; }
+  #quizMini { position: fixed; inset: 0; z-index: 44; pointer-events: none; display: none; }
+  #quizMini.show { display: block; }   /* escondido = display:none -> some do hit-test (não intercepta outro quiz) */
   #quizMini .qm-num {
     position: absolute; top: 22.5%; left: 0; right: 0; text-align: center;
     font-family: system-ui, sans-serif; font-weight: 800; color: #a6e534; letter-spacing: .06em;
@@ -1104,9 +1104,8 @@
   }
   #quizMini .qm-opts {
     position: absolute; left: 0; right: 0; bottom: calc(8% + 2.6rem + env(safe-area-inset-bottom));   /* 1,5 linhas acima */
-    display: flex; justify-content: center; gap: clamp(12px, 4vw, 28px); pointer-events: none; flex-wrap: wrap;
+    display: flex; justify-content: center; gap: clamp(12px, 4vw, 28px); pointer-events: auto; flex-wrap: wrap;
   }
-  #quizMini.show .qm-opts { pointer-events: auto; }   /* só clicável quando o quiz está visível */
   #quizMini .qm-opt {
     font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(15px, 4.4vw, 20px); color: #eaf7d9;
     padding: .7em 1.5em; border-radius: 14px; background: rgba(255, 255, 255, .08); border: 2px solid rgba(166, 229, 52, .5);
@@ -1132,8 +1131,8 @@
   #qmFim .qfSec:hover { background: rgba(166, 229, 52, .12); }
   #qmFim.show .qfCard { animation: quizPop .5s cubic-bezier(.2, .8, .3, 1.2) both; }
   /* ---- Quiz 2 (H ionizáveis): fórmula/equação + 4 alternativas ---- */
-  #quizMini2 { position: fixed; inset: 0; z-index: 44; pointer-events: none; opacity: 0; transition: opacity .4s ease; }
-  #quizMini2.show { opacity: 1; }
+  #quizMini2 { position: fixed; inset: 0; z-index: 44; pointer-events: none; display: none; }
+  #quizMini2.show { display: block; }   /* escondido = display:none -> some do hit-test */
   #quizMini2 .qm-num {
     position: absolute; top: 22.5%; left: 0; right: 0; text-align: center;
     font-family: system-ui, sans-serif; font-weight: 800; color: #a6e534; letter-spacing: .06em;
@@ -1160,10 +1159,9 @@
   }
   #quizMini2 .qm2-opts {
     position: absolute; left: 0; right: 0; bottom: calc(7% + 2.6rem + env(safe-area-inset-bottom));   /* 1,5 linhas acima */
-    display: flex; justify-content: center; gap: clamp(10px, 3vw, 18px); pointer-events: none; flex-wrap: wrap;
+    display: flex; justify-content: center; gap: clamp(10px, 3vw, 18px); pointer-events: auto; flex-wrap: wrap;
     max-width: 520px; margin: 0 auto; padding: 0 14px;
   }
-  #quizMini2.show .qm2-opts { pointer-events: auto; }   /* só clicável quando o quiz está visível */
   #quizMini2 .qm2-opt {
     flex: 1 1 40%; min-width: 130px; font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(14px, 4vw, 18px);
     color: #eaf7d9; padding: .7em .6em; border-radius: 14px; background: rgba(255, 255, 255, .08); border: 2px solid rgba(166, 229, 52, .5);
@@ -1437,7 +1435,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.41.0</div>
+<div id="versao">v1.42.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5247,7 +5245,7 @@ function esconderQuizMini() {
   $id('qmFim').classList.remove('show');
   [qmIssoAudio, qmApplause, qmD16W, qmD16R].concat(qmTransAudios).forEach(pararAudioQuiz);
 }
-quizMiniEl.querySelectorAll('.qm-opt').forEach(b => { const h = e => { e.preventDefault(); qmResponder(b.dataset.v, b); }; b.addEventListener('pointerup', h); b.addEventListener('click', h); });
+quizMiniEl.querySelectorAll('.qm-opt').forEach(b => { const h = () => qmResponder(b.dataset.v, b); b.addEventListener('click', h); b.addEventListener('pointerup', h); });
 $id('qmRefazer').addEventListener('click', () => { const i = idxFaixa('dialogo1.6A'); if (i >= 0) tocarFaixa(i); });     // refaz o quiz (reinicia o 1.6A)
 $id('qmContinuar').addEventListener('click', () => { esconderQuizMini(); const i = idxFaixa('dialogo1.7'); if (i >= 0) tocarFaixa(i); });   // vai pro 1.7
 
@@ -5351,7 +5349,7 @@ function esconderQuizMini2() {
   $id('qm2Fim').classList.remove('show');
   [qmIssoAudio, qmApplause, qm2REH3PO3, qm2WH3PO3, qm2RH3BO3PO2, qm2WH3PO2BO3].concat(qm2R.slice(1)).forEach(pararAudioQuiz);
 }
-quizMini2El.querySelectorAll('.qm2-opt').forEach(b => { const h = e => { e.preventDefault(); qm2Responder(parseInt(b.dataset.cat, 10)); }; b.addEventListener('pointerup', h); b.addEventListener('click', h); });
+quizMini2El.querySelectorAll('.qm2-opt').forEach(b => { const h = () => qm2Responder(parseInt(b.dataset.cat, 10)); b.addEventListener('click', h); b.addEventListener('pointerup', h); });
 $id('qm2Refazer').addEventListener('click', () => { const i = idxFaixa('dialogo1.7B'); if (i >= 0) tocarFaixa(i); });   // refaz o quiz 2
 $id('qm2Continuar').addEventListener('click', () => { esconderQuizMini2(); const pb = $id('playBtn'); pb.style.display = ''; faixaTerminou = true; });   // segue o audiobook
 
