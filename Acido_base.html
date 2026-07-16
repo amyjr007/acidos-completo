@@ -516,9 +516,9 @@
   /* ---- Questão 2 (papel de tornassol na cena 3D) ---- */
   #quiz2 {
     position: fixed; inset: 0; z-index: 47; pointer-events: none;
-    opacity: 0; transition: opacity .45s ease;
+    display: none;   /* escondido = fora do hit-test; os botoes A/B/C (pointer-events:auto) não interceptam outros quizzes */
   }
-  #quiz2.show { opacity: 1; }
+  #quiz2.show { display: block; }
   #quiz2 .q2tit {
     position: absolute; left: 50%; top: calc(14px + env(safe-area-inset-top)); transform: translateX(-50%);
     width: min(92vw, 620px); pointer-events: auto; text-align: center;
@@ -1435,7 +1435,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.42.0</div>
+<div id="versao">v1.43.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5256,9 +5256,11 @@ const qm2R = [null,   // erro por categoria (1=mono, 2=di, 3=tri, 4=tetra)
   new Audio('audios/dialogo1.7R3.mp3'), new Audio('audios/dialogo1.7R4.mp3')];
 const qm2REH3PO3 = new Audio('audios/dialogo1.7REH3PO3.mp3');       // H3PO3 acerto
 const qm2WH3PO3 = new Audio('audios/dialogo1.7WH3PO3.mp3');        // H3PO3 erro
-const qm2RH3BO3PO2 = new Audio('audios/dialogo1.7RH3BO3.H3PO2.mp3'); // H3PO2/H3BO3 acerto
+const qm2RH3BO3PO2 = new Audio('audios/dialogo1.7RH3BO3.H3PO2.mp3'); // H3PO2/H3BO3 acerto (1ª vez)
+const qm2R2PO2BO3 = new Audio('audios/dialogo1.7R2H3PO2.H3BO3.mp3'); // H3PO2/H3BO3 acerto (2ª exceção do par)
 const qm2WH3PO2BO3 = new Audio('audios/dialogo1.7WH3PO2.H3BO3.mp3'); // H3PO2/H3BO3 erro
-[qm2REH3PO3, qm2WH3PO3, qm2RH3BO3PO2, qm2WH3PO2BO3].concat(qm2R.slice(1)).forEach(a => a.preload = 'auto');
+[qm2REH3PO3, qm2WH3PO3, qm2RH3BO3PO2, qm2R2PO2BO3, qm2WH3PO2BO3].concat(qm2R.slice(1)).forEach(a => a.preload = 'auto');
+let qm2ParExcAcertado = false;   // já acertou uma das exceções do par H3PO2/H3BO3?
 const QM2_NORMAIS = [
   { f: 'HCl', cat: 1 }, { f: 'HNO3', cat: 1 }, { f: 'HClO', cat: 1 }, { f: 'HF', cat: 1 }, { f: 'HBr', cat: 1 }, { f: 'HClO4', cat: 1 },
   { f: 'H2SO4', cat: 2 }, { f: 'H2CO3', cat: 2 }, { f: 'H2S', cat: 2 }, { f: 'H2SO3', cat: 2 },
@@ -5284,7 +5286,7 @@ function iniciarQuizMini2() {
   cena17El.setAttribute('aria-hidden', 'false');
   cena17El.querySelector('.c17-sub').classList.add('show');
   cena17El.classList.remove('acidos', 'equacoes');   // some as equações do 1.7; fica só o subtítulo "b)"
-  qm2Questoes = qm2Sortear(); qm2Idx = 0; qm2Acertos = 0; qm2Token++;
+  qm2Questoes = qm2Sortear(); qm2Idx = 0; qm2Acertos = 0; qm2Token++; qm2ParExcAcertado = false;
   quizMini2El.setAttribute('aria-hidden', 'false'); quizMini2El.classList.remove('show');
   $id('qm2Fim').classList.remove('show');
 }
@@ -5314,7 +5316,11 @@ function qm2Responder(cat) {
   let narr;
   if (certo) {
     qm2Acertos++; playSfx('funfare'); tocarAudioQuiz(qmApplause); festaConfete();
-    narr = q.exc === 'po3' ? qm2REH3PO3 : (q.exc ? qm2RH3BO3PO2 : qmIssoAudio);
+    if (q.exc === 'po3') narr = qm2REH3PO3;                                  // H3PO3 (diácido): áudio próprio
+    else if (q.exc) {                                                        // par H3PO2/H3BO3
+      narr = qm2ParExcAcertado ? qm2R2PO2BO3 : qm2RH3BO3PO2;                 // 1ª acerto do par -> atual; 2ª -> R2
+      qm2ParExcAcertado = true;
+    } else narr = qmIssoAudio;
     tocarAudioQuiz(narr);
   } else {
     playSfx('error'); playSfx('lowscore');
@@ -5322,7 +5328,7 @@ function qm2Responder(cat) {
     const nn = narr, tok = qm2Token;
     setTimeout(() => { if (tok === qm2Token) tocarAudioQuiz(nn); }, 900);
   }
-  qm2UmaVez(narr, qm2Depois, certo ? 4000 : 8000);
+  qm2UmaVez(narr, qm2Depois, 25000);   // avança só quando o áudio de feedback termina (o fallback é só rede de segurança)
 }
 function qm2Depois() {
   const proceder = () => {
@@ -5347,7 +5353,7 @@ function esconderQuizMini2() {
   qm2Token++;
   quizMini2El.setAttribute('aria-hidden', 'true'); quizMini2El.classList.remove('show');
   $id('qm2Fim').classList.remove('show');
-  [qmIssoAudio, qmApplause, qm2REH3PO3, qm2WH3PO3, qm2RH3BO3PO2, qm2WH3PO2BO3].concat(qm2R.slice(1)).forEach(pararAudioQuiz);
+  [qmIssoAudio, qmApplause, qm2REH3PO3, qm2WH3PO3, qm2RH3BO3PO2, qm2R2PO2BO3, qm2WH3PO2BO3].concat(qm2R.slice(1)).forEach(pararAudioQuiz);
 }
 quizMini2El.querySelectorAll('.qm2-opt').forEach(b => { const h = () => qm2Responder(parseInt(b.dataset.cat, 10)); b.addEventListener('click', h); b.addEventListener('pointerup', h); });
 $id('qm2Refazer').addEventListener('click', () => { const i = idxFaixa('dialogo1.7B'); if (i >= 0) tocarFaixa(i); });   // refaz o quiz 2
