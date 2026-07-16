@@ -282,6 +282,7 @@
     font-size: clamp(30px, 8.5vw, 50px); font-weight: 900;
     color: var(--acid); text-shadow: 0 0 16px var(--acid-glow);
   }
+  .st-desce { position: relative; top: 0.84em; }   /* desce ~0.75 linha (0.75 x line-height 1.12) */
   /* Texto dos indicadores (persiste entre 1.4 e 1.4A, sem flicker) */
   #indicadorTxt {
     position: fixed; top: 50%; left: 0; right: 0; z-index: 41;
@@ -1523,7 +1524,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.54.0</div>
+<div id="versao">v1.55.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3538,9 +3539,9 @@ const EVENTOS = {
     { t: 33.0, fn: c18Acidos },                                    // os dois ácidos à esquerda da água (HNO2 na ponta, HCl no meio)
     { t: 56.0, fn: c18EscurecerHCl },                              // HCl escuro (e travado)
     { t: 58.0, fn: c18Pipeta },                                    // pipeta aparece (travada) em cima da água
-    { t: 63.0, fn: () => stShow('top', 'Cada sugada só puxa 10 moléculas') },
+    { t: 63.0, fn: () => stShow('top', 'Cada sugada só puxa 10 moléculas', 'st-desce') },
     { t: 69.0, fn: stSair },
-    { t: 70.0, fn: () => stShow('top', 'Isso é só uma simulação') },
+    { t: 70.0, fn: () => stShow('top', 'Isso é só uma simulação', 'st-desce') },
     { t: 77.0, fn: () => { stSair(); c18PipetaInterativa(); } },   // some o texto; libera a pipeta (interação igual ao 1.3B, só o HNO2)
   ]),
 };
@@ -5522,7 +5523,7 @@ function c18Dialogo18A() {
   if (i < 0) return;
   faixaAtual = i; faixaTerminou = false;
   limparStory();
-  const pb = $id('playBtn'); pb.classList.remove('jogar'); pb.style.display = '';
+  const pb = $id('playBtn'); pb.classList.remove('jogar'); pb.style.display = 'none';   // cena interativa: sem play durante o 1.8A
   player.src = FAIXAS[i].arquivo;
   const pr = player.play(); if (pr && pr.catch) pr.catch(() => {});
   if (typeof marcarSumario === 'function') marcarSumario();
