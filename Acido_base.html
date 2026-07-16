@@ -1237,6 +1237,14 @@
     60%  { opacity: 1; }
     100% { opacity: 1; transform: translateX(0); }
   }
+  #quizMini2 .qm2-prox {   /* botão "Próximo" só nas exceções, abaixo da equação */
+    position: absolute; top: 46%; left: 50%; transform: translateX(-50%) translateY(8px);
+    padding: 10px 32px; border: none; border-radius: 999px; cursor: pointer;
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(15px, 4.4vw, 20px);
+    background: #a6e534; color: #14320a; box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+    opacity: 0; pointer-events: none; transition: opacity .35s ease, transform .35s cubic-bezier(.2, .9, .25, 1.4);
+  }
+  #quizMini2 .qm2-prox.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
   #quizMini2 .qm2-opts {
     position: absolute; left: 0; right: 0; bottom: calc(7% + 2.6rem + env(safe-area-inset-bottom));   /* 1,5 linhas acima */
     display: flex; justify-content: center; gap: clamp(10px, 3vw, 18px); pointer-events: auto; flex-wrap: wrap;
@@ -1515,7 +1523,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.47.0</div>
+<div id="versao">v1.48.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1706,6 +1714,7 @@
   <div class="qm-num" id="qm2Num">Questão 1</div>
   <div class="qm2-formula" id="qm2Formula"></div>
   <div class="qm2-eq" id="qm2Eq"></div>
+  <button class="qm2-prox" id="qm2Prox">Próximo</button>
   <div class="qm2-opts">
     <button class="qm2-opt" data-cat="1">1. Monoácido</button>
     <button class="qm2-opt" data-cat="2">2. Diácido</button>
@@ -3409,7 +3418,7 @@ const EVENTOS = {
   ]),
   'dialogo1.7B':  () => rodarStory([
     { t: 0.0,  fn: iniciarQuizMini2 },                             // some as equações; fica título + subtítulo "b)"
-    { t: 1.2,  fn: () => qm2Mostrar(0) },                          // 1ª questão (fórmula/equação entra dramático)
+    { t: 1.0,  fn: () => qm2Mostrar(0) },                          // 1ª questão entra 1s depois do áudio começar
   ]),
   'dialogo1.8':   () => rodarStory([
     { t: 0.0,  fn: c18Iniciar },                                   // prepara a cena (mantém o título do 1.6 e o "b)" do 1.7)
@@ -5475,7 +5484,12 @@ function qm2Sortear() {
   const tri = emb(QM2_NORMAIS.filter(a => a.cat === 3)).slice(0, 1);
   const tetra = emb(QM2_NORMAIS.filter(a => a.cat === 4)).slice(0, 1);
   const monodi = emb(QM2_NORMAIS.filter(a => a.cat < 3)).slice(0, 3);
-  return emb(tri.concat(tetra, monodi, QM2_EXC));   // 1 tri + 1 tetra + 3 mono/di + 3 exceções = 8
+  const qs = emb(tri.concat(tetra, monodi, QM2_EXC));   // 1 tri + 1 tetra + 3 mono/di + 3 exceções = 8
+  if (qs[qs.length - 1].exc) {   // nunca deixa uma exceção por último (a última questão nunca é exceção)
+    const iNorm = qs.findIndex(q => !q.exc);
+    [qs[iNorm], qs[qs.length - 1]] = [qs[qs.length - 1], qs[iNorm]];
+  }
+  return qs;
 }
 function iniciarQuizMini2() {
   cena16El.setAttribute('aria-hidden', 'false');
@@ -5493,6 +5507,7 @@ function qm2Mostrar(i) {
   $id('qm2Num').textContent = 'Questão ' + (i + 1);
   quizMini2El.querySelectorAll('.qm2-opt').forEach(b => { b.disabled = false; b.classList.remove('certo', 'errado'); });
   const q = qm2Questoes[i], fEl = $id('qm2Formula'), eEl = $id('qm2Eq');
+  $id('qm2Prox').classList.remove('show');                                                // esconde o botão do exemplo anterior
   eEl.classList.remove('entra-esq', 'sai'); eEl.innerHTML = '';                          // equação escondida (reseta um push anterior)
   fEl.classList.remove('eq', 'sai', 'sai-dir', 'entra'); fEl.innerHTML = fmtFormula(q.f); // começa SEMPRE só com a fórmula
   void fEl.offsetWidth; fEl.classList.add('entra');
@@ -5533,19 +5548,21 @@ function qm2Responder(cat) {
     const nn = narr, tok = qm2Token, qq = q;
     setTimeout(() => { if (tok === qm2Token) { tocarAudioQuiz(nn); if (qq.exc) qm2MostrarEquacao(qq); } }, 900);
   }
-  qm2UmaVez(narr, qm2Depois, 25000);   // avança só quando o áudio de feedback termina (o fallback é só rede de segurança)
+  // exceções: NÃO avança sozinho — mostra o botão "Próximo" quando o áudio acaba; normais avançam automático
+  qm2UmaVez(narr, q.exc ? qm2MostrarProx : qm2Depois, 25000);
+}
+function qm2MostrarProx() { $id('qm2Prox').classList.add('show'); }
+function qm2Proceder() {
+  if (qm2Idx >= 7) { qm2FimQuiz(); return; }
+  const atual = qm2Questoes[qm2Idx];
+  const el = atual.exc ? $id('qm2Eq') : $id('qm2Formula');   // nas exceções quem está na tela é a equação
+  el.classList.remove('entra', 'entra-esq'); void el.offsetWidth; el.classList.add('sai');
+  const tok = qm2Token, prox = qm2Idx + 1, trans = qm2Trans(prox);
+  setTimeout(() => { if (tok !== qm2Token) return; tocarAudioQuiz(trans); qm2Mostrar(prox); }, 520);   // áudio de transição junto com a entrada do novo exemplo
 }
 function qm2Depois() {
-  const proceder = () => {
-    if (qm2Idx >= 7) { qm2FimQuiz(); return; }
-    const atual = qm2Questoes[qm2Idx];
-    const el = atual.exc ? $id('qm2Eq') : $id('qm2Formula');   // nas exceções quem está na tela é a equação
-    el.classList.remove('entra', 'entra-esq'); void el.offsetWidth; el.classList.add('sai');
-    const tok = qm2Token, prox = qm2Idx + 1, trans = qm2Trans(prox);
-    setTimeout(() => { if (tok !== qm2Token) return; tocarAudioQuiz(trans); qm2Mostrar(prox); }, 520);   // áudio de transição junto com a entrada do novo exemplo
-  };
-  if (!qm2UltimaCerta) { const tok = qm2Token; setTimeout(() => { if (tok === qm2Token) proceder(); }, 1000); }   // 1s de delay depois do áudio de erro
-  else proceder();
+  if (!qm2UltimaCerta) { const tok = qm2Token; setTimeout(() => { if (tok === qm2Token) qm2Proceder(); }, 1000); }   // 1s de delay depois do áudio de erro
+  else qm2Proceder();
 }
 function qm2FimQuiz() {
   quizMini2El.classList.remove('show');
@@ -5559,10 +5576,11 @@ function qm2FimQuiz() {
 function esconderQuizMini2() {
   qm2Token++;
   quizMini2El.setAttribute('aria-hidden', 'true'); quizMini2El.classList.remove('show');
-  $id('qm2Fim').classList.remove('show');
+  $id('qm2Fim').classList.remove('show'); $id('qm2Prox').classList.remove('show');
   qmElogios.concat([qmApplause, qm2REH3PO3, qm2WH3PO3, qm2RH3BO3PO2, qm2R2PO2BO3, qm2WH3PO2BO3, qm2TransUltima], qm2R.slice(1), qm2TransPool).forEach(pararAudioQuiz);
 }
 quizMini2El.querySelectorAll('.qm2-opt').forEach(b => { const h = () => qm2Responder(parseInt(b.dataset.cat, 10)); b.addEventListener('click', h); b.addEventListener('pointerup', h); });
+{ const pb = $id('qm2Prox'); const h = () => { if (!pb.classList.contains('show')) return; pb.classList.remove('show'); qm2Proceder(); }; pb.addEventListener('click', h); pb.addEventListener('pointerup', h); }   // botão "Próximo" das exceções (guarda contra disparo duplo click+pointerup)
 $id('qm2Refazer').addEventListener('click', () => { const i = idxFaixa('dialogo1.7B'); if (i >= 0) tocarFaixa(i); });   // refaz o quiz 2
 $id('qm2Continuar').addEventListener('click', () => { esconderQuizMini2(); const i = idxFaixa('dialogo1.8'); if (i >= 0) tocarFaixa(i); });   // ao continuar: toca o 1.8 (força) — "b)" desliza pra fora e "c)" entra pela esquerda
 
