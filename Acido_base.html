@@ -1435,7 +1435,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.43.0</div>
+<div id="versao">v1.44.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5223,9 +5223,10 @@ function qmDepoisFeedback() {
   const proceder = () => {
     if (qmIdx >= 5) { qmFimQuiz(); return; }
     const fr = $id('qmFrasco'); fr.classList.remove('entra'); void fr.offsetWidth; fr.classList.add('sai');   // sai dramático
-    const trans = qmTransAudios[qmIdx], prox = qmIdx + 1;
+    const trans = qmTransAudios[qmIdx], prox = qmIdx + 1, tok = qmToken;
     tocarAudioQuiz(trans);
-    qmUmaVez(trans, () => qmMostrar(prox), 4000);
+    // o áudio (eesseaqui/maisesse) toca JUNTO com a troca do ácido: entra o próximo logo após o "sai" (0,5s), sem esperar o áudio terminar
+    setTimeout(() => { if (tok === qmToken) qmMostrar(prox); }, 500);
   };
   if (!qmUltimaCerta) { const tok = qmToken; setTimeout(() => { if (tok === qmToken) proceder(); }, 1000); }   // 1s de delay depois do 1.6W/1.6R
   else proceder();
