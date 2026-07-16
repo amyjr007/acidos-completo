@@ -1148,7 +1148,7 @@
   #quizMini2 .qm2-formula.entra { animation: qmEntra .6s cubic-bezier(.2, .9, .25, 1.6) forwards; }
   #quizMini2 .qm2-formula.sai { animation: qmSai .5s cubic-bezier(.5, 0, .75, 0) forwards; }
   #quizMini2 .qm2-opts {
-    position: absolute; left: 0; right: 0; bottom: calc(7% + env(safe-area-inset-bottom));
+    position: absolute; left: 0; right: 0; bottom: calc(7% + 2.6rem + env(safe-area-inset-bottom));   /* 1,5 linhas acima */
     display: flex; justify-content: center; gap: clamp(10px, 3vw, 18px); pointer-events: auto; flex-wrap: wrap;
     max-width: 520px; margin: 0 auto; padding: 0 14px;
   }
@@ -1159,6 +1159,11 @@
   }
   #quizMini2 .qm2-opt:hover { transform: translateY(-3px); background: rgba(166, 229, 52, .15); }
   #quizMini2 .qm2-opt:disabled { cursor: default; }
+  /* no toque (sem mouse), o :hover fica "grudado" e desloca o botão -> o toque erra o alvo. Anula o deslocamento */
+  @media (hover: none) {
+    #quizCarga .opt:hover, #quiz1 .q1opt:hover, #quiz2 .q2opt:hover, #quiz3 .q3opt:hover,
+    #quizMini .qm-opt:hover, #quizMini2 .qm2-opt:hover, #quiz4 .q4chip:hover { transform: none; }
+  }
   #quizMini2 .qm2-opt.certo  { background: rgba(120, 220, 60, .35); border-color: #a6e534; color: #fff; box-shadow: 0 0 20px rgba(166, 229, 52, .5); transform: translateY(-2px) scale(1.03); }
   #quizMini2 .qm2-opt.errado { background: rgba(230, 50, 50, .32); border-color: #ff5a5a; color: #fff; }
   #qm2Fim { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .45s ease; background: radial-gradient(circle at 50% 40%, rgba(6, 20, 4, .82), rgba(3, 10, 2, .95)); }
@@ -1419,7 +1424,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.36.0</div>
+<div id="versao">v1.37.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3468,6 +3473,7 @@ const SUMARIO = [
   { titulo: 'A equação de ionização',       faixa: idxFaixa('dialogo1.5'), acao: irParaEquacao },
   { titulo: 'Quiz',                         faixa: idxFaixa('dialogo1.5D') },
   { titulo: 'Classificação dos ácidos',     faixa: idxFaixa('dialogo1.6') },
+  { titulo: 'Quiz 2',                       faixa: idxFaixa('dialogo1.6A') },
 ];
 
 SUMARIO.forEach(item => {
@@ -5167,7 +5173,7 @@ function qmMostrar(i) {
 // roda fn uma vez quando o áudio termina (ou fallback), cancelável pelo token
 function qmUmaVez(audio, fn, fallbackMs) {
   const tok = qmToken; let done = false;
-  const run = () => { if (done || tok !== qmToken) return; done = true; if (audio) audio.removeEventListener('ended', run); clearTimeout(t); fn(); };
+  const run = () => { if (done) return; done = true; if (audio) audio.removeEventListener('ended', run); clearTimeout(t); if (tok !== qmToken) return; fn(); };
   const t = setTimeout(run, fallbackMs);
   if (audio) audio.addEventListener('ended', run); else run();
 }
@@ -5193,9 +5199,9 @@ function qmDepoisFeedback() {
   const proceder = () => {
     if (qmIdx >= 5) { qmFimQuiz(); return; }
     const fr = $id('qmFrasco'); fr.classList.remove('entra'); void fr.offsetWidth; fr.classList.add('sai');   // sai dramático
-    const trans = qmTransAudios[qmIdx];
+    const trans = qmTransAudios[qmIdx], prox = qmIdx + 1;
     tocarAudioQuiz(trans);
-    qmUmaVez(trans, () => qmMostrar(qmIdx + 1), 4000);
+    qmUmaVez(trans, () => qmMostrar(prox), 4000);
   };
   if (!qmUltimaCerta) { const tok = qmToken; setTimeout(() => { if (tok === qmToken) proceder(); }, 1000); }   // 1s de delay depois do 1.6W/1.6R
   else proceder();
@@ -5270,7 +5276,7 @@ function qm2Mostrar(i) {
 }
 function qm2UmaVez(audio, fn, fallbackMs) {
   const tok = qm2Token; let done = false;
-  const run = () => { if (done || tok !== qm2Token) return; done = true; if (audio) audio.removeEventListener('ended', run); clearTimeout(t); fn(); };
+  const run = () => { if (done) return; done = true; if (audio) audio.removeEventListener('ended', run); clearTimeout(t); if (tok !== qm2Token) return; fn(); };
   const t = setTimeout(run, fallbackMs);
   if (audio) audio.addEventListener('ended', run); else run();
 }
@@ -5298,8 +5304,8 @@ function qm2Depois() {
   const proceder = () => {
     if (qm2Idx >= 7) { qm2FimQuiz(); return; }
     const el = $id('qm2Formula'); el.classList.remove('entra'); void el.offsetWidth; el.classList.add('sai');   // sai dramático
-    const tok = qm2Token;
-    setTimeout(() => { if (tok === qm2Token) qm2Mostrar(qm2Idx + 1); }, 520);
+    const tok = qm2Token, prox = qm2Idx + 1;
+    setTimeout(() => { if (tok === qm2Token) qm2Mostrar(prox); }, 520);
   };
   if (!qm2UltimaCerta) { const tok = qm2Token; setTimeout(() => { if (tok === qm2Token) proceder(); }, 1000); }   // 1s de delay depois do áudio de erro
   else proceder();
