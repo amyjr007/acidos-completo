@@ -1523,7 +1523,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.50.0</div>
+<div id="versao">v1.51.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2038,6 +2038,44 @@ function makeBeaker(radius, height, liquidColor, liquidLevel, liquidOpacity = 0.
   return g;
 }
 
+// Balão de fundo redondo com gás dentro (ex.: HCl puro é gasoso). Fundo do bulbo toca a bancada em y=0.
+function makeFlask(bulbR) {
+  const g = new THREE.Group();
+  const gm = glassMat.clone();
+  const neckR = bulbR * 0.3, neckH = bulbR * 1.45, bulbCy = bulbR;
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(bulbR, 40, 32), gm);
+  bulb.position.y = bulbCy;
+  g.add(bulb);
+  const neckY0 = bulbCy + bulbR * 0.86;   // gargalo começa perto do topo do bulbo
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(neckR, neckR * 1.15, neckH, 32, 1, true), gm);
+  neck.position.y = neckY0 + neckH / 2;
+  g.add(neck);
+  const topY = neck.position.y + neckH / 2;
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(neckR, 0.045, 10, 32),
+    new THREE.MeshPhongMaterial({ color: 0xe8f4ff, transparent: true, opacity: 0.5, shininess: 150 }));
+  rim.rotation.x = Math.PI / 2; rim.position.y = topY;
+  g.add(rim);
+  const stopper = new THREE.Mesh(new THREE.CylinderGeometry(neckR * 1.3, neckR * 1.05, bulbR * 0.4, 24),
+    new THREE.MeshPhongMaterial({ color: 0x6b7280, shininess: 25 }));   // rolha cinza
+  stopper.position.y = topY + bulbR * 0.14;
+  g.add(stopper);
+  // gás: leve névoa preenchendo o bulbo + moléculas (bolhas) espalhadas
+  const haze = new THREE.Mesh(new THREE.SphereGeometry(bulbR * 0.9, 24, 20),
+    new THREE.MeshPhongMaterial({ color: 0xf0f4d8, transparent: true, opacity: 0.1, shininess: 40, depthWrite: false }));
+  haze.position.y = bulbCy;
+  g.add(haze);
+  const gasMat = new THREE.MeshPhongMaterial({ color: 0xdcebff, transparent: true, opacity: 0.55, shininess: 110, depthWrite: false });
+  for (let i = 0; i < 18; i++) {
+    const r = bulbR * (0.05 + Math.random() * 0.055);
+    const bub = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), gasMat.clone());
+    const rr = bulbR * 0.66 * Math.cbrt(Math.random());
+    const th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
+    bub.position.set(rr * Math.sin(ph) * Math.cos(th), bulbCy + rr * Math.cos(ph), rr * Math.sin(ph) * Math.sin(th));
+    g.add(bub);
+  }
+  return g;
+}
+
 // ---------- Etiquetas com subscrito ----------
 function labelTexture(parts) {
   const cv = document.createElement('canvas');
@@ -2131,12 +2169,21 @@ reagents.forEach(r => {
 // Frascos dedicados do dialogo1.8 (cena "igual ao 1.3B", mas só água + 2 ácidos): HCl no meio, HNO2 à direita.
 // Ficam escondidos e só entram em 31s. São separados dos reagents pra não herdar nomes/escurecimento de cenas anteriores.
 const bench18 = [
-  { parts: [{ t: 'HCl' }], x: AC_X[0] },                          // meio: HCl
-  { parts: [{ t: 'HNO' }, { t: '2', sub: true }], x: AC_X[1] },   // direita: HNO₂
+  { parts: [{ t: 'HCl(g)' }], x: AC_X[0], flask: true },          // meio: HCl é gasoso quando puro -> balão de fundo redondo
+  { parts: [{ t: 'HNO' }, { t: '2', sub: true }], x: AC_X[1] },   // direita: HNO₂ -> béquer
 ];
 bench18.forEach(item => {
-  const b = makeBeaker(1.1, 2.6, 0xe6f2fa, 0.5, 0.14);
-  item.label = addLabel(b, item.parts, 1.1, 2.6);
+  let b;
+  if (item.flask) {
+    b = makeFlask(1.15);
+    const tex = labelTexture(item.parts), w = 1.15 * 1.7, h = w * 0.6;   // etiqueta na frente do bulbo
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+    plane.position.set(0, 1.15, 1.15 + 0.02);
+    b.add(plane); item.label = plane;
+  } else {
+    b = makeBeaker(1.1, 2.6, 0xe6f2fa, 0.5, 0.14);
+    item.label = addLabel(b, item.parts, 1.1, 2.6);
+  }
   b.position.set(item.x, 0.3, 1.5);
   b.traverse(o => { if (o.isMesh) o.castShadow = true; });
   b.visible = false;
