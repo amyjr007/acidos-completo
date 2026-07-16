@@ -1523,7 +1523,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.53.0</div>
+<div id="versao">v1.54.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3033,10 +3033,16 @@ function animate() {
       }
     }
   }
-  // pipeta interativa do 1.8 (só HNO2): ao pingar na água, aparecem H+ (poucos — ácido fraco)
-  if (pip18Ativo && demoInterativo.expelindo && pipFill < 0.05) {
-    demoInterativo.expelindo = false;
-    if (Math.abs(pipette.position.x - pipAguaX) < 1.6) mostrarHmais();
+  // pipeta interativa do 1.8 (só HNO2)
+  if (pip18Ativo) {
+    if (!c18Encheu && pipFill > 0.98) {   // encheu a pipeta -> dispara o dialogo1.8A (uma vez só)
+      c18Encheu = true;
+      c18Dialogo18A();
+    }
+    if (demoInterativo.expelindo && pipFill < 0.05) {   // ao pingar na água, aparecem H+ (poucos — ácido fraco)
+      demoInterativo.expelindo = false;
+      if (Math.abs(pipette.position.x - pipAguaX) < 1.6) mostrarHmais();
+    }
   }
 
   // mãozinha de OK acompanhando o frasco de HCl (projeta a posição 3D na tela)
@@ -3197,6 +3203,7 @@ const FAIXAS = [
   { id: 'dialogo1.7A',  arquivo: 'audios/dialogo1.7A.mp3',  titulo: 'Diálogo 1.7A' },
   { id: 'dialogo1.7B',  arquivo: 'audios/dialogo1.7B.mp3',  titulo: 'Diálogo 1.7B (quiz)' },
   { id: 'dialogo1.8',   arquivo: 'audios/dialogo1.8.mp3',   titulo: 'Diálogo 1.8' },
+  { id: 'dialogo1.8A',  arquivo: 'audios/dialogo1.8A.mp3',  titulo: 'Diálogo 1.8A' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -3677,6 +3684,8 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.6' && typeof cena16IluminaAmbas === 'function') cena16IluminaAmbas();
   // fim do 1.6A / 1.7B: esconde o play (o quiz é respondido pelos botões)
   if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo1.6A' || FAIXAS[faixaAtual].id === 'dialogo1.7B')) { $id('playBtn').style.display = 'none'; return; }
+  // fim do 1.8 / 1.8A: cena interativa da pipeta -> esconde o play (a interação é pela pipeta; o 1.8A é disparado ao encher)
+  if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo1.8' || FAIXAS[faixaAtual].id === 'dialogo1.8A')) { $id('playBtn').style.display = 'none'; return; }
   // fim do tutorial 1.1E -> botão de play vira "JOGAR"
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.1E') {
     jogarPronto = true;
@@ -5459,9 +5468,11 @@ function esconderCena18() {
   const subC = cena18El.querySelector('.c18-sub'); subC.classList.remove('show'); subC.style.cssText = '';
   c18EsconderBancada();
 }
-// bancada do 1.8: béquer com água (direita) + HNO2/HCl líquidos (esquerda) + pipeta
+// bancada do 1.8: béquer com água (direita) + HNO2 líquido + balão de HCl(g) + pipeta
 let cena18Pipeta = false;
+let c18Encheu = false;   // trava: quando a pipeta enche, dispara o dialogo1.8A uma única vez
 function c18EsconderBancada() {
+  c18Encheu = false;
   bench18.forEach(item => { item.beaker.visible = false; if (item.label) item.label.visible = false; });
   acidos18.forEach(a => { a.beaker.visible = false; if (a.label) a.label.visible = false; escurecerBeaker(a.beaker, false); a.locked = false; });
   if (aparato18) aparato18.visible = false;
@@ -5478,8 +5489,11 @@ function c18BancadaInicio() {
   const ag = bench18.find(it => it.water);
   if (ag) fade3D(ag.beaker, 1, 700);                                          // béquer de água (direita) entra no início ("a princípio, só a água")
 }
-function c18Acidos() {   // 33s: entram os dois ácidos à esquerda da água (HNO2 na ponta, HCl no meio)
-  acidos18.forEach(a => { if (a.label) a.label.visible = true; fade3D(a.beaker, 1, 800); });
+function c18Acidos() {   // 33s: HNO2 líquido (esq) + HCl como balão de gás (meio) — HCl puro é gasoso, sem aparato
+  const hno2 = acidos18.find(a => a.name === 'HNO₂');
+  if (hno2) { if (hno2.label) hno2.label.visible = true; fade3D(hno2.beaker, 1, 800); }
+  const fl = bench18.find(it => it.flask);   // balão de HCl(g) no lugar do béquer líquido; o aparato só entra num diálogo futuro
+  if (fl) { if (fl.label) fl.label.visible = true; fade3D(fl.beaker, 1, 800); }
 }
 function c18EscurecerHCl() {   // 56s: HCl escuro e travado (a pipeta só vai pegar o HNO2)
   const hcl = acidos18.find(a => a.name === 'HCl');
@@ -5499,7 +5513,20 @@ function c18PipetaInterativa() {   // 1:17: libera o movimento; interação igua
   if (!pipette.visible) fade3D(pipette, 1, 500);
   pipAguaX = wx; pipReagentes = acidos18; pip18Ativo = true; pipDragBloqueada = false;
   demoInterativo = { ativo: false, encheu: false, derramou: false, expelindo: false };
+  c18Encheu = false;
   $id('ajudaBtn').style.display = '';
+}
+// pipeta cheia -> toca o dialogo1.8A por cima da cena (sem passar por tocarFaixa, que desmontaria a cena18 e a pipeta)
+function c18Dialogo18A() {
+  const i = idxFaixa('dialogo1.8A');
+  if (i < 0) return;
+  faixaAtual = i; faixaTerminou = false;
+  limparStory();
+  const pb = $id('playBtn'); pb.classList.remove('jogar'); pb.style.display = '';
+  player.src = FAIXAS[i].arquivo;
+  const pr = player.play(); if (pr && pr.catch) pr.catch(() => {});
+  if (typeof marcarSumario === 'function') marcarSumario();
+  if (typeof preloadProxima === 'function') preloadProxima(i);
 }
 
 // ---- Aparato de transferência do gás: tubo de vidro + funil invertido + válvula (abre/fecha) ----
