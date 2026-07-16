@@ -1081,6 +1081,51 @@
   }
   #cena17 .c17-lab .c17-p1, #cena17 .c17-lab .c17-p2 { opacity: 0; transition: opacity .4s ease; }
   #cena17 .c17-lab .c17-p1.show, #cena17 .c17-lab .c17-p2.show { opacity: 1; }
+  /* ---- Quiz rápido (hidrácido x oxiácido) entre 1.6 e 1.7 ---- */
+  #quizMini { position: fixed; inset: 0; z-index: 44; pointer-events: none; opacity: 0; transition: opacity .4s ease; }
+  #quizMini.show { opacity: 1; }
+  #quizMini .qm-num {
+    position: absolute; top: 22.5%; left: 0; right: 0; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 800; color: #a6e534; letter-spacing: .06em;
+    text-transform: uppercase; font-size: clamp(13px, 3.8vw, 18px);
+  }
+  #quizMini .qm-frasco { position: absolute; top: 27%; left: 50%; width: min(64vw, 310px); opacity: 0; transform: translateX(-50%); }
+  #quizMini .qm-frasco svg { display: block; width: 100%; height: auto; max-height: 49vh; filter: drop-shadow(0 8px 22px rgba(0, 0, 0, .45)); }
+  #quizMini .qm-frasco.entra { animation: qmEntra .6s cubic-bezier(.2, .9, .25, 1.6) forwards; }
+  #quizMini .qm-frasco.sai { animation: qmSai .5s cubic-bezier(.5, 0, .75, 0) forwards; }
+  @keyframes qmEntra {
+    0%   { opacity: 0; transform: translateX(-50%) scale(.25) translateY(-70px) rotate(-14deg); }
+    62%  { opacity: 1; transform: translateX(-50%) scale(1.14) translateY(0) rotate(0); }
+    100% { opacity: 1; transform: translateX(-50%) scale(1); }
+  }
+  @keyframes qmSai {
+    0%   { opacity: 1; transform: translateX(-50%) scale(1); }
+    100% { opacity: 0; transform: translateX(-50%) scale(.35) translateY(70px) rotate(12deg); }
+  }
+  #quizMini .qm-opts {
+    position: absolute; left: 0; right: 0; bottom: calc(8% + env(safe-area-inset-bottom));
+    display: flex; justify-content: center; gap: clamp(12px, 4vw, 28px); pointer-events: auto; flex-wrap: wrap;
+  }
+  #quizMini .qm-opt {
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(15px, 4.4vw, 20px); color: #eaf7d9;
+    padding: .7em 1.5em; border-radius: 14px; background: rgba(255, 255, 255, .08); border: 2px solid rgba(166, 229, 52, .5);
+    cursor: pointer; transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  #quizMini .qm-opt:hover { transform: translateY(-3px); background: rgba(166, 229, 52, .15); }
+  #quizMini .qm-opt:disabled { cursor: default; }
+  #quizMini .qm-opt.certo  { background: rgba(120, 220, 60, .35); border-color: #a6e534; color: #fff; box-shadow: 0 0 20px rgba(166, 229, 52, .5); transform: translateY(-2px) scale(1.04); }
+  #quizMini .qm-opt.errado { background: rgba(230, 50, 50, .32); border-color: #ff5a5a; color: #fff; }
+  #qmFim { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .45s ease; background: radial-gradient(circle at 50% 40%, rgba(6, 20, 4, .82), rgba(3, 10, 2, .95)); }
+  #qmFim.show { opacity: 1; pointer-events: auto; }
+  #qmFim .qfCard { text-align: center; width: 100%; max-width: 420px; }
+  #qmFim .qfTit { font-family: system-ui, sans-serif; font-weight: 900; color: #a6e534; font-size: clamp(20px, 5.6vw, 28px); margin-bottom: .15em; }
+  #qmFim .qfNota { font-family: system-ui, sans-serif; font-weight: 900; color: #f2fbe4; font-size: clamp(58px, 18vw, 88px); line-height: 1.05; text-shadow: 0 3px 16px rgba(0, 0, 0, .5); }
+  #qmFim .qfNota small { font-size: .36em; opacity: .55; font-weight: 800; }
+  #qmFim .qfSub { font-family: system-ui, sans-serif; font-weight: 600; color: #cfe8a8; font-size: clamp(14px, 4vw, 17px); margin-top: .1em; }
+  #qmFim .qmFimPlay { margin-top: 26px; width: 62px; height: 62px; border-radius: 50%; border: none; cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(145deg, #b4f04a, #7fc400); box-shadow: 0 6px 18px rgba(120, 200, 40, .5); animation: quizBtnPulse 1.8s ease-in-out infinite; }
+  #qmFim .qmFimPlay svg { width: 26px; height: 26px; fill: #0a1a06; margin-left: 3px; }
+  #qmFim .qmFimPlay:active { transform: scale(.93); }
+  #qmFim.show .qfCard { animation: quizPop .5s cubic-bezier(.2, .8, .3, 1.2) both; }
   @keyframes hPulsa {
     0%, 100% { fill: #2c2013; transform: scale(1); }
     50%      { fill: #baf34f; transform: scale(1.5); }
@@ -1325,7 +1370,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.33.0</div>
+<div id="versao">v1.34.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1479,6 +1524,24 @@
 <div id="cena17" aria-hidden="true">
   <div class="c17-sub">b) Quanto aos H ionizáveis</div>
   <div class="c17-eqs" id="c17eqs"></div>
+</div>
+
+<!-- Quiz rápido entre 1.6 e 1.7: hidrácido x oxiácido -->
+<div id="quizMini" aria-hidden="true">
+  <div class="qm-num" id="qmNum">Questão 1</div>
+  <div class="qm-frasco" id="qmFrasco"></div>
+  <div class="qm-opts">
+    <button class="qm-opt" data-v="hidra">1. Hidrácido</button>
+    <button class="qm-opt" data-v="oxi">2. Oxiácido</button>
+  </div>
+</div>
+<div id="qmFim">
+  <div class="qfCard">
+    <div class="qfTit">Fim do quiz!</div>
+    <div class="qfNota" id="qmFimNota">0,0<small>/10</small></div>
+    <div class="qfSub" id="qmFimSub">0 de 6 acertos</div>
+    <button id="qmFimPlay" class="qmFimPlay" aria-label="Continuar"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+  </div>
 </div>
 
 <!-- Minigame de identificação (dialogo1.1E + jogo) -->
@@ -2843,6 +2906,7 @@ const FAIXAS = [
   { id: 'dialogo1.5Cn', arquivo: 'audios/dialogo1.5Cn.mp3', titulo: 'Diálogo 1.5C (erro)' },
   { id: 'dialogo1.5D',  arquivo: 'audios/dialogo1.5D.mp3',  titulo: 'Diálogo 1.5D' },
   { id: 'dialogo1.6',   arquivo: 'audios/dialogo1.6.mp3',   titulo: 'Diálogo 1.6' },
+  { id: 'dialogo1.6A',  arquivo: 'audios/dialogo1.6A.mp3',  titulo: 'Diálogo 1.6A (quiz)' },
   { id: 'dialogo1.7',   arquivo: 'audios/dialogo1.7.mp3',   titulo: 'Diálogo 1.7' },
 ];
 
@@ -3111,6 +3175,10 @@ const EVENTOS = {
     { t: 40.8, fn: () => cena16Ilumina('dir') },                    // inverte a iluminação
     { t: 42.4, fn: () => cena16Pulsa('dir') },                      // destaca "Oxiácidos"
   ]),
+  'dialogo1.6A':  () => rodarStory([
+    { t: 0.0,  fn: iniciarQuizMini },                               // some as estantes; fica só título + subtítulo
+    { t: 1.7,  fn: () => qmMostrar(0) },                            // 1ª questão (o frasco entra dramático)
+  ]),
   'dialogo1.7':   () => rodarStory([
     { t: 0.0,  fn: c17Iniciar },                                    // prepara a cena (mantém o título do 1.6)
     { t: 2.0,  fn: c17Deslizar },                                   // tudo desliza pra direita; "b)" entra pela esquerda (2s->5s)
@@ -3179,8 +3247,9 @@ function tocarFaixa(i) {
   if (typeof fecharQuiz3 === 'function') fecharQuiz3();   // some a questão 3 e para os áudios
   if (typeof fecharQuiz4 === 'function') fecharQuiz4();   // some a questão 4 (arrastar)
   if (typeof fecharQuizFim === 'function') fecharQuizFim();   // some o card de nota final
-  if (f.id !== 'dialogo1.6' && f.id !== 'dialogo1.7' && typeof esconderCena16 === 'function') esconderCena16();   // a cena da classificação (título) segue no 1.7
+  if (f.id !== 'dialogo1.6' && f.id !== 'dialogo1.6A' && f.id !== 'dialogo1.7' && typeof esconderCena16 === 'function') esconderCena16();   // o título/subtítulo seguem no quiz (1.6A) e no 1.7
   if (f.id !== 'dialogo1.7' && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações (H ionizáveis) só no 1.7
+  if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
@@ -3268,6 +3337,8 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.4A') { esconderIndicador(); $id('playBtn').style.display = 'none'; return; }
   // fim do 1.6: as duas colunas ficam iluminadas (a iluminação volta em fade)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.6' && typeof cena16IluminaAmbas === 'function') cena16IluminaAmbas();
+  // fim do 1.6A: esconde o play (o quiz rápido é respondido pelos botões)
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.6A') { $id('playBtn').style.display = 'none'; return; }
   // fim do tutorial 1.1E -> botão de play vira "JOGAR"
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.1E') {
     jogarPronto = true;
@@ -4963,6 +5034,99 @@ function esconderCena17() {
   cena17El.classList.remove('acidos', 'equacoes');
   const subB = cena17El.querySelector('.c17-sub'); subB.classList.remove('show'); subB.style.cssText = '';
 }
+
+// ---- Quiz rápido entre 1.6 e 1.7 (hidrácido x oxiácido) ----
+const quizMiniEl = $id('quizMini');
+const qmIssoAudio = new Audio('audios/isso!.mp3');
+const qmApplause = new Audio('audios/applause.mp3');
+const qmD16W = new Audio('audios/dialogo1.6W.mp3');
+const qmD16R = new Audio('audios/dialogo1.6R.mp3');
+// transições: 1->2 eesseaqui, 2->3 maisesse, 3->4 eesseaqui, 4->5 maisesse, 5->6 sómaisesse
+const qmTransAudios = [
+  new Audio('audios/eesseaqui.mp3'), new Audio('audios/maisesse.mp3'),
+  new Audio('audios/eesseaqui.mp3'), new Audio('audios/maisesse.mp3'), new Audio('audios/sómaisesse.mp3'),
+];
+[qmIssoAudio, qmApplause, qmD16W, qmD16R].concat(qmTransAudios).forEach(a => a.preload = 'auto');
+const QM_POOL = [
+  { f: 'HF', t: 'hidra' }, { f: 'HCl', t: 'hidra' }, { f: 'HBr', t: 'hidra' }, { f: 'HI', t: 'hidra' }, { f: 'H2S', t: 'hidra' }, { f: 'HCN', t: 'hidra' },
+  { f: 'H2SO4', t: 'oxi' }, { f: 'HNO3', t: 'oxi' }, { f: 'H3PO4', t: 'oxi' }, { f: 'H2CO3', t: 'oxi' }, { f: 'HClO', t: 'oxi' }, { f: 'HClO4', t: 'oxi' }, { f: 'H4SiO4', t: 'oxi' },
+];
+let qmQuestoes = [], qmIdx = 0, qmResp = false, qmAcertos = 0, qmToken = 0;
+// frasco grande com a fórmula em destaque (sem nome)
+function qmRenderFrasco(f) {
+  const defs = [];
+  const cfg = { g: 'rgba(214,232,240,0.16)', s: '#8a5a25', t: 'liq', l: 0.82, c: 'rgba(150,200,225,0.5)', f: f, n: '',
+    hs: 1.15, w2: 52, lw: 152, lh: 52, ff: 36, fn: 8, lyoff: 26 };
+  const bottle = fnFrasco(160, 270, cfg, 1700, defs);
+  $id('qmFrasco').innerHTML = '<svg viewBox="0 0 320 300" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><defs>' + gLabelDef + defs.join('') + '</defs>' + bottle + '</svg>';
+}
+function iniciarQuizMini() {
+  cena16El.setAttribute('aria-hidden', 'false');
+  cena16El.querySelector('.c16-titulo').classList.add('show');
+  const subA = cena16El.querySelector('.c16-sub'); subA.classList.add('show'); subA.style.cssText = '';
+  const est = cena16El.querySelector('.c16-estantes'); est.style.cssText = '';
+  cena16El.classList.remove('montada', 'zoom-esq', 'zoom-dir');   // some as estantes; título + subtítulo ficam
+  qmQuestoes = QM_POOL.slice().sort(() => Math.random() - 0.5).slice(0, 6);   // 6 ácidos aleatórios
+  qmIdx = 0; qmAcertos = 0; qmToken++;
+  quizMiniEl.setAttribute('aria-hidden', 'false'); quizMiniEl.classList.remove('show');
+  $id('qmFim').classList.remove('show');
+}
+function qmMostrar(i) {
+  qmIdx = i; qmResp = false;
+  $id('qmNum').textContent = 'Questão ' + (i + 1);
+  quizMiniEl.querySelectorAll('.qm-opt').forEach(b => { b.disabled = false; b.classList.remove('certo', 'errado'); });
+  qmRenderFrasco(qmQuestoes[i].f);
+  const fr = $id('qmFrasco'); fr.classList.remove('sai'); void fr.offsetWidth; fr.classList.add('entra');   // entra dramático
+  quizMiniEl.classList.add('show');
+}
+// roda fn uma vez quando o áudio termina (ou fallback), cancelável pelo token
+function qmUmaVez(audio, fn, fallbackMs) {
+  const tok = qmToken; let done = false;
+  const run = () => { if (done || tok !== qmToken) return; done = true; if (audio) audio.removeEventListener('ended', run); clearTimeout(t); fn(); };
+  const t = setTimeout(run, fallbackMs);
+  if (audio) audio.addEventListener('ended', run); else run();
+}
+function qmResponder(val, btn) {
+  if (qmResp) return; qmResp = true;
+  const acido = qmQuestoes[qmIdx], certo = (val === acido.t);
+  quizMiniEl.querySelectorAll('.qm-opt').forEach(b => b.disabled = true);
+  btn.classList.add(certo ? 'certo' : 'errado');
+  quizMiniEl.querySelector('.qm-opt[data-v="' + acido.t + '"]').classList.add('certo');   // destaca a correta
+  let feedback;
+  if (certo) {
+    qmAcertos++; playSfx('funfare'); tocarAudioQuiz(qmApplause); festaConfete(); tocarAudioQuiz(qmIssoAudio); feedback = qmIssoAudio;   // funfare + applause + confete + "isso!"
+  } else {
+    playSfx('error'); playSfx('lowscore');
+    feedback = (acido.t === 'hidra') ? qmD16W : qmD16R;   // era hidrácido -> 1.6W ; era oxiácido -> 1.6R
+    const fb = feedback, tok = qmToken;
+    setTimeout(() => { if (tok === qmToken) tocarAudioQuiz(fb); }, 900);
+  }
+  qmUmaVez(feedback, qmDepoisFeedback, certo ? 4000 : 8000);
+}
+function qmDepoisFeedback() {
+  if (qmIdx >= 5) { qmFimQuiz(); return; }
+  const fr = $id('qmFrasco'); fr.classList.remove('entra'); void fr.offsetWidth; fr.classList.add('sai');   // sai dramático
+  const trans = qmTransAudios[qmIdx];
+  tocarAudioQuiz(trans);
+  qmUmaVez(trans, () => qmMostrar(qmIdx + 1), 4000);
+}
+function qmFimQuiz() {
+  quizMiniEl.classList.remove('show');
+  const nota = (qmAcertos / 6) * 10;
+  $id('qmFimNota').innerHTML = nota.toFixed(1).replace('.', ',') + '<small>/10</small>';
+  $id('qmFimSub').textContent = qmAcertos + ' de 6 acertos';
+  $id('qmFim').classList.add('show');
+  playSfx('statistics');
+  if (nota >= 6) festaConfete();
+}
+function esconderQuizMini() {
+  qmToken++;
+  quizMiniEl.setAttribute('aria-hidden', 'true'); quizMiniEl.classList.remove('show');
+  $id('qmFim').classList.remove('show');
+  [qmIssoAudio, qmApplause, qmD16W, qmD16R].concat(qmTransAudios).forEach(pararAudioQuiz);
+}
+quizMiniEl.querySelectorAll('.qm-opt').forEach(b => b.addEventListener('click', () => qmResponder(b.dataset.v, b)));
+$id('qmFimPlay').addEventListener('click', () => { esconderQuizMini(); const i = idxFaixa('dialogo1.7'); if (i >= 0) tocarFaixa(i); });
 
 // os 3 ácidos voltam à bancada mostrando SÓ a etiqueta da fórmula (sem os nomes) — dialogo1.5A
 function mostrarAcidosSoEtiqueta() {
