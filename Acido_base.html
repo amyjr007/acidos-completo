@@ -1103,7 +1103,7 @@
     100% { opacity: 0; transform: translateX(-50%) scale(.35) translateY(70px) rotate(12deg); }
   }
   #quizMini .qm-opts {
-    position: absolute; left: 0; right: 0; bottom: calc(8% + env(safe-area-inset-bottom));
+    position: absolute; left: 0; right: 0; bottom: calc(8% + 2.6rem + env(safe-area-inset-bottom));   /* 1,5 linhas acima */
     display: flex; justify-content: center; gap: clamp(12px, 4vw, 28px); pointer-events: auto; flex-wrap: wrap;
   }
   #quizMini .qm-opt {
@@ -1122,9 +1122,12 @@
   #qmFim .qfNota { font-family: system-ui, sans-serif; font-weight: 900; color: #f2fbe4; font-size: clamp(58px, 18vw, 88px); line-height: 1.05; text-shadow: 0 3px 16px rgba(0, 0, 0, .5); }
   #qmFim .qfNota small { font-size: .36em; opacity: .55; font-weight: 800; }
   #qmFim .qfSub { font-family: system-ui, sans-serif; font-weight: 600; color: #cfe8a8; font-size: clamp(14px, 4vw, 17px); margin-top: .1em; }
-  #qmFim .qmFimPlay { margin-top: 26px; width: 62px; height: 62px; border-radius: 50%; border: none; cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(145deg, #b4f04a, #7fc400); box-shadow: 0 6px 18px rgba(120, 200, 40, .5); animation: quizBtnPulse 1.8s ease-in-out infinite; }
-  #qmFim .qmFimPlay svg { width: 26px; height: 26px; fill: #0a1a06; margin-left: 3px; }
-  #qmFim .qmFimPlay:active { transform: scale(.93); }
+  #qmFim .qfBtns { margin-top: 26px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  #qmFim .qfBtns button { font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(15px, 4.2vw, 18px); padding: .7em 1.9em; border-radius: 999px; cursor: pointer; border: 2px solid transparent; transition: transform .15s ease, background .2s ease, border-color .2s ease; }
+  #qmFim .qfBtns button:active { transform: scale(.95); }
+  #qmFim .qfPrim { color: #0a1a06; border: none; background: linear-gradient(145deg, #b4f04a, #7fc400); box-shadow: 0 6px 18px rgba(120, 200, 40, .45); }
+  #qmFim .qfSec { color: #a6e534; background: transparent; border-color: rgba(166, 229, 52, .55); }
+  #qmFim .qfSec:hover { background: rgba(166, 229, 52, .12); }
   #qmFim.show .qfCard { animation: quizPop .5s cubic-bezier(.2, .8, .3, 1.2) both; }
   @keyframes hPulsa {
     0%, 100% { fill: #2c2013; transform: scale(1); }
@@ -1370,7 +1373,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.34.0</div>
+<div id="versao">v1.35.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1540,7 +1543,10 @@
     <div class="qfTit">Fim do quiz!</div>
     <div class="qfNota" id="qmFimNota">0,0<small>/10</small></div>
     <div class="qfSub" id="qmFimSub">0 de 6 acertos</div>
-    <button id="qmFimPlay" class="qmFimPlay" aria-label="Continuar"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+    <div class="qfBtns">
+      <button id="qmRefazer" class="qfSec">Refazer</button>
+      <button id="qmContinuar" class="qfPrim">Continuar</button>
+    </div>
   </div>
 </div>
 
@@ -5051,7 +5057,7 @@ const QM_POOL = [
   { f: 'HF', t: 'hidra' }, { f: 'HCl', t: 'hidra' }, { f: 'HBr', t: 'hidra' }, { f: 'HI', t: 'hidra' }, { f: 'H2S', t: 'hidra' }, { f: 'HCN', t: 'hidra' },
   { f: 'H2SO4', t: 'oxi' }, { f: 'HNO3', t: 'oxi' }, { f: 'H3PO4', t: 'oxi' }, { f: 'H2CO3', t: 'oxi' }, { f: 'HClO', t: 'oxi' }, { f: 'HClO4', t: 'oxi' }, { f: 'H4SiO4', t: 'oxi' },
 ];
-let qmQuestoes = [], qmIdx = 0, qmResp = false, qmAcertos = 0, qmToken = 0;
+let qmQuestoes = [], qmIdx = 0, qmResp = false, qmAcertos = 0, qmToken = 0, qmUltimaCerta = true;
 // frasco grande com a fórmula em destaque (sem nome)
 function qmRenderFrasco(f) {
   const defs = [];
@@ -5066,7 +5072,10 @@ function iniciarQuizMini() {
   const subA = cena16El.querySelector('.c16-sub'); subA.classList.add('show'); subA.style.cssText = '';
   const est = cena16El.querySelector('.c16-estantes'); est.style.cssText = '';
   cena16El.classList.remove('montada', 'zoom-esq', 'zoom-dir');   // some as estantes; título + subtítulo ficam
-  qmQuestoes = QM_POOL.slice().sort(() => Math.random() - 0.5).slice(0, 6);   // 6 ácidos aleatórios
+  const emb = arr => arr.slice().sort(() => Math.random() - 0.5);
+  const hidras = emb(QM_POOL.filter(a => a.t === 'hidra')).slice(0, 3);   // 3 hidrácidos
+  const oxis = emb(QM_POOL.filter(a => a.t === 'oxi')).slice(0, 3);       // 3 oxiácidos
+  qmQuestoes = emb(hidras.concat(oxis));                                   // embaralha os 6
   qmIdx = 0; qmAcertos = 0; qmToken++;
   quizMiniEl.setAttribute('aria-hidden', 'false'); quizMiniEl.classList.remove('show');
   $id('qmFim').classList.remove('show');
@@ -5089,6 +5098,7 @@ function qmUmaVez(audio, fn, fallbackMs) {
 function qmResponder(val, btn) {
   if (qmResp) return; qmResp = true;
   const acido = qmQuestoes[qmIdx], certo = (val === acido.t);
+  qmUltimaCerta = certo;
   quizMiniEl.querySelectorAll('.qm-opt').forEach(b => b.disabled = true);
   btn.classList.add(certo ? 'certo' : 'errado');
   quizMiniEl.querySelector('.qm-opt[data-v="' + acido.t + '"]').classList.add('certo');   // destaca a correta
@@ -5104,11 +5114,15 @@ function qmResponder(val, btn) {
   qmUmaVez(feedback, qmDepoisFeedback, certo ? 4000 : 8000);
 }
 function qmDepoisFeedback() {
-  if (qmIdx >= 5) { qmFimQuiz(); return; }
-  const fr = $id('qmFrasco'); fr.classList.remove('entra'); void fr.offsetWidth; fr.classList.add('sai');   // sai dramático
-  const trans = qmTransAudios[qmIdx];
-  tocarAudioQuiz(trans);
-  qmUmaVez(trans, () => qmMostrar(qmIdx + 1), 4000);
+  const proceder = () => {
+    if (qmIdx >= 5) { qmFimQuiz(); return; }
+    const fr = $id('qmFrasco'); fr.classList.remove('entra'); void fr.offsetWidth; fr.classList.add('sai');   // sai dramático
+    const trans = qmTransAudios[qmIdx];
+    tocarAudioQuiz(trans);
+    qmUmaVez(trans, () => qmMostrar(qmIdx + 1), 4000);
+  };
+  if (!qmUltimaCerta) { const tok = qmToken; setTimeout(() => { if (tok === qmToken) proceder(); }, 1000); }   // 1s de delay depois do 1.6W/1.6R
+  else proceder();
 }
 function qmFimQuiz() {
   quizMiniEl.classList.remove('show');
@@ -5126,7 +5140,8 @@ function esconderQuizMini() {
   [qmIssoAudio, qmApplause, qmD16W, qmD16R].concat(qmTransAudios).forEach(pararAudioQuiz);
 }
 quizMiniEl.querySelectorAll('.qm-opt').forEach(b => b.addEventListener('click', () => qmResponder(b.dataset.v, b)));
-$id('qmFimPlay').addEventListener('click', () => { esconderQuizMini(); const i = idxFaixa('dialogo1.7'); if (i >= 0) tocarFaixa(i); });
+$id('qmRefazer').addEventListener('click', () => { const i = idxFaixa('dialogo1.6A'); if (i >= 0) tocarFaixa(i); });     // refaz o quiz (reinicia o 1.6A)
+$id('qmContinuar').addEventListener('click', () => { esconderQuizMini(); const i = idxFaixa('dialogo1.7'); if (i >= 0) tocarFaixa(i); });   // vai pro 1.7
 
 // os 3 ácidos voltam à bancada mostrando SÓ a etiqueta da fórmula (sem os nomes) — dialogo1.5A
 function mostrarAcidosSoEtiqueta() {
