@@ -1129,6 +1129,52 @@
   #qmFim .qfSec { color: #a6e534; background: transparent; border-color: rgba(166, 229, 52, .55); }
   #qmFim .qfSec:hover { background: rgba(166, 229, 52, .12); }
   #qmFim.show .qfCard { animation: quizPop .5s cubic-bezier(.2, .8, .3, 1.2) both; }
+  /* ---- Quiz 2 (H ionizáveis): fórmula/equação + 4 alternativas ---- */
+  #quizMini2 { position: fixed; inset: 0; z-index: 44; pointer-events: none; opacity: 0; transition: opacity .4s ease; }
+  #quizMini2.show { opacity: 1; }
+  #quizMini2 .qm-num {
+    position: absolute; top: 22.5%; left: 0; right: 0; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 800; color: #a6e534; letter-spacing: .06em;
+    text-transform: uppercase; font-size: clamp(13px, 3.8vw, 18px);
+  }
+  #quizMini2 .qm2-formula {
+    position: absolute; top: 30%; left: 0; right: 0; text-align: center; padding: 0 16px;
+    font-family: "Cambria Math", Georgia, system-ui, serif; font-weight: 800; color: #f2fbe4;
+    font-size: clamp(30px, 10vw, 62px); white-space: nowrap; text-shadow: 0 3px 16px rgba(0, 0, 0, .55);
+  }
+  #quizMini2 .qm2-formula.eq { font-size: clamp(20px, 6.4vw, 40px); }   /* equação (exceções) menor pra caber */
+  #quizMini2 .qm2-formula sub { font-size: .58em; vertical-align: sub; }
+  #quizMini2 .qm2-formula sup { font-size: .58em; vertical-align: super; }
+  #quizMini2 .qm2-formula.entra { animation: qmEntra .6s cubic-bezier(.2, .9, .25, 1.6) forwards; }
+  #quizMini2 .qm2-formula.sai { animation: qmSai .5s cubic-bezier(.5, 0, .75, 0) forwards; }
+  #quizMini2 .qm2-opts {
+    position: absolute; left: 0; right: 0; bottom: calc(7% + env(safe-area-inset-bottom));
+    display: flex; justify-content: center; gap: clamp(10px, 3vw, 18px); pointer-events: auto; flex-wrap: wrap;
+    max-width: 520px; margin: 0 auto; padding: 0 14px;
+  }
+  #quizMini2 .qm2-opt {
+    flex: 1 1 40%; min-width: 130px; font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(14px, 4vw, 18px);
+    color: #eaf7d9; padding: .7em .6em; border-radius: 14px; background: rgba(255, 255, 255, .08); border: 2px solid rgba(166, 229, 52, .5);
+    cursor: pointer; transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  #quizMini2 .qm2-opt:hover { transform: translateY(-3px); background: rgba(166, 229, 52, .15); }
+  #quizMini2 .qm2-opt:disabled { cursor: default; }
+  #quizMini2 .qm2-opt.certo  { background: rgba(120, 220, 60, .35); border-color: #a6e534; color: #fff; box-shadow: 0 0 20px rgba(166, 229, 52, .5); transform: translateY(-2px) scale(1.03); }
+  #quizMini2 .qm2-opt.errado { background: rgba(230, 50, 50, .32); border-color: #ff5a5a; color: #fff; }
+  #qm2Fim { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .45s ease; background: radial-gradient(circle at 50% 40%, rgba(6, 20, 4, .82), rgba(3, 10, 2, .95)); }
+  #qm2Fim.show { opacity: 1; pointer-events: auto; }
+  #qm2Fim .qfCard { text-align: center; width: 100%; max-width: 420px; }
+  #qm2Fim .qfTit { font-family: system-ui, sans-serif; font-weight: 900; color: #a6e534; font-size: clamp(20px, 5.6vw, 28px); margin-bottom: .15em; }
+  #qm2Fim .qfNota { font-family: system-ui, sans-serif; font-weight: 900; color: #f2fbe4; font-size: clamp(58px, 18vw, 88px); line-height: 1.05; text-shadow: 0 3px 16px rgba(0, 0, 0, .5); }
+  #qm2Fim .qfNota small { font-size: .36em; opacity: .55; font-weight: 800; }
+  #qm2Fim .qfSub { font-family: system-ui, sans-serif; font-weight: 600; color: #cfe8a8; font-size: clamp(14px, 4vw, 17px); margin-top: .1em; }
+  #qm2Fim .qfBtns { margin-top: 26px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  #qm2Fim .qfBtns button { font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(15px, 4.2vw, 18px); padding: .7em 1.9em; border-radius: 999px; cursor: pointer; border: 2px solid transparent; transition: transform .15s ease, background .2s ease, border-color .2s ease; }
+  #qm2Fim .qfBtns button:active { transform: scale(.95); }
+  #qm2Fim .qfPrim { color: #0a1a06; border: none; background: linear-gradient(145deg, #b4f04a, #7fc400); box-shadow: 0 6px 18px rgba(120, 200, 40, .45); }
+  #qm2Fim .qfSec { color: #a6e534; background: transparent; border-color: rgba(166, 229, 52, .55); }
+  #qm2Fim .qfSec:hover { background: rgba(166, 229, 52, .12); }
+  #qm2Fim.show .qfCard { animation: quizPop .5s cubic-bezier(.2, .8, .3, 1.2) both; }
   @keyframes hPulsa {
     0%, 100% { fill: #2c2013; transform: scale(1); }
     50%      { fill: #baf34f; transform: scale(1.5); }
@@ -1373,7 +1419,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.35.0</div>
+<div id="versao">v1.36.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1546,6 +1592,29 @@
     <div class="qfBtns">
       <button id="qmRefazer" class="qfSec">Refazer</button>
       <button id="qmContinuar" class="qfPrim">Continuar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quiz 2 (dialogo1.7B): classificação por H ionizáveis (mono/di/tri/tetrácido) -->
+<div id="quizMini2" aria-hidden="true">
+  <div class="qm-num" id="qm2Num">Questão 1</div>
+  <div class="qm2-formula" id="qm2Formula"></div>
+  <div class="qm2-opts">
+    <button class="qm2-opt" data-cat="1">1. Monoácido</button>
+    <button class="qm2-opt" data-cat="2">2. Diácido</button>
+    <button class="qm2-opt" data-cat="3">3. Triácido</button>
+    <button class="qm2-opt" data-cat="4">4. Tetrácido</button>
+  </div>
+</div>
+<div id="qm2Fim">
+  <div class="qfCard">
+    <div class="qfTit">Fim do quiz!</div>
+    <div class="qfNota" id="qm2FimNota">0,0<small>/10</small></div>
+    <div class="qfSub" id="qm2FimSub">0 de 8 acertos</div>
+    <div class="qfBtns">
+      <button id="qm2Refazer" class="qfSec">Refazer</button>
+      <button id="qm2Continuar" class="qfPrim">Continuar</button>
     </div>
   </div>
 </div>
@@ -2914,6 +2983,8 @@ const FAIXAS = [
   { id: 'dialogo1.6',   arquivo: 'audios/dialogo1.6.mp3',   titulo: 'Diálogo 1.6' },
   { id: 'dialogo1.6A',  arquivo: 'audios/dialogo1.6A.mp3',  titulo: 'Diálogo 1.6A (quiz)' },
   { id: 'dialogo1.7',   arquivo: 'audios/dialogo1.7.mp3',   titulo: 'Diálogo 1.7' },
+  { id: 'dialogo1.7A',  arquivo: 'audios/dialogo1.7A.mp3',  titulo: 'Diálogo 1.7A' },
+  { id: 'dialogo1.7B',  arquivo: 'audios/dialogo1.7B.mp3',  titulo: 'Diálogo 1.7B (quiz)' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -3207,6 +3278,10 @@ const EVENTOS = {
     { t: 46.8, fn: () => c17Lab(3, 1) },                            // "tetr"
     { t: 47.6, fn: () => c17Lab(3, 2) },                            // "ácido" -> tetrácido
   ]),
+  'dialogo1.7B':  () => rodarStory([
+    { t: 0.0,  fn: iniciarQuizMini2 },                             // some as equações; fica título + subtítulo "b)"
+    { t: 1.2,  fn: () => qm2Mostrar(0) },                          // 1ª questão (fórmula/equação entra dramático)
+  ]),
 };
 
 const player = new Audio();
@@ -3253,9 +3328,10 @@ function tocarFaixa(i) {
   if (typeof fecharQuiz3 === 'function') fecharQuiz3();   // some a questão 3 e para os áudios
   if (typeof fecharQuiz4 === 'function') fecharQuiz4();   // some a questão 4 (arrastar)
   if (typeof fecharQuizFim === 'function') fecharQuizFim();   // some o card de nota final
-  if (f.id !== 'dialogo1.6' && f.id !== 'dialogo1.6A' && f.id !== 'dialogo1.7' && typeof esconderCena16 === 'function') esconderCena16();   // o título/subtítulo seguem no quiz (1.6A) e no 1.7
-  if (f.id !== 'dialogo1.7' && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações (H ionizáveis) só no 1.7
+  if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes e no 1.7
+  if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações (H ionizáveis)
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
+  if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
@@ -3343,8 +3419,8 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.4A') { esconderIndicador(); $id('playBtn').style.display = 'none'; return; }
   // fim do 1.6: as duas colunas ficam iluminadas (a iluminação volta em fade)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.6' && typeof cena16IluminaAmbas === 'function') cena16IluminaAmbas();
-  // fim do 1.6A: esconde o play (o quiz rápido é respondido pelos botões)
-  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.6A') { $id('playBtn').style.display = 'none'; return; }
+  // fim do 1.6A / 1.7B: esconde o play (o quiz é respondido pelos botões)
+  if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo1.6A' || FAIXAS[faixaAtual].id === 'dialogo1.7B')) { $id('playBtn').style.display = 'none'; return; }
   // fim do tutorial 1.1E -> botão de play vira "JOGAR"
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.1E') {
     jogarPronto = true;
@@ -5142,6 +5218,110 @@ function esconderQuizMini() {
 quizMiniEl.querySelectorAll('.qm-opt').forEach(b => b.addEventListener('click', () => qmResponder(b.dataset.v, b)));
 $id('qmRefazer').addEventListener('click', () => { const i = idxFaixa('dialogo1.6A'); if (i >= 0) tocarFaixa(i); });     // refaz o quiz (reinicia o 1.6A)
 $id('qmContinuar').addEventListener('click', () => { esconderQuizMini(); const i = idxFaixa('dialogo1.7'); if (i >= 0) tocarFaixa(i); });   // vai pro 1.7
+
+// ---- Quiz 2 (dialogo1.7B): mono/di/tri/tetrácido, com exceções (mostra a equação) ----
+const quizMini2El = $id('quizMini2');
+const qm2R = [null,   // erro por categoria (1=mono, 2=di, 3=tri, 4=tetra)
+  new Audio('audios/dialogo1.7R1.mp3'), new Audio('audios/dialogo1.7R2.mp3'),
+  new Audio('audios/dialogo1.7R3.mp3'), new Audio('audios/dialogo1.7R4.mp3')];
+const qm2REH3PO3 = new Audio('audios/dialogo1.7REH3PO3.mp3');       // H3PO3 acerto
+const qm2WH3PO3 = new Audio('audios/dialogo1.7WH3PO3.mp3');        // H3PO3 erro
+const qm2RH3BO3PO2 = new Audio('audios/dialogo1.7RH3BO3.H3PO2.mp3'); // H3PO2/H3BO3 acerto
+const qm2WH3PO2BO3 = new Audio('audios/dialogo1.7WH3PO2.H3BO3.mp3'); // H3PO2/H3BO3 erro
+[qm2REH3PO3, qm2WH3PO3, qm2RH3BO3PO2, qm2WH3PO2BO3].concat(qm2R.slice(1)).forEach(a => a.preload = 'auto');
+const QM2_NORMAIS = [
+  { f: 'HCl', cat: 1 }, { f: 'HNO3', cat: 1 }, { f: 'HClO', cat: 1 }, { f: 'HF', cat: 1 }, { f: 'HBr', cat: 1 }, { f: 'HClO4', cat: 1 },
+  { f: 'H2SO4', cat: 2 }, { f: 'H2CO3', cat: 2 }, { f: 'H2S', cat: 2 }, { f: 'H2SO3', cat: 2 },
+  { f: 'H3PO4', cat: 3 }, { f: 'H3AsO4', cat: 3 },
+  { f: 'H4SiO4', cat: 4 }, { f: 'H4P2O7', cat: 4 },
+];
+const QM2_EXC = [   // exceções: mostram a equação de ionização (o nº de H ionizáveis não é o total de H)
+  { f: 'H3PO3', cat: 2, exc: 'po3', eq: 'H<sub>3</sub>PO<sub>3</sub> &#8594; 2H<sup>+</sup> + HPO<sub>3</sub><sup>2&#8722;</sup>' },
+  { f: 'H3PO2', cat: 1, exc: 'po2', eq: 'H<sub>3</sub>PO<sub>2</sub> &#8594; H<sup>+</sup> + H<sub>2</sub>PO<sub>2</sub><sup>&#8722;</sup>' },
+  { f: 'H3BO3', cat: 1, exc: 'bo3', eq: 'H<sub>3</sub>BO<sub>3</sub> &#8594; H<sup>+</sup> + H<sub>2</sub>BO<sub>3</sub><sup>&#8722;</sup>' },
+];
+let qm2Questoes = [], qm2Idx = 0, qm2Resp = false, qm2Acertos = 0, qm2Token = 0, qm2UltimaCerta = true;
+function qm2Sortear() {
+  const emb = arr => arr.slice().sort(() => Math.random() - 0.5);
+  const tri = emb(QM2_NORMAIS.filter(a => a.cat === 3)).slice(0, 1);
+  const tetra = emb(QM2_NORMAIS.filter(a => a.cat === 4)).slice(0, 1);
+  const monodi = emb(QM2_NORMAIS.filter(a => a.cat < 3)).slice(0, 3);
+  return emb(tri.concat(tetra, monodi, QM2_EXC));   // 1 tri + 1 tetra + 3 mono/di + 3 exceções = 8
+}
+function iniciarQuizMini2() {
+  cena16El.setAttribute('aria-hidden', 'false');
+  cena16El.querySelector('.c16-titulo').classList.add('show');
+  cena17El.setAttribute('aria-hidden', 'false');
+  cena17El.querySelector('.c17-sub').classList.add('show');
+  cena17El.classList.remove('acidos', 'equacoes');   // some as equações do 1.7; fica só o subtítulo "b)"
+  qm2Questoes = qm2Sortear(); qm2Idx = 0; qm2Acertos = 0; qm2Token++;
+  quizMini2El.setAttribute('aria-hidden', 'false'); quizMini2El.classList.remove('show');
+  $id('qm2Fim').classList.remove('show');
+}
+function qm2Mostrar(i) {
+  qm2Idx = i; qm2Resp = false;
+  $id('qm2Num').textContent = 'Questão ' + (i + 1);
+  quizMini2El.querySelectorAll('.qm2-opt').forEach(b => { b.disabled = false; b.classList.remove('certo', 'errado'); });
+  const q = qm2Questoes[i], el = $id('qm2Formula');
+  el.classList.toggle('eq', !!q.exc);
+  el.innerHTML = q.exc ? q.eq : fmtFormula(q.f);   // exceção -> equação de ionização; normal -> só a fórmula
+  el.classList.remove('sai'); void el.offsetWidth; el.classList.add('entra');
+  quizMini2El.classList.add('show');
+}
+function qm2UmaVez(audio, fn, fallbackMs) {
+  const tok = qm2Token; let done = false;
+  const run = () => { if (done || tok !== qm2Token) return; done = true; if (audio) audio.removeEventListener('ended', run); clearTimeout(t); fn(); };
+  const t = setTimeout(run, fallbackMs);
+  if (audio) audio.addEventListener('ended', run); else run();
+}
+function qm2Responder(cat) {
+  if (qm2Resp) return; qm2Resp = true;
+  const q = qm2Questoes[qm2Idx], certo = (cat === q.cat);
+  qm2UltimaCerta = certo;
+  quizMini2El.querySelectorAll('.qm2-opt').forEach(b => b.disabled = true);
+  quizMini2El.querySelector('.qm2-opt[data-cat="' + cat + '"]').classList.add(certo ? 'certo' : 'errado');
+  quizMini2El.querySelector('.qm2-opt[data-cat="' + q.cat + '"]').classList.add('certo');   // destaca a correta
+  let narr;
+  if (certo) {
+    qm2Acertos++; playSfx('funfare'); tocarAudioQuiz(qmApplause); festaConfete();
+    narr = q.exc === 'po3' ? qm2REH3PO3 : (q.exc ? qm2RH3BO3PO2 : qmIssoAudio);
+    tocarAudioQuiz(narr);
+  } else {
+    playSfx('error'); playSfx('lowscore');
+    narr = q.exc === 'po3' ? qm2WH3PO3 : (q.exc ? qm2WH3PO2BO3 : qm2R[q.cat]);
+    const nn = narr, tok = qm2Token;
+    setTimeout(() => { if (tok === qm2Token) tocarAudioQuiz(nn); }, 900);
+  }
+  qm2UmaVez(narr, qm2Depois, certo ? 4000 : 8000);
+}
+function qm2Depois() {
+  const proceder = () => {
+    if (qm2Idx >= 7) { qm2FimQuiz(); return; }
+    const el = $id('qm2Formula'); el.classList.remove('entra'); void el.offsetWidth; el.classList.add('sai');   // sai dramático
+    const tok = qm2Token;
+    setTimeout(() => { if (tok === qm2Token) qm2Mostrar(qm2Idx + 1); }, 520);
+  };
+  if (!qm2UltimaCerta) { const tok = qm2Token; setTimeout(() => { if (tok === qm2Token) proceder(); }, 1000); }   // 1s de delay depois do áudio de erro
+  else proceder();
+}
+function qm2FimQuiz() {
+  quizMini2El.classList.remove('show');
+  const nota = (qm2Acertos / 8) * 10;
+  $id('qm2FimNota').innerHTML = nota.toFixed(1).replace('.', ',') + '<small>/10</small>';
+  $id('qm2FimSub').textContent = qm2Acertos + ' de 8 acertos';
+  $id('qm2Fim').classList.add('show');
+  playSfx('statistics');
+  if (nota >= 6) festaConfete();
+}
+function esconderQuizMini2() {
+  qm2Token++;
+  quizMini2El.setAttribute('aria-hidden', 'true'); quizMini2El.classList.remove('show');
+  $id('qm2Fim').classList.remove('show');
+  [qmIssoAudio, qmApplause, qm2REH3PO3, qm2WH3PO3, qm2RH3BO3PO2, qm2WH3PO2BO3].concat(qm2R.slice(1)).forEach(pararAudioQuiz);
+}
+quizMini2El.querySelectorAll('.qm2-opt').forEach(b => b.addEventListener('click', () => qm2Responder(parseInt(b.dataset.cat, 10))));
+$id('qm2Refazer').addEventListener('click', () => { const i = idxFaixa('dialogo1.7B'); if (i >= 0) tocarFaixa(i); });   // refaz o quiz 2
+$id('qm2Continuar').addEventListener('click', () => { esconderQuizMini2(); const pb = $id('playBtn'); pb.style.display = ''; faixaTerminou = true; });   // segue o audiobook
 
 // os 3 ácidos voltam à bancada mostrando SÓ a etiqueta da fórmula (sem os nomes) — dialogo1.5A
 function mostrarAcidosSoEtiqueta() {
