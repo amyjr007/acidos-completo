@@ -1206,16 +1206,19 @@
     font-family: system-ui, sans-serif; font-weight: 800; color: #a6e534; letter-spacing: .06em;
     text-transform: uppercase; font-size: clamp(13px, 3.8vw, 18px);
   }
-  #quizMini2 .qm2-formula {
+  #quizMini2 .qm2-formula, #quizMini2 .qm2-eq {
     position: absolute; top: 30%; left: 0; right: 0; text-align: center; padding: 0 16px;
     font-family: "Cambria Math", Georgia, system-ui, serif; font-weight: 800; color: #f2fbe4;
-    font-size: clamp(30px, 10vw, 62px); white-space: nowrap; text-shadow: 0 3px 16px rgba(0, 0, 0, .55);
+    white-space: nowrap; text-shadow: 0 3px 16px rgba(0, 0, 0, .55);
   }
-  #quizMini2 .qm2-formula.eq { font-size: clamp(20px, 6.4vw, 40px); }   /* equação (exceções) menor pra caber */
-  #quizMini2 .qm2-formula sub { font-size: .58em; vertical-align: sub; }
-  #quizMini2 .qm2-formula sup { font-size: .58em; vertical-align: super; }
+  #quizMini2 .qm2-formula { font-size: clamp(30px, 10vw, 62px); }
+  #quizMini2 .qm2-eq { font-size: clamp(20px, 6.4vw, 40px); opacity: 0; }   /* equação de ionização; escondida até o "empurrão" */
+  #quizMini2 .qm2-formula sub, #quizMini2 .qm2-eq sub { font-size: .58em; vertical-align: sub; }
+  #quizMini2 .qm2-formula sup, #quizMini2 .qm2-eq sup { font-size: .58em; vertical-align: super; }
   #quizMini2 .qm2-formula.entra { animation: qm2Entra .6s cubic-bezier(.2, .9, .25, 1.6) forwards; }
-  #quizMini2 .qm2-formula.sai { animation: qm2Sai .5s cubic-bezier(.5, 0, .75, 0) forwards; }
+  #quizMini2 .qm2-formula.sai, #quizMini2 .qm2-eq.sai { animation: qm2Sai .5s cubic-bezier(.5, 0, .75, 0) forwards; }
+  #quizMini2 .qm2-formula.sai-dir { animation: qm2SaiDir .55s cubic-bezier(.4, 0, .7, .2) forwards; }   /* fórmula empurrada pra direita */
+  #quizMini2 .qm2-eq.entra-esq { animation: qm2EntraEsq .55s cubic-bezier(.2, .9, .3, 1.25) forwards; }  /* equação entra pela esquerda e centraliza */
   @keyframes qm2Entra {   /* fórmula já é centralizada por text-align: sem translateX */
     0%   { opacity: 0; transform: scale(.25) translateY(-70px) rotate(-14deg); }
     62%  { opacity: 1; transform: scale(1.14) translateY(0) rotate(0); }
@@ -1224,6 +1227,15 @@
   @keyframes qm2Sai {
     0%   { opacity: 1; transform: scale(1); }
     100% { opacity: 0; transform: scale(.35) translateY(70px) rotate(12deg); }
+  }
+  @keyframes qm2SaiDir {   /* sai deslizando pra direita (empurrada pela equação) */
+    0%   { opacity: 1; transform: translateX(0); }
+    100% { opacity: 0; transform: translateX(125%); }
+  }
+  @keyframes qm2EntraEsq {   /* vem da esquerda até centralizar */
+    0%   { opacity: 0; transform: translateX(-125%); }
+    60%  { opacity: 1; }
+    100% { opacity: 1; transform: translateX(0); }
   }
   #quizMini2 .qm2-opts {
     position: absolute; left: 0; right: 0; bottom: calc(7% + 2.6rem + env(safe-area-inset-bottom));   /* 1,5 linhas acima */
@@ -1503,7 +1515,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.46.0</div>
+<div id="versao">v1.47.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1693,6 +1705,7 @@
 <div id="quizMini2" aria-hidden="true">
   <div class="qm-num" id="qm2Num">Questão 1</div>
   <div class="qm2-formula" id="qm2Formula"></div>
+  <div class="qm2-eq" id="qm2Eq"></div>
   <div class="qm2-opts">
     <button class="qm2-opt" data-cat="1">1. Monoácido</button>
     <button class="qm2-opt" data-cat="2">2. Diácido</button>
@@ -5439,6 +5452,11 @@ const qm2RH3BO3PO2 = new Audio('audios/dialogo1.7RH3BO3.H3PO2.mp3'); // H3PO2/H3
 const qm2R2PO2BO3 = new Audio('audios/dialogo1.7R2H3PO2.H3BO3.mp3'); // H3PO2/H3BO3 acerto (2ª exceção do par)
 const qm2WH3PO2BO3 = new Audio('audios/dialogo1.7WH3PO2.H3BO3.mp3'); // H3PO2/H3BO3 erro
 [qm2REH3PO3, qm2WH3PO3, qm2RH3BO3PO2, qm2R2PO2BO3, qm2WH3PO2BO3].concat(qm2R.slice(1)).forEach(a => a.preload = 'auto');
+// áudios de transição ao entrar um novo exemplo (como no quiz 2): sorteio de "próxima/mais uma/e esse aqui"; a última questão usa "só mais esse"
+const qm2TransPool = [new Audio('audios/próxima.mp3'), new Audio('audios/maisuma.mp3'), new Audio('audios/eesseaqui.mp3')];
+const qm2TransUltima = new Audio('audios/sómaisesse.mp3');
+qm2TransPool.concat([qm2TransUltima]).forEach(a => a.preload = 'auto');
+const qm2Trans = prox => (prox >= 7) ? qm2TransUltima : qm2TransPool[Math.floor(Math.random() * qm2TransPool.length)];
 let qm2ParExcAcertado = false;   // já acertou uma das exceções do par H3PO2/H3BO3?
 const QM2_NORMAIS = [
   { f: 'HCl', cat: 1 }, { f: 'HNO3', cat: 1 }, { f: 'HClO', cat: 1 }, { f: 'HF', cat: 1 }, { f: 'HBr', cat: 1 }, { f: 'HClO4', cat: 1 },
@@ -5474,10 +5492,10 @@ function qm2Mostrar(i) {
   qm2Idx = i; qm2Resp = false;
   $id('qm2Num').textContent = 'Questão ' + (i + 1);
   quizMini2El.querySelectorAll('.qm2-opt').forEach(b => { b.disabled = false; b.classList.remove('certo', 'errado'); });
-  const q = qm2Questoes[i], el = $id('qm2Formula');
-  el.classList.remove('eq');
-  el.innerHTML = fmtFormula(q.f);   // começa SEMPRE só com a fórmula (nas exceções a equação só aparece após responder)
-  el.classList.remove('sai'); void el.offsetWidth; el.classList.add('entra');
+  const q = qm2Questoes[i], fEl = $id('qm2Formula'), eEl = $id('qm2Eq');
+  eEl.classList.remove('entra-esq', 'sai'); eEl.innerHTML = '';                          // equação escondida (reseta um push anterior)
+  fEl.classList.remove('eq', 'sai', 'sai-dir', 'entra'); fEl.innerHTML = fmtFormula(q.f); // começa SEMPRE só com a fórmula
+  void fEl.offsetWidth; fEl.classList.add('entra');
   quizMini2El.classList.add('show');
 }
 function qm2UmaVez(audio, fn, fallbackMs) {
@@ -5486,11 +5504,11 @@ function qm2UmaVez(audio, fn, fallbackMs) {
   const t = setTimeout(run, fallbackMs);
   if (audio) audio.addEventListener('ended', run); else run();
 }
-// exceção: troca a fórmula pela equação de ionização (fica na tela junto com o áudio, até ele terminar)
+// exceção: a fórmula é empurrada pra direita enquanto a equação de ionização completa entra pela esquerda e centraliza (fica até o áudio terminar)
 function qm2MostrarEquacao(q) {
-  const el = $id('qm2Formula');
-  el.classList.add('eq'); el.innerHTML = q.eq;
-  el.classList.remove('sai', 'entra'); void el.offsetWidth; el.classList.add('entra');
+  const fEl = $id('qm2Formula'), eEl = $id('qm2Eq');
+  fEl.classList.remove('entra'); void fEl.offsetWidth; fEl.classList.add('sai-dir');
+  eEl.innerHTML = q.eq; eEl.classList.remove('sai'); void eEl.offsetWidth; eEl.classList.add('entra-esq');
 }
 function qm2Responder(cat) {
   if (qm2Resp || !quizMini2El.classList.contains('show')) return; qm2Resp = true;
@@ -5520,9 +5538,11 @@ function qm2Responder(cat) {
 function qm2Depois() {
   const proceder = () => {
     if (qm2Idx >= 7) { qm2FimQuiz(); return; }
-    const el = $id('qm2Formula'); el.classList.remove('entra'); void el.offsetWidth; el.classList.add('sai');   // sai dramático
-    const tok = qm2Token, prox = qm2Idx + 1;
-    setTimeout(() => { if (tok === qm2Token) qm2Mostrar(prox); }, 520);
+    const atual = qm2Questoes[qm2Idx];
+    const el = atual.exc ? $id('qm2Eq') : $id('qm2Formula');   // nas exceções quem está na tela é a equação
+    el.classList.remove('entra', 'entra-esq'); void el.offsetWidth; el.classList.add('sai');
+    const tok = qm2Token, prox = qm2Idx + 1, trans = qm2Trans(prox);
+    setTimeout(() => { if (tok !== qm2Token) return; tocarAudioQuiz(trans); qm2Mostrar(prox); }, 520);   // áudio de transição junto com a entrada do novo exemplo
   };
   if (!qm2UltimaCerta) { const tok = qm2Token; setTimeout(() => { if (tok === qm2Token) proceder(); }, 1000); }   // 1s de delay depois do áudio de erro
   else proceder();
@@ -5540,7 +5560,7 @@ function esconderQuizMini2() {
   qm2Token++;
   quizMini2El.setAttribute('aria-hidden', 'true'); quizMini2El.classList.remove('show');
   $id('qm2Fim').classList.remove('show');
-  qmElogios.concat([qmApplause, qm2REH3PO3, qm2WH3PO3, qm2RH3BO3PO2, qm2R2PO2BO3, qm2WH3PO2BO3], qm2R.slice(1)).forEach(pararAudioQuiz);
+  qmElogios.concat([qmApplause, qm2REH3PO3, qm2WH3PO3, qm2RH3BO3PO2, qm2R2PO2BO3, qm2WH3PO2BO3, qm2TransUltima], qm2R.slice(1), qm2TransPool).forEach(pararAudioQuiz);
 }
 quizMini2El.querySelectorAll('.qm2-opt').forEach(b => { const h = () => qm2Responder(parseInt(b.dataset.cat, 10)); b.addEventListener('click', h); b.addEventListener('pointerup', h); });
 $id('qm2Refazer').addEventListener('click', () => { const i = idxFaixa('dialogo1.7B'); if (i >= 0) tocarFaixa(i); });   // refaz o quiz 2
