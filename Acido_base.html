@@ -1523,7 +1523,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.51.0</div>
+<div id="versao">v1.52.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2169,8 +2169,8 @@ reagents.forEach(r => {
 // Frascos dedicados do dialogo1.8 (cena "igual ao 1.3B", mas só água + 2 ácidos): HCl no meio, HNO2 à direita.
 // Ficam escondidos e só entram em 31s. São separados dos reagents pra não herdar nomes/escurecimento de cenas anteriores.
 const bench18 = [
-  { parts: [{ t: 'HCl(g)' }], x: AC_X[0], flask: true },          // meio: HCl é gasoso quando puro -> balão de fundo redondo
-  { parts: [{ t: 'HNO' }, { t: '2', sub: true }], x: AC_X[1] },   // direita: HNO₂ -> béquer
+  { parts: [{ t: 'HCl(g)' }], x: AC_X[0], flask: true },   // esquerda: balão gerador de HCl gasoso
+  { x: AC_X[1], water: true },                             // direita: béquer com água pura (recebe o gás)
 ];
 bench18.forEach(item => {
   let b;
@@ -2180,6 +2180,8 @@ bench18.forEach(item => {
     const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
     plane.position.set(0, 1.15, 1.15 + 0.02);
     b.add(plane); item.label = plane;
+  } else if (item.water) {
+    b = makeBeaker(1.6, 3.4, 0x4aa8e8, 0.62);   // béquer com água pura (azul)
   } else {
     b = makeBeaker(1.1, 2.6, 0xe6f2fa, 0.5, 0.14);
     item.label = addLabel(b, item.parts, 1.1, 2.6);
@@ -2732,6 +2734,14 @@ renderer.domElement.addEventListener('pointerdown', e => {
       holdStart(e);
     }
     return;
+  }
+
+  // válvula do aparato de transferência (1.8): clique abre/fecha a conexão
+  if (aparato18 && aparato18.visible && valvula18) {
+    ndc.x = (e.clientX / innerWidth) * 2 - 1;
+    ndc.y = -(e.clientY / innerHeight) * 2 + 1;
+    raycaster.setFromCamera(ndc, camera);
+    if (raycaster.intersectObject(valvula18, true).length) { toggleValvula(); return; }
   }
 
   if (litmusAtivo) {   // durante o papel de tornassol: só o papel é interativo
@@ -3485,10 +3495,11 @@ const EVENTOS = {
   ]),
   'dialogo1.8':   () => rodarStory([
     { t: 0.0,  fn: c18Iniciar },                                   // prepara a cena (mantém o título do 1.6 e o "b)" do 1.7)
-    { t: 0.0,  fn: c18BancadaInicio },                             // só a água na bancada (entra se ainda não estiver); esconde os outros
+    { t: 0.0,  fn: c18BancadaInicio },                             // béquer com água (direita) entra no início
     { t: 0.4,  fn: c18Deslizar },                                  // "b)" sai pra direita; "c)" entra pela esquerda (0,4s->3,4s)
     { t: 13.0, fn: () => irParaCamera({ theta: -0.002, phi: 1.534, dist: 22.73, target: [0.2, 5.23, 0.77] }, true, 1500) },   // enquadra a bancada
-    { t: 31.0, fn: c18Frascos },                                   // entram HCl (meio) e HNO2 (direita), como no 1.3B
+    { t: 31.0, fn: c18Frascos },                                   // entra o balão gerador de HCl (esquerda)
+    { t: 38.0, fn: montarAparato },                                // PROVISÓRIO: monta o aparato (me diga o tempo do "monte o aparato" que eu ajusto)
   ]),
 };
 
@@ -5413,14 +5424,71 @@ function esconderCena18() {
   const subC = cena18El.querySelector('.c18-sub'); subC.classList.remove('show'); subC.style.cssText = '';
   c18EsconderBancada();
 }
-// bancada do 1.8: só a água + (em 31s) os 2 frascos
-function c18EsconderBancada() { bench18.forEach(item => { item.beaker.visible = false; if (item.label) item.label.visible = false; }); }
+// bancada do 1.8: balão de HCl (esquerda) + béquer com água (direita) + aparato (toggle)
+function c18EsconderBancada() {
+  bench18.forEach(item => { item.beaker.visible = false; if (item.label) item.label.visible = false; });
+  if (aparato18) aparato18.visible = false;
+}
 function c18BancadaInicio() {
   if (typeof esconderAcidosBancada === 'function') esconderAcidosBancada();   // some os 3 ácidos da bancada + pipeta
-  c18EsconderBancada();                                                       // meus 2 frascos começam escondidos
-  if (!waterBeaker.visible) fade3D(waterBeaker, 1, 700);                      // água na esquerda (entra se ainda não estiver na cena)
+  if (waterBeaker.visible) fade3D(waterBeaker, 0, 300);                       // a água principal (esquerda) não faz parte do 1.8
+  c18EsconderBancada();
+  const ag = bench18.find(it => it.water);
+  if (ag) fade3D(ag.beaker, 1, 700);                                          // béquer de água (direita) entra no início
 }
-function c18Frascos() { bench18.forEach(item => { if (item.label) item.label.visible = true; fade3D(item.beaker, 1, 800); }); }   // HCl (meio) + HNO2 (direita) entram
+function c18Frascos() {   // 31s: entra o balão gerador de HCl (esquerda)
+  const fl = bench18.find(it => it.flask);
+  if (fl) { if (fl.label) fl.label.visible = true; fade3D(fl.beaker, 1, 800); }
+}
+
+// ---- Aparato de transferência do gás: tubo de vidro + funil invertido + válvula (abre/fecha) ----
+// Grupo separado dos recipientes -> monta/desmonta sem mexer neles. Sem nenhum texto.
+let aparato18 = null, valvula18 = null, valvula18Alav = null, valvula18Corpo = null, valvula18Aberta = true;
+function makeAparato() {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshPhongMaterial({ color: 0xcfe8ff, transparent: true, opacity: 0.4, shininess: 130, specular: 0xffffff, side: THREE.DoubleSide, depthWrite: false });
+  const R = 0.13, fz = 1.5;
+  const fl = bench18.find(it => it.flask), ag = bench18.find(it => it.water);
+  const fx = fl ? fl.beaker.position.x : AC_X[0];
+  const wx = ag ? ag.beaker.position.x : AC_X[1];
+  const yStop = 4.4, yTop = 6.0, yDown = 3.5;
+  const P = [[fx, yStop, fz], [fx, yTop, fz], [wx, yTop, fz], [wx, yDown, fz]].map(a => new THREE.Vector3(a[0], a[1], a[2]));
+  for (let i = 0; i < P.length - 1; i++) {   // tubo em L: sobe, atravessa, desce
+    const a = P[i], b = P[i + 1], dir = new THREE.Vector3().subVectors(b, a), len = dir.length();
+    const seg = new THREE.Mesh(new THREE.CylinderGeometry(R, R, len, 20, 1, true), mat);
+    seg.position.copy(a).addScaledVector(dir, 0.5);
+    seg.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+    g.add(seg);
+  }
+  P.forEach(p => { const j = new THREE.Mesh(new THREE.SphereGeometry(R * 1.15, 16, 12), mat); j.position.copy(p); g.add(j); });   // juntas nos cantos
+  const funnelH = 1.0, mouthR = 0.9;
+  const funnel = new THREE.Mesh(new THREE.CylinderGeometry(R * 1.25, mouthR, funnelH, 28, 1, true), mat);   // funil de segurança invertido
+  funnel.position.set(wx, yDown - funnelH / 2, fz);
+  g.add(funnel);
+  // válvula no meio do tubo horizontal (clicável: abre/fecha a conexão)
+  const vg = new THREE.Group();
+  vg.position.set((fx + wx) / 2, yTop, fz);
+  valvula18Corpo = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.42, 0.42), new THREE.MeshPhongMaterial({ color: 0x4caf50, shininess: 40 }));
+  vg.add(valvula18Corpo);
+  valvula18Alav = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.72, 16), new THREE.MeshPhongMaterial({ color: 0x2b3a42, shininess: 60 }));
+  valvula18Alav.rotation.z = Math.PI / 2;   // deitada = paralela ao tubo = ABERTA
+  valvula18Alav.position.y = 0.26;
+  vg.add(valvula18Alav);
+  g.add(vg);
+  valvula18 = vg; valvula18Aberta = true;
+  return g;
+}
+function toggleValvula() {
+  valvula18Aberta = !valvula18Aberta;
+  if (valvula18Alav) valvula18Alav.rotation.z = valvula18Aberta ? Math.PI / 2 : 0;              // aberta=deitada, fechada=em pé
+  if (valvula18Corpo) valvula18Corpo.material.color.set(valvula18Aberta ? 0x4caf50 : 0xd9534f); // verde=aberta, vermelho=fechada
+  if (typeof playSfx === 'function') playSfx('click');
+}
+function montarAparato() {
+  if (!aparato18) { aparato18 = makeAparato(); aparato18.visible = false; scene.add(aparato18); }
+  fade3D(aparato18, 1, 700);
+}
+function desmontarAparato() { if (aparato18) fade3D(aparato18, 0, 500); }
 
 // ---- Quiz rápido entre 1.6 e 1.7 (hidrácido x oxiácido) ----
 const quizMiniEl = $id('quizMini');
