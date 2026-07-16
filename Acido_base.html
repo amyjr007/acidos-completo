@@ -1104,8 +1104,9 @@
   }
   #quizMini .qm-opts {
     position: absolute; left: 0; right: 0; bottom: calc(8% + 2.6rem + env(safe-area-inset-bottom));   /* 1,5 linhas acima */
-    display: flex; justify-content: center; gap: clamp(12px, 4vw, 28px); pointer-events: auto; flex-wrap: wrap;
+    display: flex; justify-content: center; gap: clamp(12px, 4vw, 28px); pointer-events: none; flex-wrap: wrap;
   }
+  #quizMini.show .qm-opts { pointer-events: auto; }   /* só clicável quando o quiz está visível */
   #quizMini .qm-opt {
     font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(15px, 4.4vw, 20px); color: #eaf7d9;
     padding: .7em 1.5em; border-radius: 14px; background: rgba(255, 255, 255, .08); border: 2px solid rgba(166, 229, 52, .5);
@@ -1149,9 +1150,10 @@
   #quizMini2 .qm2-formula.sai { animation: qmSai .5s cubic-bezier(.5, 0, .75, 0) forwards; }
   #quizMini2 .qm2-opts {
     position: absolute; left: 0; right: 0; bottom: calc(7% + 2.6rem + env(safe-area-inset-bottom));   /* 1,5 linhas acima */
-    display: flex; justify-content: center; gap: clamp(10px, 3vw, 18px); pointer-events: auto; flex-wrap: wrap;
+    display: flex; justify-content: center; gap: clamp(10px, 3vw, 18px); pointer-events: none; flex-wrap: wrap;
     max-width: 520px; margin: 0 auto; padding: 0 14px;
   }
+  #quizMini2.show .qm2-opts { pointer-events: auto; }   /* só clicável quando o quiz está visível */
   #quizMini2 .qm2-opt {
     flex: 1 1 40%; min-width: 130px; font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(14px, 4vw, 18px);
     color: #eaf7d9; padding: .7em .6em; border-radius: 14px; background: rgba(255, 255, 255, .08); border: 2px solid rgba(166, 229, 52, .5);
@@ -1424,7 +1426,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.37.0</div>
+<div id="versao">v1.38.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3333,6 +3335,7 @@ function tocarFaixa(i) {
   if (typeof fecharQuiz3 === 'function') fecharQuiz3();   // some a questão 3 e para os áudios
   if (typeof fecharQuiz4 === 'function') fecharQuiz4();   // some a questão 4 (arrastar)
   if (typeof fecharQuizFim === 'function') fecharQuizFim();   // some o card de nota final
+  if (typeof limparOverlaysQuiz === 'function') limparOverlaysQuiz();   // garante que nenhum overlay de quiz/cena fique sobreposto
   if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes e no 1.7
   if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações (H ionizáveis)
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
@@ -5125,6 +5128,12 @@ function esconderCena17() {
 
 // ---- Quiz rápido entre 1.6 e 1.7 (hidrácido x oxiácido) ----
 const quizMiniEl = $id('quizMini');
+// esconde TODOS os overlays de quiz/card (evita que uma cena fique sobreposta a outra)
+function limparOverlaysQuiz() {
+  ['quiz1', 'quiz2', 'quiz3', 'quiz4', 'quizFim', 'quizCarga', 'quizMini', 'qmFim', 'quizMini2', 'qm2Fim'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
+  const qb = $id('quizBtn'); if (qb) qb.classList.remove('show');
+  document.querySelectorAll('.dicaBtn').forEach(b => { b.style.display = 'none'; });
+}
 const qmIssoAudio = new Audio('audios/isso!.mp3');
 const qmApplause = new Audio('audios/applause.mp3');
 const qmD16W = new Audio('audios/dialogo1.6W.mp3');
@@ -5178,7 +5187,7 @@ function qmUmaVez(audio, fn, fallbackMs) {
   if (audio) audio.addEventListener('ended', run); else run();
 }
 function qmResponder(val, btn) {
-  if (qmResp) return; qmResp = true;
+  if (qmResp || !quizMiniEl.classList.contains('show')) return; qmResp = true;
   const acido = qmQuestoes[qmIdx], certo = (val === acido.t);
   qmUltimaCerta = certo;
   quizMiniEl.querySelectorAll('.qm-opt').forEach(b => b.disabled = true);
@@ -5281,7 +5290,7 @@ function qm2UmaVez(audio, fn, fallbackMs) {
   if (audio) audio.addEventListener('ended', run); else run();
 }
 function qm2Responder(cat) {
-  if (qm2Resp) return; qm2Resp = true;
+  if (qm2Resp || !quizMini2El.classList.contains('show')) return; qm2Resp = true;
   const q = qm2Questoes[qm2Idx], certo = (cat === q.cat);
   qm2UltimaCerta = certo;
   quizMini2El.querySelectorAll('.qm2-opt').forEach(b => b.disabled = true);
