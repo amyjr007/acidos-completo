@@ -1065,17 +1065,23 @@
   #cena18 .c18-sub.show { opacity: 1; }
   #cena17 .c17-eqs {
     position: absolute; left: 0; right: 0; top: 31%;
-    display: flex; flex-direction: column; align-items: center; gap: clamp(12px, 4.2vh, 34px);
-  }
-  #cena17 .c17-row { position: relative; }
-  #cena17 .c17-eq {
+    display: grid; justify-content: center; align-items: baseline;
+    grid-template-columns: auto auto auto auto auto;   /* ácido | seta | H⁺ | + | ânion — colunas alinhadas entre as linhas */
+    column-gap: .26em; row-gap: clamp(12px, 4.2vh, 34px);
     font-family: "Cambria Math", Georgia, system-ui, serif; font-weight: 800; color: #f2fbe4;
-    font-size: clamp(19px, 5.8vw, 36px); white-space: nowrap;
-    display: flex; align-items: baseline; gap: .26em; text-shadow: 0 2px 10px rgba(0, 0, 0, .55);
+    font-size: clamp(19px, 5.8vw, 36px); white-space: nowrap; text-shadow: 0 2px 10px rgba(0, 0, 0, .55);
+    transition: opacity .8s ease;
   }
+  #cena17 .c17-eqs.sumindo { opacity: 0; }
+  #cena17 .c17-row, #cena17 .c17-eq { display: contents; }   /* linhas "somem" do layout: as 5 células caem direto no grid */
+  #cena17 .c17-ac { justify-self: end; }     /* ácido à direita: todos terminam colados na seta */
+  #cena17 .c17-h  { justify-self: start; }    /* H⁺ à esquerda */
+  #cena17 .c17-seta, #cena17 .c17-plus { justify-self: center; }
+  #cena17 .c17-an { justify-self: start; }
+  #cena17 .c17-acH { display: inline-block; transform-origin: center bottom; transition: transform .45s cubic-bezier(.2, .9, .3, 1.5); }   /* Hₙ da fórmula, escalável */
   #cena17 .c17-eq sup { font-size: .58em; vertical-align: super; position: relative; top: -.28em; }
   #cena17 .c17-eq sub { font-size: .58em; vertical-align: sub; }
-  #cena17 .c17-ac, #cena17 .c17-h { display: inline-block; position: relative; }   /* escaláveis */
+  #cena17 .c17-ac, #cena17 .c17-h { position: relative; }   /* escaláveis (via transform) */
   #cena17 .c17-ac { opacity: 0; transition: opacity .5s ease, transform .45s cubic-bezier(.2, .9, .3, 1.5); }
   #cena17.acidos .c17-ac { opacity: 1; }
   #cena17 .c17-seta, #cena17 .c17-h, #cena17 .c17-plus, #cena17 .c17-an { opacity: 0; transition: opacity .5s ease, transform .45s cubic-bezier(.2, .9, .3, 1.5); }
@@ -1089,6 +1095,60 @@
   }
   #cena17 .c17-lab .c17-p1, #cena17 .c17-lab .c17-p2 { opacity: 0; transition: opacity .4s ease; }
   #cena17 .c17-lab .c17-p1.show, #cena17 .c17-lab .c17-p2.show { opacity: 1; }
+  /* ---- dialogo1.7A: alerta + 3 exceções (amarelo brilhante) ---- */
+  #cena17 .c17-alerta {
+    position: absolute; top: 21.5%; left: 0; right: 0; text-align: center;
+    display: flex; align-items: center; justify-content: center; gap: .4em;
+    font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: .5px;
+    font-size: clamp(16px, 5vw, 28px); color: #ffd21e; text-shadow: 0 2px 10px rgba(0, 0, 0, .55);
+    opacity: 0; transform: scale(.6); pointer-events: none;
+  }
+  #cena17 .c17-alerta.show { opacity: 1; animation: c17AlertaPulsa .7s ease-in-out infinite; }
+  #cena17 .c17-alerta .c17-alerta-ico { font-size: 1.15em; display: inline-block; animation: c17AlertaTremer .5s ease-in-out infinite; }
+  @keyframes c17AlertaPulsa { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+  @keyframes c17AlertaTremer { 0%, 100% { transform: rotate(-9deg); } 50% { transform: rotate(9deg); } }
+  #cena17 .c17-exc-titulo {
+    position: absolute; top: 30%; left: 0; right: 0; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(17px, 5.4vw, 30px);
+    color: #ffd21e; text-shadow: 0 2px 10px rgba(0, 0, 0, .55);
+    opacity: 0; transform: translateY(14px) scale(.9); pointer-events: none;
+    transition: opacity .5s ease, transform .5s cubic-bezier(.2, .9, .25, 1.5);
+  }
+  #cena17 .c17-exc-titulo.show { opacity: 1; transform: none; }
+  #cena17 .c17-exc-eqs {
+    position: absolute; left: 0; right: 0; top: 42%;
+    display: grid; justify-content: center; align-items: baseline;
+    grid-template-columns: auto auto auto auto auto;
+    column-gap: .26em; row-gap: clamp(10px, 3.6vh, 28px);
+    font-family: "Cambria Math", Georgia, system-ui, serif; font-weight: 800; color: #ffd21e;
+    font-size: clamp(17px, 5.2vw, 32px); white-space: nowrap; text-shadow: 0 2px 10px rgba(0, 0, 0, .55);
+    pointer-events: none; opacity: 0;   /* escondido até "entrar" (as 3 fórmulas só aparecem aos 11s) */
+  }
+  #cena17 .c17-exc-eqs.entrar { opacity: 1; }
+  #cena17 .c17-erow { display: contents; }
+  #cena17 .c17-eac { justify-self: end; position: relative; display: inline-block; }   /* repouso: visível, scale 1 */
+  #cena17 .c17-exc-eqs.entrar .c17-eac { animation: qm2Entra .6s cubic-bezier(.2, .9, .25, 1.6) both; }
+  #cena17 .c17-exc-eqs.entrar .c17-erow:nth-child(2) .c17-eac { animation-delay: .22s; }
+  #cena17 .c17-exc-eqs.entrar .c17-erow:nth-child(3) .c17-eac { animation-delay: .44s; }
+  #cena17 .c17-eacH { display: inline-block; transform-origin: center bottom; transition: transform .45s cubic-bezier(.2, .9, .3, 1.5); }
+  #cena17 .c17-eseta { justify-self: center; position: relative; display: inline-block; padding: 0 .12em; }
+  #cena17 .c17-eh { justify-self: start; display: inline-block; transform-origin: center bottom; transition: transform .45s cubic-bezier(.2, .9, .3, 1.5); }
+  #cena17 .c17-eplus { justify-self: center; }
+  #cena17 .c17-ean { justify-self: start; }
+  #cena17 .c17-eseta, #cena17 .c17-eh, #cena17 .c17-eplus, #cena17 .c17-ean { opacity: 0; transition: opacity .5s ease, transform .45s cubic-bezier(.2, .9, .3, 1.5); }
+  #cena17 .c17-erow.mostra-eq .c17-eseta, #cena17 .c17-erow.mostra-eq .c17-eh, #cena17 .c17-erow.mostra-eq .c17-eplus, #cena17 .c17-erow.mostra-eq .c17-ean { opacity: 1; }
+  #cena17 .c17-exc-eqs sup { font-size: .58em; vertical-align: super; position: relative; top: -.28em; }
+  #cena17 .c17-exc-eqs sub { font-size: .58em; vertical-align: sub; }
+  #cena17 .c17-eagua { position: absolute; left: 50%; top: -.72em; transform: translateX(-50%); font-size: .4em; font-weight: 700; color: #cdeaff; white-space: nowrap; }
+  #cena17 .c17-elab {
+    position: absolute; bottom: 108%; left: 50%; transform: translateX(-50%);
+    font-family: system-ui, sans-serif; font-weight: 900; color: #ffd21e; white-space: nowrap;
+    font-size: .5em; letter-spacing: .3px; text-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+  }
+  #cena17 .c17-elab .c17-ep1, #cena17 .c17-elab .c17-ep2 { opacity: 0; transition: opacity .4s ease; }
+  #cena17 .c17-elab .c17-ep1.show, #cena17 .c17-elab .c17-ep2.show { opacity: 1; }
+  #cena17 .c17-exc-eqs.entrar .c17-eac.pulsa { animation: c17ExcPulsa .5s ease-in-out 3; }   /* especificidade > a de entrada, senão a pulsada não aplica */
+  @keyframes c17ExcPulsa { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.28); } }
   /* ---- Quiz rápido (hidrácido x oxiácido) entre 1.6 e 1.7 ---- */
   #quizMini { position: fixed; inset: 0; z-index: 44; pointer-events: none; display: none; }
   #quizMini.show { display: block; }   /* escondido = display:none -> some do hit-test (não intercepta outro quiz) */
@@ -1443,7 +1503,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.45.0</div>
+<div id="versao">v1.46.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1597,6 +1657,10 @@
 <div id="cena17" aria-hidden="true">
   <div class="c17-sub">b) Quanto aos H ionizáveis</div>
   <div class="c17-eqs" id="c17eqs"></div>
+  <!-- 1.7A: alerta + 3 exceções importantes -->
+  <div class="c17-alerta" id="c17Alerta"><span class="c17-alerta-ico">&#9888;&#65039;</span><span class="c17-alerta-txt">Alerta!</span></div>
+  <div class="c17-exc-titulo" id="c17ExcTit">3 exceções importantes!</div>
+  <div class="c17-exc-eqs" id="c17ExcEqs"></div>
 </div>
 
 <!-- Cena do dialogo1.8: classificação quanto à força dos ácidos -->
@@ -3307,6 +3371,28 @@ const EVENTOS = {
     { t: 44.2, fn: () => { c17Normal('ac3'); c17Maior('h3'); } },   // diminui H₄SiO₄, aumenta o 4H⁺
     { t: 46.8, fn: () => c17Lab(3, 1) },                            // "tetr"
     { t: 47.6, fn: () => c17Lab(3, 2) },                            // "ácido" -> tetrácido
+  ]),
+  'dialogo1.7A':  () => rodarStory([
+    { t: 0.0,  fn: c17aIniciar },                                  // prepara a cena (4 equações do 1.7 na tela)
+    { t: 0.2,  fn: c17aAlerta },                                   // "⚠️ Alerta!" chamativo abaixo do "b)"
+    { t: 3.0,  fn: () => c17aTodosH(1.5) },                        // cresce todos os Hₙ das moléculas (com índice)
+    { t: 4.8,  fn: () => { c17aTodosH(1); c17aTodosHp(1.5); } },   // eles diminuem e crescem os H⁺
+    { t: 6.8,  fn: () => { c17aTodosHp(1); c17aExcecoes(); } },    // some as 4 equações (fade); entra "3 exceções importantes!"
+    { t: 11.0, fn: c17aAcidos },                                   // 3 ácidos (H3PO3, H3BO3, H3PO2) em animação dramática
+    { t: 13.0, fn: () => c17aMostraEq(0) },                        // equação de ionização do H3PO3
+    { t: 15.0, fn: () => c17Maior('eacH0') },                      // cresce o H3 do H3PO3
+    { t: 16.8, fn: () => { c17Normal('eacH0'); c17Maior('eh0'); } }, // diminui + cresce os 2H⁺
+    { t: 21.0, fn: () => c17aLab(0, 1) },                          // "di..."
+    { t: 22.0, fn: () => c17aLab(0, 2) },                          // "ácido"
+    { t: 27.0, fn: () => c17aMostraEq(2) },                        // equação de ionização do H3PO2 (2s antes de crescer, como no H3PO3)
+    { t: 29.0, fn: () => c17Maior('eacH2') },                      // cresce o H3 do H3PO2
+    { t: 31.0, fn: () => { c17Normal('eacH2'); c17Maior('eh2'); } }, // diminui + cresce o H⁺
+    { t: 35.7, fn: () => c17aLab(2, 1) },                          // "mono..."
+    { t: 36.5, fn: () => c17aLab(2, 2) },                          // "ácido"
+    { t: 39.0, fn: () => c17aPulsa(1) },                           // 3 pulsadas no H3BO3
+    { t: 42.0, fn: () => c17aMostraEq(1) },                        // equação de ionização do H3BO3
+    { t: 44.0, fn: () => { c17Maior('eh1'); c17aLab(1, 1); } },    // cresce o H⁺ + "mono..."
+    { t: 44.8, fn: () => c17aLab(1, 2) },                          // "ácido"
   ]),
   'dialogo1.7B':  () => rodarStory([
     { t: 0.0,  fn: iniciarQuizMini2 },                             // some as equações; fica título + subtítulo "b)"
@@ -5110,16 +5196,18 @@ function esconderCena16() {
 
 // ---- Cena do dialogo1.7: H ionizáveis (mono/di/tri/tetrácidos) ----
 const cena17El = $id('cena17');
+// hp = "Hₙ" inicial (escalável separadamente); rest = resto da fórmula
 const C17_EQS = [
-  { ac: 'HCl',                          h: 'H<sup>+</sup>',  an: 'Cl<sup>&#8722;</sup>',                    pre: 'mono' },
-  { ac: 'H<sub>2</sub>S',               h: '2H<sup>+</sup>', an: 'S<sup>2&#8722;</sup>',                    pre: 'di' },
-  { ac: 'H<sub>3</sub>PO<sub>4</sub>',  h: '3H<sup>+</sup>', an: 'PO<sub>4</sub><sup>3&#8722;</sup>',        pre: 'tri' },
-  { ac: 'H<sub>4</sub>SiO<sub>4</sub>', h: '4H<sup>+</sup>', an: 'SiO<sub>4</sub><sup>4&#8722;</sup>',       pre: 'tetr' },
+  { hp: 'H',             rest: 'Cl',              h: 'H<sup>+</sup>',  an: 'Cl<sup>&#8722;</sup>',              pre: 'mono' },
+  { hp: 'H<sub>2</sub>', rest: 'S',               h: '2H<sup>+</sup>', an: 'S<sup>2&#8722;</sup>',              pre: 'di' },
+  { hp: 'H<sub>3</sub>', rest: 'PO<sub>4</sub>',  h: '3H<sup>+</sup>', an: 'PO<sub>4</sub><sup>3&#8722;</sup>',  pre: 'tri' },
+  { hp: 'H<sub>4</sub>', rest: 'SiO<sub>4</sub>', h: '4H<sup>+</sup>', an: 'SiO<sub>4</sub><sup>4&#8722;</sup>', pre: 'tetr' },
 ];
 function c17Montar() {
   $id('c17eqs').innerHTML = C17_EQS.map((e, i) =>
     '<div class="c17-row"><div class="c17-eq">' +
-      '<span class="c17-ac" data-k="ac' + i + '">' + e.ac +
+      '<span class="c17-ac" data-k="ac' + i + '">' +
+        '<span class="c17-acH" data-k="acH' + i + '">' + e.hp + '</span>' + e.rest +
         '<span class="c17-lab"><span class="c17-p1">' + e.pre + '</span><span class="c17-p2">ácido</span></span>' +
       '</span>' +
       '<span class="c17-seta"><span class="c17-agua">H<sub>2</sub>O</span><span class="c17-arrow">&#8594;</span></span>' +
@@ -5140,6 +5228,7 @@ function c17MostrarEquacoes() { cena17El.classList.add('equacoes'); }
 function c17Iniciar() {
   cena17El.setAttribute('aria-hidden', 'false');
   cena17El.classList.remove('acidos', 'equacoes');
+  if (typeof c17aReset === 'function') c17aReset();   // limpa fade/alerta/exceções do 1.7A ao (re)iniciar o 1.7
   c17Montar();
   const subB = cena17El.querySelector('.c17-sub');
   subB.classList.remove('show'); subB.style.transition = 'none'; subB.style.transform = 'translateX(-130vw)'; subB.style.opacity = '1';
@@ -5158,6 +5247,51 @@ function esconderCena17() {
   cena17El.setAttribute('aria-hidden', 'true');
   cena17El.classList.remove('acidos', 'equacoes');
   const subB = cena17El.querySelector('.c17-sub'); subB.classList.remove('show'); subB.style.cssText = '';
+  c17aReset();
+}
+
+// ---- dialogo1.7A: alerta + 3 exceções (H3PO3, H3BO3, H3PO2) ----
+// ordem na tela (de cima pra baixo): 0=H3PO3, 1=H3BO3, 2=H3PO2
+const C17_EXC = [
+  { hp: 'H<sub>3</sub>', rest: 'PO<sub>3</sub>', h: '2H<sup>+</sup>', an: 'HPO<sub>3</sub><sup>2&#8722;</sup>',             pre: 'di' },    // H3PO3 diácido
+  { hp: 'H<sub>3</sub>', rest: 'BO<sub>3</sub>', h: 'H<sup>+</sup>',  an: 'H<sub>2</sub>BO<sub>3</sub><sup>&#8722;</sup>', pre: 'mono' },  // H3BO3 monoácido
+  { hp: 'H<sub>3</sub>', rest: 'PO<sub>2</sub>', h: 'H<sup>+</sup>',  an: 'H<sub>2</sub>PO<sub>2</sub><sup>&#8722;</sup>', pre: 'mono' },  // H3PO2 monoácido
+];
+function c17aMontar() {
+  $id('c17ExcEqs').innerHTML = C17_EXC.map((e, i) =>
+    '<div class="c17-erow">' +
+      '<span class="c17-eac" data-k="eac' + i + '">' +
+        '<span class="c17-eacH" data-k="eacH' + i + '">' + e.hp + '</span>' + e.rest +
+        '<span class="c17-elab"><span class="c17-ep1">' + e.pre + '</span><span class="c17-ep2">ácido</span></span>' +
+      '</span>' +
+      '<span class="c17-eseta"><span class="c17-eagua">H<sub>2</sub>O</span>&#8594;</span>' +
+      '<span class="c17-eh" data-k="eh' + i + '">' + e.h + '</span>' +
+      '<span class="c17-eplus">+</span>' +
+      '<span class="c17-ean">' + e.an + '</span>' +
+    '</div>').join('');
+}
+// t0: prepara a cena (garante as 4 equações do 1.7 visíveis) e monta as exceções escondidas
+function c17aIniciar() {
+  cena17El.setAttribute('aria-hidden', 'false');
+  c17aReset();
+  if (!$id('c17eqs').children.length) c17Montar();            // veio direto pro 1.7A (sem passar pelo 1.7)
+  cena17El.classList.add('acidos', 'equacoes');               // 4 equações completas na tela
+  const subB = cena17El.querySelector('.c17-sub'); subB.classList.add('show'); subB.style.transition = 'none'; subB.style.transform = 'none'; subB.style.opacity = '1';
+  c17aMontar();
+}
+function c17aAlerta() { $id('c17Alerta').classList.add('show'); }          // alerta chamativo abaixo do "b)"
+function c17aTodosH(escala) { C17_EQS.forEach((e, i) => { const el = c17q('acH' + i); if (el) el.style.transform = 'scale(' + escala + ')'; }); }   // cresce/normaliza os Hₙ de todas as fórmulas
+function c17aTodosHp(escala) { C17_EQS.forEach((e, i) => { const el = c17q('h' + i); if (el) el.style.transform = 'scale(' + escala + ')'; }); }      // ... e todos os H⁺
+function c17aExcecoes() { $id('c17eqs').classList.add('sumindo'); $id('c17ExcTit').classList.add('show'); }   // some as 4 equações; entra "3 exceções importantes!"
+function c17aAcidos() { const box = $id('c17ExcEqs'); box.classList.remove('entrar'); void box.offsetWidth; box.classList.add('entrar'); }   // entra os 3 ácidos (dramático)
+function c17aMostraEq(i) { const r = $id('c17ExcEqs').children[i]; if (r) r.classList.add('mostra-eq'); }      // revela a ionização da linha i
+function c17aLab(i, parte) { const r = $id('c17ExcEqs').children[i]; if (r) r.querySelector(parte === 1 ? '.c17-ep1' : '.c17-ep2').classList.add('show'); }
+function c17aPulsa(i) { const r = $id('c17ExcEqs').children[i]; if (!r) return; const el = r.querySelector('.c17-eac'); el.classList.remove('pulsa'); void el.offsetWidth; el.classList.add('pulsa'); }
+function c17aReset() {
+  $id('c17eqs').classList.remove('sumindo');
+  $id('c17Alerta').classList.remove('show');
+  $id('c17ExcTit').classList.remove('show');
+  const box = $id('c17ExcEqs'); box.classList.remove('entrar'); box.innerHTML = '';
 }
 
 // ---- Cena do dialogo1.8: força dos ácidos (subtítulo "c)") ----
@@ -5331,6 +5465,7 @@ function iniciarQuizMini2() {
   cena17El.setAttribute('aria-hidden', 'false');
   cena17El.querySelector('.c17-sub').classList.add('show');
   cena17El.classList.remove('acidos', 'equacoes');   // some as equações do 1.7; fica só o subtítulo "b)"
+  if (typeof c17aReset === 'function') c17aReset();   // limpa alerta/exceções que ficaram do 1.7A
   qm2Questoes = qm2Sortear(); qm2Idx = 0; qm2Acertos = 0; qm2Token++; qm2ParExcAcertado = false;
   quizMini2El.setAttribute('aria-hidden', 'false'); quizMini2El.classList.remove('show');
   $id('qm2Fim').classList.remove('show');
