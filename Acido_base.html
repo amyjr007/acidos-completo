@@ -1110,7 +1110,8 @@
   #quizMini .qm-opt {
     font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(15px, 4.4vw, 20px); color: #eaf7d9;
     padding: .7em 1.5em; border-radius: 14px; background: rgba(255, 255, 255, .08); border: 2px solid rgba(166, 229, 52, .5);
-    cursor: pointer; transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+    cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
   }
   #quizMini .qm-opt:hover { transform: translateY(-3px); background: rgba(166, 229, 52, .15); }
   #quizMini .qm-opt:disabled { cursor: default; }
@@ -1157,7 +1158,8 @@
   #quizMini2 .qm2-opt {
     flex: 1 1 40%; min-width: 130px; font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(14px, 4vw, 18px);
     color: #eaf7d9; padding: .7em .6em; border-radius: 14px; background: rgba(255, 255, 255, .08); border: 2px solid rgba(166, 229, 52, .5);
-    cursor: pointer; transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+    cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
   }
   #quizMini2 .qm2-opt:hover { transform: translateY(-3px); background: rgba(166, 229, 52, .15); }
   #quizMini2 .qm2-opt:disabled { cursor: default; }
@@ -1426,7 +1428,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.39.0</div>
+<div id="versao">v1.40.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3477,6 +3479,7 @@ const SUMARIO = [
   { titulo: 'Quiz',                         faixa: idxFaixa('dialogo1.5D') },
   { titulo: 'Classificação dos ácidos',     faixa: idxFaixa('dialogo1.6') },
   { titulo: 'Quiz 2',                       faixa: idxFaixa('dialogo1.6A') },
+  { titulo: 'Quiz 3',                       faixa: idxFaixa('dialogo1.7B') },
 ];
 
 SUMARIO.forEach(item => {
@@ -5235,7 +5238,7 @@ function esconderQuizMini() {
   $id('qmFim').classList.remove('show');
   [qmIssoAudio, qmApplause, qmD16W, qmD16R].concat(qmTransAudios).forEach(pararAudioQuiz);
 }
-quizMiniEl.querySelectorAll('.qm-opt').forEach(b => b.addEventListener('click', () => qmResponder(b.dataset.v, b)));
+quizMiniEl.querySelectorAll('.qm-opt').forEach(b => { const h = e => { e.preventDefault(); qmResponder(b.dataset.v, b); }; b.addEventListener('pointerup', h); b.addEventListener('click', h); });
 $id('qmRefazer').addEventListener('click', () => { const i = idxFaixa('dialogo1.6A'); if (i >= 0) tocarFaixa(i); });     // refaz o quiz (reinicia o 1.6A)
 $id('qmContinuar').addEventListener('click', () => { esconderQuizMini(); const i = idxFaixa('dialogo1.7'); if (i >= 0) tocarFaixa(i); });   // vai pro 1.7
 
@@ -5339,7 +5342,7 @@ function esconderQuizMini2() {
   $id('qm2Fim').classList.remove('show');
   [qmIssoAudio, qmApplause, qm2REH3PO3, qm2WH3PO3, qm2RH3BO3PO2, qm2WH3PO2BO3].concat(qm2R.slice(1)).forEach(pararAudioQuiz);
 }
-quizMini2El.querySelectorAll('.qm2-opt').forEach(b => b.addEventListener('click', () => qm2Responder(parseInt(b.dataset.cat, 10))));
+quizMini2El.querySelectorAll('.qm2-opt').forEach(b => { const h = e => { e.preventDefault(); qm2Responder(parseInt(b.dataset.cat, 10)); }; b.addEventListener('pointerup', h); b.addEventListener('click', h); });
 $id('qm2Refazer').addEventListener('click', () => { const i = idxFaixa('dialogo1.7B'); if (i >= 0) tocarFaixa(i); });   // refaz o quiz 2
 $id('qm2Continuar').addEventListener('click', () => { esconderQuizMini2(); const pb = $id('playBtn'); pb.style.display = ''; faixaTerminou = true; });   // segue o audiobook
 
