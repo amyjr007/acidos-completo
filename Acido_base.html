@@ -283,6 +283,9 @@
     color: var(--acid); text-shadow: 0 0 16px var(--acid-glow);
   }
   .st-desce { position: relative; top: 0.84em; }   /* desce ~0.75 linha (0.75 x line-height 1.12) */
+  .st-menor2 { font-size: clamp(28px, 8.5vw, 46px); }   /* ~2 pontos menor que o padrão */
+  .st-amarelo { color: #ffd21e; }
+  .st-sobe1 { position: relative; top: -1.12em; }   /* sobe 1 linha */
   /* Texto dos indicadores (persiste entre 1.4 e 1.4A, sem flicker) */
   #indicadorTxt {
     position: fixed; top: 50%; left: 0; right: 0; z-index: 41;
@@ -1080,7 +1083,7 @@
     display: flex; align-items: center; justify-content: center; gap: .4em; flex-wrap: wrap;
     font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: .3px;
     font-size: clamp(20px, 6vw, 36px); color: #ffd21e; text-shadow: 0 2px 10px rgba(0, 0, 0, .55);
-    opacity: 0; transform: scale(.6); pointer-events: none; transition: opacity .4s ease, transform .4s ease;
+    opacity: 0; transform: none; pointer-events: none; transition: opacity .4s ease;   /* saída = fade out puro */
   }
   #cena18 .c18-alerta.show { opacity: 1; animation: c17AlertaPulsa .7s ease-in-out infinite; }
   #cena18 .c18-alerta .c18-alerta-ico { font-size: 1.3em; display: inline-block; animation: c17AlertaTremer .5s ease-in-out infinite; }
@@ -1554,7 +1557,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.56.0</div>
+<div id="versao">v1.57.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3109,7 +3112,7 @@ function animate() {
       demoInterativo.expelindo = false;
       if (Math.abs(pipette.position.x - pipAguaX) < 1.6) {
         mostrarHmais(3);
-        if (!c18Pingou) {   // pingou na água -> depois de 2s começa o 1.8B
+        if (!c18Pingou && c18Encheu) {   // só dispara o 1.8B se caiu TODO o ácido (pipeta estava cheia) na água; delay de 2s
           c18Pingou = true; pipDragBloqueada = true;
           setTimeout(c18Dialogo18B, 2000);
         }
@@ -3611,13 +3614,13 @@ const EVENTOS = {
     { t: 12.3, fn: () => $id('c18Alerta').classList.add('show') },    // alerta: força x corrosão (triângulo chamativo)
     { t: 21.7, fn: () => $id('c18Alerta').classList.remove('show') },
     { t: 24.0, fn: () => stShow('center', '“A força tem a ver com a capacidade dele liberar H<sup>+</sup>”') },
-    { t: 29.0, fn: () => stShow('center', '“Quanto mais fácil um ácido libera H<sup>+</sup>, mais forte ele é”') },   // embaixo do anterior
+    { t: 29.0, fn: () => stShow('center', '“Quanto mais fácil um ácido libera H<sup>+</sup>, mais forte ele é”', 'st-menor2 st-amarelo') },   // embaixo do anterior (2pt menor + amarelo)
     { t: 34.0, fn: () => { stSair(); irParaCamera({ theta: -0.002, phi: 1.534, dist: 26.0, target: [0.6, 5.0, 0.77] }, true, 1800); } },   // somem os textos; câmera vai pra bancada (só a água)
     { t: 37.0, fn: c18Acidos },                                    // frascos: HCl (balão) + HNCO (líquido, esq)
     { t: 39.7, fn: () => $id('nomeHCl').classList.add('show') },      // "ácido clorídrico" em cima do HCl
     { t: 41.0, fn: () => $id('nomeHNCO').classList.add('show') },     // "Ácido Isociânico" em cima do HNCO
     { t: 47.0, fn: () => { $id('nomeHCl').classList.remove('show'); $id('nomeHNCO').classList.remove('show'); } },
-    { t: 52.0, fn: () => stShow('center', '“Nem todas as moléculas de um ácido são ionizáveis”') },
+    { t: 52.0, fn: () => stShow('center', '“Nem todas as moléculas de um ácido são ionizáveis”', 'st-menor2 st-sobe1') },   // 2pt menor + sobe 1 linha
     { t: 56.0, fn: stSair },
     { t: 58.0, fn: c18EscurecerHCl },                              // escurece o balão de HCl em fade (e trava)
     { t: 60.0, fn: c18PipetaInterativa },                         // 1min: pipeta entra em fade in e já fica interativa (encher no HNCO)
@@ -3819,7 +3822,8 @@ const SUMARIO = [
   { titulo: 'Os indicadores ácido-base',    faixa: idxFaixa('dialogo1.4'), acao: irParaIndicadores },
   { titulo: 'A equação de ionização',       faixa: idxFaixa('dialogo1.5'), acao: irParaEquacao },
   { titulo: 'Quiz',                         faixa: idxFaixa('dialogo1.5D') },
-  { titulo: 'Classificação dos ácidos',     faixa: idxFaixa('dialogo1.6') },
+  { titulo: 'Classificação quando tem ou não oxigênio', faixa: idxFaixa('dialogo1.6') },
+  { titulo: 'Classificação quanto aos H ionizáveis',    faixa: idxFaixa('dialogo1.7') },
   { titulo: 'Quiz 2',                       faixa: idxFaixa('dialogo1.6A') },
   { titulo: 'Quiz 3',                       faixa: idxFaixa('dialogo1.7B') },
   { titulo: 'Classificação quanto à força', faixa: idxFaixa('dialogo1.8') },
@@ -3844,9 +3848,9 @@ $id('sheetClose').addEventListener('click', fecharSumario);
 sheetOverlay.addEventListener('click', fecharSumario);
 
 function marcarSumario() {
-  // marca a seção cujo início (faixa) é o mais próximo abaixo da faixa atual
-  let ativo = -1;
-  SUMARIO.forEach((item, i) => { if (item.faixa <= faixaAtual) ativo = i; });
+  // destaca a seção cuja faixa inicial é a mais próxima (<=) da faixa atual — robusto a itens fora de ordem
+  let ativo = -1, melhor = -1;
+  SUMARIO.forEach((item, i) => { if (item.faixa <= faixaAtual && item.faixa >= melhor) { melhor = item.faixa; ativo = i; } });
   [...$id('sheetList').children].forEach((li, i) => li.classList.toggle('ativa', i === ativo));
 }
 
