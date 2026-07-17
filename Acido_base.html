@@ -1097,6 +1097,18 @@
     opacity: 0; transition: opacity .4s ease, transform .4s cubic-bezier(.2, .9, .25, 1.5);
   }
   .nomeAc.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  /* rótulos projetados do 1.8B (α, Fraco, Super Corrosivo) */
+  .proj18 {
+    position: fixed; z-index: 44; pointer-events: none; white-space: nowrap;
+    transform: translate(-50%, -50%) scale(.6);
+    font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: .3px;
+    opacity: 0; transition: opacity .5s ease, transform .5s cubic-bezier(.2, .9, .25, 1.5);
+  }
+  .proj18.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .proj18.alfa  { font-size: clamp(18px, 4.8vw, 30px); color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, .85); }
+  .proj18.fraco { font-size: clamp(20px, 5.6vw, 34px); color: #ffe14d; text-shadow: 0 2px 10px rgba(0, 0, 0, .9); }   /* amarelo p/ contrastar com a água azul */
+  .proj18.corr  { display: flex; align-items: center; gap: .3em; font-size: clamp(16px, 4.6vw, 26px); color: #ff5252; text-shadow: 0 2px 10px rgba(0, 0, 0, .85); }
+  .proj18.corr .ic { font-size: 1.3em; }
   #cena17 .c17-eqs {
     position: absolute; left: 0; right: 0; top: 31%;
     display: grid; justify-content: center; align-items: baseline;
@@ -1557,7 +1569,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.57.0</div>
+<div id="versao">v1.58.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1813,6 +1825,11 @@
 <!-- Nomes dos ácidos (1.8) projetados em cima dos frascos -->
 <div id="nomeHCl" class="nomeAc">ácido clorídrico</div>
 <div id="nomeHNCO" class="nomeAc">Ácido Isociânico</div>
+
+<!-- Rótulos do dialogo1.8B projetados na cena -->
+<div id="c18bAlfa" class="proj18 alfa">&#945; = 3%</div>
+<div id="c18bFraco" class="proj18 fraco">Fraco</div>
+<div id="c18bCorr" class="proj18 corr"><span class="ic">&#9888;&#65039;</span> Super Corrosivo</div>
 
 <!-- Botão de ajuda (demonstração interativa 1.3B) -->
 <button id="ajudaBtn" aria-label="Ajuda">Ajuda</button>
@@ -2999,10 +3016,10 @@ const clock = new THREE.Clock();
 let lastT = 0;
 const _okVec = new THREE.Vector3();   // reaproveitado pra projetar a mãozinha sobre o HCl
 const _nomeVec = new THREE.Vector3();
-// posiciona um rótulo (nome do ácido) em cima do frasco na coluna x (só quando .show)
-function projNomeAc(el, x) {
+// posiciona um rótulo projetado (x,y do mundo) na tela (só quando .show)
+function projNomeAc(el, x, y = 3.4) {
   if (!el || !el.classList.contains('show')) return;
-  _nomeVec.set(x, 3.4, PLANE_Z).project(camera);
+  _nomeVec.set(x, y, PLANE_Z).project(camera);
   el.style.left = ((_nomeVec.x * 0.5 + 0.5) * innerWidth) + 'px';
   el.style.top = ((-_nomeVec.y * 0.5 + 0.5) * innerHeight) + 'px';
 }
@@ -3131,6 +3148,10 @@ function animate() {
   // nomes dos ácidos (1.8) acompanhando os frascos: HNCO (x=-1.8) e HCl/balão (x=1.0)
   projNomeAc(document.getElementById('nomeHNCO'), -1.8);
   projNomeAc(document.getElementById('nomeHCl'), 1.0);
+  // rótulos do 1.8B: α e "Fraco" em cima da água (x=3.8); "Super Corrosivo" em cima do HNCO (x=-1.8)
+  projNomeAc(document.getElementById('c18bAlfa'), 3.8, 4.8);
+  projNomeAc(document.getElementById('c18bFraco'), 3.8, 4.0);
+  projNomeAc(document.getElementById('c18bCorr'), -1.8, 3.5);
 
   renderer.render(scene, camera);
 }
@@ -3627,6 +3648,12 @@ const EVENTOS = {
   ]),
   'dialogo1.8B':  () => rodarStory([
     { t: 1.0,  fn: () => irParaCamera({ theta: -0.002, phi: 1.534, dist: 15.0, target: [3.6, 4.4, 0.85] }, true, 1500) },   // zoom na água
+    { t: 7.0,  fn: () => fade3D(pipette, 0, 700) },                    // some a pipeta em fade out
+    { t: 11.0, fn: () => $id('c18bAlfa').classList.add('show') },      // α = 3% (grau de ionização) em cima da água
+    { t: 20.0, fn: () => $id('c18bFraco').classList.add('show') },     // "Fraco" em cima da água
+    { t: 21.3, fn: () => irParaCamera({ theta: -0.002, phi: 1.534, dist: 26.0, target: [0.6, 5.0, 0.77] }, true, 1500) },   // câmera volta ao estado antes do zoom (bancada)
+    { t: 26.0, fn: () => $id('c18bCorr').classList.add('show') },      // ⚠️ "Super Corrosivo" em cima do ácido isociânico (HNCO)
+    { t: 32.0, fn: () => { $id('c18bAlfa').classList.remove('show'); $id('c18bFraco').classList.remove('show'); $id('c18bCorr').classList.remove('show'); } },   // tudo some em fade out
   ]),
 };
 
@@ -5558,8 +5585,7 @@ function c18Deslizar() {
 function c18LimparTextos() {
   const al = $id('c18Alerta'); if (al) al.classList.remove('show');
   const fc = $id('c18Forcas'); if (fc) fc.innerHTML = '';
-  const nh = $id('nomeHCl'); if (nh) nh.classList.remove('show');
-  const nn = $id('nomeHNCO'); if (nn) nn.classList.remove('show');
+  ['nomeHCl', 'nomeHNCO', 'c18bAlfa', 'c18bFraco', 'c18bCorr'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
 }
 function esconderCena18() {
   cena18El.setAttribute('aria-hidden', 'true');
