@@ -284,6 +284,7 @@
   }
   .st-desce { position: relative; top: 0.84em; }   /* desce ~0.75 linha (0.75 x line-height 1.12) */
   .st-menor2 { font-size: clamp(26px, 7.5vw, 42px); }   /* um pouco menor que o padrão */
+  .st-menor3 { font-size: clamp(21px, 6vw, 34px); }     /* menor ainda */
   .st-amarelo { color: #ffd21e; }
   .st-sobe1 { position: relative; top: -1.12em; }   /* sobe 1 linha */
   .st-sobe05 { position: relative; top: -0.56em; }   /* sobe 0,5 linha */
@@ -1106,9 +1107,9 @@
     opacity: 0; transition: opacity .5s ease, transform .5s cubic-bezier(.2, .9, .25, 1.5);
   }
   .proj18.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  .proj18.alfa  { font-size: clamp(18px, 4.8vw, 30px); color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, .85); }
+  .proj18.alfa  { font-size: clamp(22px, 5.8vw, 36px); color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, .85); }
   .proj18.fraco { font-size: clamp(20px, 5.6vw, 34px); color: #ffe14d; text-shadow: 0 2px 10px rgba(0, 0, 0, .9); }   /* amarelo p/ contrastar com a água azul */
-  .proj18.corr  { display: flex; align-items: center; gap: .3em; font-size: clamp(16px, 4.6vw, 26px); color: #ff5252; text-shadow: 0 2px 10px rgba(0, 0, 0, .85); line-height: 1.05; text-align: center; }
+  .proj18.corr  { display: flex; flex-direction: column; align-items: center; gap: .05em; font-size: clamp(16px, 4.6vw, 26px); color: #ff5252; text-shadow: 0 2px 10px rgba(0, 0, 0, .85); line-height: 1.05; text-align: center; }
   .proj18.corr .ic { font-size: 1.6em; }
   .proj18.forte { font-size: clamp(20px, 5.8vw, 36px); color: #ff5252; text-shadow: 0 2px 10px rgba(0, 0, 0, .9); }   /* HCl: extremamente forte */
   .proj18.sol   { font-size: clamp(14px, 3.8vw, 22px); color: #cdeaff; text-shadow: 0 2px 8px rgba(0, 0, 0, .85); }   /* rótulo "solução de ..." */
@@ -1573,7 +1574,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.62.0</div>
+<div id="versao">v1.63.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3165,10 +3166,10 @@ function animate() {
   projNomeAc(document.getElementById('c18bFraco'), 3.8, 4.0);
   projNomeAc(document.getElementById('c18bCorr'), -1.8, 3.5);
   // rótulos do 1.8D: α=92% e "Extremamente forte!" em cima da água (HCl, x=3.8); "Solução de HCl" (x=3.8) e "solução de HNCO" (becker novo, x=1.0)
-  projNomeAc(document.getElementById('c18dAlfa'), 3.8, 4.8);
+  projNomeAc(document.getElementById('c18dAlfa'), 5.2, 4.8);     // α = 92% à direita do cano
   projNomeAc(document.getElementById('c18dForte'), 3.8, 4.0);
   projNomeAc(document.getElementById('c18dLabHCl'), 3.8, 3.9);
-  projNomeAc(document.getElementById('c18dLabHNCO'), 1.0, 3.9);
+  projNomeAc(document.getElementById('c18dLabHNCO'), -0.5, 3.9);   // becker de HNCO afastado à esquerda
 
   // borbulhas do gás (1.8C) subindo na água
   for (let i = borbulhas18.length - 1; i >= 0; i--) {
@@ -3667,15 +3668,15 @@ const EVENTOS = {
     { t: 39.7, fn: () => $id('nomeHCl').classList.add('show') },      // "ácido clorídrico" em cima do HCl
     { t: 41.0, fn: () => $id('nomeHNCO').classList.add('show') },     // "Ácido Isociânico" em cima do HNCO
     { t: 47.0, fn: () => { $id('nomeHCl').classList.remove('show'); $id('nomeHNCO').classList.remove('show'); } },
-    { t: 52.0, fn: () => stShow('center', '“Nem todas as moléculas de um ácido são ionizáveis”', 'st-menor2 st-sobe05') },   // menor + sobe 0,5 linha
+    { t: 52.0, fn: () => stShow('center', '“Nem todas as moléculas de um ácido são ionizáveis”', 'st-menor3 st-sobe1') },   // menor ainda + sobe 1 linha
     { t: 56.0, fn: stSair },
     { t: 58.0, fn: c18EscurecerHCl },                              // escurece o balão de HCl em fade (e trava)
     { t: 60.0, fn: c18PipetaInterativa },                         // 1min: pipeta entra em fade in e já fica interativa (encher no HNCO)
   ]),
   'dialogo1.8B':  () => rodarStory([
     { t: 0.3,  fn: () => fade3D(pipette, 0, 300) },                    // a pipeta some rápido (0,3s)
-    { t: 1.0,  fn: () => { irParaCamera({ theta: -0.002, phi: 1.534, dist: 15.0, target: [3.6, 4.4, 0.85] }, true, 1500); stShow('center', 'Das 100 moléculas'); } },   // zoom na água + texto
-    { t: 5.0,  fn: () => stShow('center', 'somente 3 ionizaram') },   // embaixo do anterior
+    { t: 1.0,  fn: () => { irParaCamera({ theta: -0.002, phi: 1.534, dist: 15.0, target: [3.6, 4.4, 0.85] }, true, 1500); stShow('center', 'Das 100 moléculas', 'st-menor2 st-sobe1'); } },   // zoom na água + texto (menor + sobe 1 linha)
+    { t: 5.0,  fn: () => stShow('center', 'somente 3 ionizaram', 'st-menor2 st-sobe1') },   // embaixo do anterior
     { t: 10.5, fn: stSair },                                          // os dois textos somem 0,5s antes do α
     { t: 11.0, fn: () => $id('c18bAlfa').classList.add('show') },      // α = 3% (grau de ionização) em cima da água
     { t: 19.2, fn: () => $id('c18bFraco').classList.add('show') },     // "Fraco" em cima da água
@@ -3690,7 +3691,10 @@ const EVENTOS = {
     { t: 15.9, fn: c18cDica },                                    // dedinho apertando o botão (válvula) — fica 2s e some
   ]),
   'dialogo1.8D':  () => rodarStory([
-    { t: 15.6, fn: () => $id('c18dAlfa').classList.add('show') },     // α = 92%
+    { t: 6.7,  fn: () => irParaCamera({ theta: -0.005, phi: 1.538, dist: 28.33, target: [2.33, 7.98, 0.72] }, true, 1500) },   // câmera afasta (mostra o aparato + as duas soluções)
+    { t: 8.5,  fn: () => stShow('center', 'Das 100 moléculas', 'st-menor2 st-sobe1') },
+    { t: 10.7, fn: () => stShow('center', '92 ionizaram', 'st-menor2 st-sobe1') },   // embaixo do anterior
+    { t: 15.6, fn: () => { stSair(); $id('c18dAlfa').classList.add('show'); } },     // some os 2 textos e entra o α = 92%
     { t: 19.0, fn: () => $id('c18dForte').classList.add('show') },    // "Extremamente forte!"
     { t: 22.0, fn: () => { $id('c18dAlfa').classList.remove('show'); $id('c18dForte').classList.remove('show'); c18dSomemAcidos(); } },   // somem os textos + as vidrarias dos ácidos
     { t: 23.0, fn: c18dBeakerHNCO },                              // becker da solução de HNCO (3 H+) + rótulos das duas soluções
@@ -5846,12 +5850,12 @@ function c18dSomemAcidos() {
 function c18dBeakerHNCO() {
   if (!beaker18d) {
     beaker18d = makeBeaker(1.6, 3.4, 0x4aa8e8, 0.62);
-    beaker18d.position.set(1.0, 0.3, 1.5);
+    beaker18d.position.set(-0.5, 0.3, 1.5);
     beaker18d.traverse(o => { if (o.isMesh) o.castShadow = true; });
     beaker18d.visible = false; scene.add(beaker18d);
   }
   fade3D(beaker18d, 1, 700);
-  mostrarHmais(3, 1.0);   // 3 H+ na solução de HNCO (fraco)
+  mostrarHmais(3, -0.5);   // 3 H+ na solução de HNCO (fraco)
   $id('c18dLabHNCO').classList.add('show');   // "solução de HNCO" (becker novo, esq)
   $id('c18dLabHCl').classList.add('show');    // "Solução de HCl" (água da direita, com 92 H+)
 }
