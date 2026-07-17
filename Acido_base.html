@@ -1064,6 +1064,36 @@
     color: #ffffff; text-shadow: 0 1px 3px rgba(0, 0, 0, .5); opacity: 0;
   }
   #cena18 .c18-sub.show { opacity: 1; }
+  /* palavras "Fraco/Forte/Moderado" empilhadas abaixo do subtítulo */
+  #cena18 .c18-forcas {
+    position: absolute; top: 22%; left: 0; right: 0; padding: 0 20px;
+    display: flex; flex-direction: column; align-items: center; gap: .18em;
+    font-family: system-ui, sans-serif; font-weight: 800; text-align: center;
+    font-size: clamp(20px, 6vw, 34px); color: #f2fbe4; text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
+  }
+  #cena18 .c18-forcas .fw { animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
+  @keyframes c18FwIn { from { opacity: 0; transform: translateY(-16px) scale(.6); } to { opacity: 1; transform: none; } }
+  @keyframes c18FwOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-14px) scale(.5); } }
+  /* alerta chamativo (força x corrosão) — mesmo estilo/keyframes do 1.7A */
+  #cena18 .c18-alerta {
+    position: absolute; top: 29%; left: 0; right: 0; text-align: center; padding: 0 20px;
+    display: flex; align-items: center; justify-content: center; gap: .4em; flex-wrap: wrap;
+    font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: .3px;
+    font-size: clamp(20px, 6vw, 36px); color: #ffd21e; text-shadow: 0 2px 10px rgba(0, 0, 0, .55);
+    opacity: 0; transform: scale(.6); pointer-events: none; transition: opacity .4s ease, transform .4s ease;
+  }
+  #cena18 .c18-alerta.show { opacity: 1; animation: c17AlertaPulsa .7s ease-in-out infinite; }
+  #cena18 .c18-alerta .c18-alerta-ico { font-size: 1.3em; display: inline-block; animation: c17AlertaTremer .5s ease-in-out infinite; }
+  /* nomes dos ácidos (verde ácido), projetados em cima dos frascos */
+  .nomeAc {
+    position: fixed; z-index: 44; pointer-events: none; white-space: nowrap;
+    transform: translate(-50%, -50%) scale(.7);
+    font-family: system-ui, sans-serif; font-weight: 800;
+    font-size: clamp(11px, 2.9vw, 16px); color: #a6e534;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, .7), 0 0 10px rgba(166, 229, 52, .4);
+    opacity: 0; transition: opacity .4s ease, transform .4s cubic-bezier(.2, .9, .25, 1.5);
+  }
+  .nomeAc.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   #cena17 .c17-eqs {
     position: absolute; left: 0; right: 0; top: 31%;
     display: grid; justify-content: center; align-items: baseline;
@@ -1524,7 +1554,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.55.0</div>
+<div id="versao">v1.56.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1687,6 +1717,8 @@
 <!-- Cena do dialogo1.8: classificação quanto à força dos ácidos -->
 <div id="cena18" aria-hidden="true">
   <div class="c18-sub">c) Quanto à força dos ácidos</div>
+  <div class="c18-forcas" id="c18Forcas"></div>
+  <div class="c18-alerta" id="c18Alerta"><span class="c18-alerta-ico">&#9888;&#65039;</span><span>A força de um ácido não tem a ver com corrosão!</span></div>
 </div>
 
 <!-- Quiz rápido entre 1.6 e 1.7: hidrácido x oxiácido -->
@@ -1774,6 +1806,10 @@
 
 <!-- Mãozinha de OK (dialogo1.3, fim da demonstração) -->
 <div id="okHand">&#128077;</div>
+
+<!-- Nomes dos ácidos (1.8) projetados em cima dos frascos -->
+<div id="nomeHCl" class="nomeAc">ácido clorídrico</div>
+<div id="nomeHNCO" class="nomeAc">Ácido Isociânico</div>
 
 <!-- Botão de ajuda (demonstração interativa 1.3B) -->
 <button id="ajudaBtn" aria-label="Ajuda">Ajuda</button>
@@ -2167,7 +2203,7 @@ reagents.forEach(r => {
   r.beaker = b;
 });
 
-// Frascos dedicados do dialogo1.8 (cena "igual ao 1.3B", mas só água + 2 ácidos): HCl no meio, HNO2 à direita.
+// Frascos dedicados do dialogo1.8 (cena "igual ao 1.3B", mas só água + 2 ácidos): balão de HCl(g) no meio, água à direita.
 // Ficam escondidos e só entram em 31s. São separados dos reagents pra não herdar nomes/escurecimento de cenas anteriores.
 const bench18 = [
   { parts: [{ t: 'HCl(g)' }], x: AC_X[0], flask: true },   // esquerda: balão gerador de HCl gasoso
@@ -2194,11 +2230,11 @@ bench18.forEach(item => {
   item.beaker = b;
 });
 
-// Ácidos líquidos do 1.8 (comparação de força com a pipeta): HNO2 na ponta esquerda, HCl no meio.
+// Ácidos do 1.8 (força/ionização com a pipeta): HNCO líquido na esquerda; HCl no meio (só p/ travar a pipeta na posição do balão).
 // pos/locked/name compatíveis com tipContainer (pipReagentes = acidos18 durante o 1.8).
 const acidos18 = [
-  { name: 'HNO₂', parts: [{ t: 'HNO' }, { t: '2', sub: true }], pos: [-1.8, 0.3, 1.5], locked: false },
-  { name: 'HCl',  parts: [{ t: 'HCl' }],                        pos: [1.0, 0.3, 1.5],  locked: false },
+  { name: 'HNCO', parts: [{ t: 'HNCO' }], pos: [-1.8, 0.3, 1.5], locked: false },
+  { name: 'HCl',  parts: [{ t: 'HCl' }],  pos: [1.0, 0.3, 1.5],  locked: false },
 ];
 acidos18.forEach(a => {
   const b = makeBeaker(1.1, 2.6, 0xe6f2fa, 0.5, 0.14);
@@ -2297,8 +2333,29 @@ function escurecerBeaker(b, on) {
       if (m.userData._baseColor == null) m.userData._baseColor = m.color.clone();
       m.color.copy(m.userData._baseColor);
       if (on) m.color.multiplyScalar(0.35);
+      m.userData._escFactor = on ? 0.35 : 1;
     });
   });
+}
+// mesma coisa, mas o escurecimento entra/sai em fade (dur ms)
+function escurecerBeakerFade(b, on, dur = 700) {
+  if (!b) return;
+  const mats = [];
+  b.traverse(o => {
+    if (!o.material) return;
+    (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => {
+      if (!m.color) return;
+      if (m.userData._baseColor == null) m.userData._baseColor = m.color.clone();
+      mats.push(m);
+    });
+  });
+  const alvo = on ? 0.35 : 1, from = (mats[0] && mats[0].userData._escFactor != null) ? mats[0].userData._escFactor : 1;
+  const t0 = performance.now();
+  (function step() {
+    const k = Math.min(1, (performance.now() - t0) / dur), f = from + (alvo - from) * k;
+    mats.forEach(m => { m.color.copy(m.userData._baseColor).multiplyScalar(f); m.userData._escFactor = f; });
+    if (k < 1) requestAnimationFrame(step);
+  })();
 }
 function escurecerCopo(idx, on) { escurecerBeaker(reagents[idx] && reagents[idx].beaker, on); }
 
@@ -2412,7 +2469,7 @@ function pipetaEncheSemMover() { encherPipeta(); }           // só enche (o mov
 // H+ flutuando na água (t34)
 const hmaisSprites = [];
 let hmaisTex = null;
-function mostrarHmais() {
+function mostrarHmais(n = 7) {
   if (!hmaisTex) {
     const cv = document.createElement('canvas'); cv.width = 256; cv.height = 256;
     const x = cv.getContext('2d');
@@ -2423,7 +2480,7 @@ function mostrarHmais() {
     hmaisTex = new THREE.CanvasTexture(cv);
   }
   // dentro da solução: entre ~0.7 e ~2.2 de altura (a água vai de 0.3 até WATER_SURF)
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < n; i++) {
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: hmaisTex, transparent: true, opacity: 0, depthTest: false, fog: false }));
     const sc = 0.55 + Math.random() * 0.35; s.scale.set(sc, sc, sc);
     s.position.set(pipAguaX + (Math.random() - 0.5) * 2.0, 0.7 + Math.random() * (WATER_SURF - 1.0), 1.5 + (Math.random() - 0.5) * 1.4);
@@ -2938,6 +2995,14 @@ function showMsg(text) {
 const clock = new THREE.Clock();
 let lastT = 0;
 const _okVec = new THREE.Vector3();   // reaproveitado pra projetar a mãozinha sobre o HCl
+const _nomeVec = new THREE.Vector3();
+// posiciona um rótulo (nome do ácido) em cima do frasco na coluna x (só quando .show)
+function projNomeAc(el, x) {
+  if (!el || !el.classList.contains('show')) return;
+  _nomeVec.set(x, 3.4, PLANE_Z).project(camera);
+  el.style.left = ((_nomeVec.x * 0.5 + 0.5) * innerWidth) + 'px';
+  el.style.top = ((-_nomeVec.y * 0.5 + 0.5) * innerHeight) + 'px';
+}
 function animate() {
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
@@ -3034,15 +3099,21 @@ function animate() {
       }
     }
   }
-  // pipeta interativa do 1.8 (só HNO2)
+  // pipeta interativa do 1.8 (só o HNCO)
   if (pip18Ativo) {
     if (!c18Encheu && pipFill > 0.98) {   // encheu a pipeta -> dispara o dialogo1.8A (uma vez só)
       c18Encheu = true;
       c18Dialogo18A();
     }
-    if (demoInterativo.expelindo && pipFill < 0.05) {   // ao pingar na água, aparecem H+ (poucos — ácido fraco)
+    if (demoInterativo.expelindo && pipFill < 0.05) {   // ao pingar na água, aparecem só 3 H+ (poucas moléculas ionizam)
       demoInterativo.expelindo = false;
-      if (Math.abs(pipette.position.x - pipAguaX) < 1.6) mostrarHmais();
+      if (Math.abs(pipette.position.x - pipAguaX) < 1.6) {
+        mostrarHmais(3);
+        if (!c18Pingou) {   // pingou na água -> depois de 2s começa o 1.8B
+          c18Pingou = true; pipDragBloqueada = true;
+          setTimeout(c18Dialogo18B, 2000);
+        }
+      }
     }
   }
 
@@ -3053,6 +3124,10 @@ function animate() {
     _okEl.style.left = ((_okVec.x * 0.5 + 0.5) * innerWidth) + 'px';
     _okEl.style.top = ((-_okVec.y * 0.5 + 0.5) * innerHeight) + 'px';
   }
+
+  // nomes dos ácidos (1.8) acompanhando os frascos: HNCO (x=-1.8) e HCl/balão (x=1.0)
+  projNomeAc(document.getElementById('nomeHNCO'), -1.8);
+  projNomeAc(document.getElementById('nomeHCl'), 1.0);
 
   renderer.render(scene, camera);
 }
@@ -3205,6 +3280,7 @@ const FAIXAS = [
   { id: 'dialogo1.7B',  arquivo: 'audios/dialogo1.7B.mp3',  titulo: 'Diálogo 1.7B (quiz)' },
   { id: 'dialogo1.8',   arquivo: 'audios/dialogo1.8.mp3',   titulo: 'Diálogo 1.8' },
   { id: 'dialogo1.8A',  arquivo: 'audios/dialogo1.8A.mp3',  titulo: 'Diálogo 1.8A' },
+  { id: 'dialogo1.8B',  arquivo: 'audios/dialogo1.8B.mp3',  titulo: 'Diálogo 1.8B' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -3527,22 +3603,27 @@ const EVENTOS = {
   'dialogo1.8':   () => rodarStory([
     { t: 0.0,  fn: c18Iniciar },                                   // prepara a cena (título do 1.6 + "b)" do 1.7)
     { t: 0.0,  fn: c18BancadaInicio },                             // béquer com água (direita) entra no início
-    { t: 0.4,  fn: c18Deslizar },                                  // "b)" sai; "c)" entra pela esquerda
-    { t: 10.0, fn: () => stShow('center', 'Ácidos corroem vários materiais') },
-    { t: 12.0, fn: stSair },
-    { t: 15.0, fn: () => stShow('center', 'A força de um ácido não tem a ver com poder de corrosão!') },
-    { t: 18.0, fn: stSair },
-    { t: 20.0, fn: () => stShow('center', 'A força tem a ver com a capacidade de liberar H<sup>+</sup> em solução.') },
-    { t: 23.5, fn: () => stShow('center', 'Quanto mais H<sup>+</sup> ele libera, mais forte é o ácido!') },   // embaixo do anterior
-    { t: 29.0, fn: stSair },
-    { t: 30.0, fn: () => irParaCamera({ theta: -0.002, phi: 1.534, dist: 26.0, target: [0.6, 5.0, 0.77] }, true, 1800) },   // vai pra bancada (só a água)
-    { t: 33.0, fn: c18Acidos },                                    // os dois ácidos à esquerda da água (HNO2 na ponta, HCl no meio)
-    { t: 56.0, fn: c18EscurecerHCl },                              // HCl escuro (e travado)
-    { t: 58.0, fn: c18Pipeta },                                    // pipeta aparece (travada) em cima da água
-    { t: 63.0, fn: () => stShow('top', 'Cada sugada só puxa 10 moléculas', 'st-desce') },
-    { t: 69.0, fn: stSair },
-    { t: 70.0, fn: () => stShow('top', 'Isso é só uma simulação', 'st-desce') },
-    { t: 77.0, fn: () => { stSair(); c18PipetaInterativa(); } },   // some o texto; libera a pipeta (interação igual ao 1.3B, só o HNO2)
+    { t: 2.0,  fn: c18Deslizar },                                  // "b)" sai; "c)" entra pela esquerda (2s -> 3s)
+    { t: 6.0,  fn: () => c18Forca('“Fraco”') },                    // abaixo do subtítulo
+    { t: 7.0,  fn: () => c18Forca('“Forte”') },
+    { t: 8.0,  fn: () => c18Forca('“Moderado”') },
+    { t: 10.0, fn: c18ForcasSomem },                               // somem as 3 palavras
+    { t: 12.3, fn: () => $id('c18Alerta').classList.add('show') },    // alerta: força x corrosão (triângulo chamativo)
+    { t: 21.7, fn: () => $id('c18Alerta').classList.remove('show') },
+    { t: 24.0, fn: () => stShow('center', '“A força tem a ver com a capacidade dele liberar H<sup>+</sup>”') },
+    { t: 29.0, fn: () => stShow('center', '“Quanto mais fácil um ácido libera H<sup>+</sup>, mais forte ele é”') },   // embaixo do anterior
+    { t: 34.0, fn: () => { stSair(); irParaCamera({ theta: -0.002, phi: 1.534, dist: 26.0, target: [0.6, 5.0, 0.77] }, true, 1800); } },   // somem os textos; câmera vai pra bancada (só a água)
+    { t: 37.0, fn: c18Acidos },                                    // frascos: HCl (balão) + HNCO (líquido, esq)
+    { t: 39.7, fn: () => $id('nomeHCl').classList.add('show') },      // "ácido clorídrico" em cima do HCl
+    { t: 41.0, fn: () => $id('nomeHNCO').classList.add('show') },     // "Ácido Isociânico" em cima do HNCO
+    { t: 47.0, fn: () => { $id('nomeHCl').classList.remove('show'); $id('nomeHNCO').classList.remove('show'); } },
+    { t: 52.0, fn: () => stShow('center', '“Nem todas as moléculas de um ácido são ionizáveis”') },
+    { t: 56.0, fn: stSair },
+    { t: 58.0, fn: c18EscurecerHCl },                              // escurece o balão de HCl em fade (e trava)
+    { t: 60.0, fn: c18PipetaInterativa },                         // 1min: pipeta entra em fade in e já fica interativa (encher no HNCO)
+  ]),
+  'dialogo1.8B':  () => rodarStory([
+    { t: 1.0,  fn: () => irParaCamera({ theta: -0.002, phi: 1.534, dist: 15.0, target: [3.6, 4.4, 0.85] }, true, 1500) },   // zoom na água
   ]),
 };
 
@@ -3685,8 +3766,13 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.6' && typeof cena16IluminaAmbas === 'function') cena16IluminaAmbas();
   // fim do 1.6A / 1.7B: esconde o play (o quiz é respondido pelos botões)
   if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo1.6A' || FAIXAS[faixaAtual].id === 'dialogo1.7B')) { $id('playBtn').style.display = 'none'; return; }
-  // fim do 1.8 / 1.8A: cena interativa da pipeta -> esconde o play (a interação é pela pipeta; o 1.8A é disparado ao encher)
-  if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo1.8' || FAIXAS[faixaAtual].id === 'dialogo1.8A')) { $id('playBtn').style.display = 'none'; return; }
+  // fim do 1.8 / 1.8A: cena interativa da pipeta -> esconde o play (o play só volta depois do 1.8B). Ao fim do 1.8A, libera a interação.
+  if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo1.8' || FAIXAS[faixaAtual].id === 'dialogo1.8A')) {
+    const _id18 = FAIXAS[faixaAtual].id;
+    if (_id18 === 'dialogo1.8' && !pip18Ativo) c18PipetaInterativa();   // fallback: se o áudio acabar antes do cue de 60s, garante a pipeta interativa
+    if (_id18 === 'dialogo1.8A') pipDragBloqueada = false;              // libera a pipeta ao terminar o 1.8A
+    $id('playBtn').style.display = 'none'; return;
+  }
   // fim do tutorial 1.1E -> botão de play vira "JOGAR"
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.1E') {
     jogarPronto = true;
@@ -5455,26 +5541,35 @@ function c18Iniciar() {
   const subC = cena18El.querySelector('.c18-sub');
   subC.classList.remove('show'); subC.style.transition = 'none'; subC.style.transform = 'translateX(-130vw)'; subC.style.opacity = '1';
 }
-// "b)" desliza pra direita (sai) e "c)" entra pela esquerda — igual ao 1.7
+// "b)" desliza pra direita (sai) e "c)" entra pela esquerda (transição de 1s: começa em 2s, termina em 3s)
 function c18Deslizar() {
   const subB = cena17El.querySelector('.c17-sub');
-  subB.style.transition = 'transform 3s ease'; subB.style.transform = 'translateX(130vw)';
+  subB.style.transition = 'transform 1s ease'; subB.style.transform = 'translateX(130vw)';
   const subC = cena18El.querySelector('.c18-sub');
   void subC.offsetWidth;
-  subC.style.transition = 'transform 3s ease'; subC.style.transform = 'translateX(0)';
+  subC.style.transition = 'transform 1s ease'; subC.style.transform = 'translateX(0)';
   subC.classList.add('show');
+}
+// esconde alerta / palavras de força / nomes dos ácidos (overlays de texto do 1.8)
+function c18LimparTextos() {
+  const al = $id('c18Alerta'); if (al) al.classList.remove('show');
+  const fc = $id('c18Forcas'); if (fc) fc.innerHTML = '';
+  const nh = $id('nomeHCl'); if (nh) nh.classList.remove('show');
+  const nn = $id('nomeHNCO'); if (nn) nn.classList.remove('show');
 }
 function esconderCena18() {
   cena18El.setAttribute('aria-hidden', 'true');
   const subC = cena18El.querySelector('.c18-sub'); subC.classList.remove('show'); subC.style.cssText = '';
+  c18LimparTextos();
   c18EsconderBancada();
 }
-// bancada do 1.8: béquer com água (direita) + HNO2 líquido + balão de HCl(g) + pipeta
+// bancada do 1.8: béquer com água (direita) + HNCO líquido + balão de HCl(g) + pipeta
 let cena18Pipeta = false;
 let c18Encheu = false;   // trava: quando a pipeta enche, dispara o dialogo1.8A uma única vez
+let c18Pingou = false;   // trava: quando pinga na água (3 H+), dispara o dialogo1.8B uma única vez
 function c18EsconderBancada() {
-  c18Encheu = false;
-  bench18.forEach(item => { item.beaker.visible = false; if (item.label) item.label.visible = false; });
+  c18Encheu = false; c18Pingou = false;
+  bench18.forEach(item => { item.beaker.visible = false; if (item.label) item.label.visible = false; if (item.flask) escurecerBeaker(item.beaker, false); });
   acidos18.forEach(a => { a.beaker.visible = false; if (a.label) a.label.visible = false; escurecerBeaker(a.beaker, false); a.locked = false; });
   if (aparato18) aparato18.visible = false;
   if (cena18Pipeta) {   // só reseta a pipeta se ela estava no modo do 1.8 (não mexe no 1.3B)
@@ -5486,19 +5581,31 @@ function c18EsconderBancada() {
 function c18BancadaInicio() {
   if (typeof esconderAcidosBancada === 'function') esconderAcidosBancada();   // some os 3 ácidos da bancada + pipeta
   if (waterBeaker.visible) fade3D(waterBeaker, 0, 300);                       // a água principal do 1.3/1.4 não faz parte do 1.8
+  c18LimparTextos();                                                          // zera alerta/palavras/nomes ao (re)iniciar a cena
   c18EsconderBancada();
   const ag = bench18.find(it => it.water);
   if (ag) fade3D(ag.beaker, 1, 700);                                          // béquer de água (direita) entra no início ("a princípio, só a água")
 }
-function c18Acidos() {   // 33s: HNO2 líquido (esq) + HCl como balão de gás (meio) — HCl puro é gasoso, sem aparato
-  const hno2 = acidos18.find(a => a.name === 'HNO₂');
-  if (hno2) { if (hno2.label) hno2.label.visible = true; fade3D(hno2.beaker, 1, 800); }
+// palavras "Fraco/Forte/Moderado" empilhadas abaixo do subtítulo (entrada dramática)
+function c18Forca(txt) {
+  const c = $id('c18Forcas'); if (!c) return;
+  const d = document.createElement('div'); d.className = 'fw'; d.innerHTML = txt; c.appendChild(d);
+}
+function c18ForcasSomem() {
+  const c = $id('c18Forcas'); if (!c) return;
+  c.querySelectorAll('.fw').forEach(d => { d.style.animation = 'c18FwOut .4s ease-in both'; d.addEventListener('animationend', () => d.remove(), { once: true }); });
+}
+function c18Acidos() {   // 37s: HNCO líquido (esq) + HCl como balão de gás (meio) — HCl puro é gasoso, sem aparato
+  const hnco = acidos18.find(a => a.name === 'HNCO');
+  if (hnco) { if (hnco.label) hnco.label.visible = true; fade3D(hnco.beaker, 1, 800); }
   const fl = bench18.find(it => it.flask);   // balão de HCl(g) no lugar do béquer líquido; o aparato só entra num diálogo futuro
   if (fl) { if (fl.label) fl.label.visible = true; fade3D(fl.beaker, 1, 800); }
 }
-function c18EscurecerHCl() {   // 56s: HCl escuro e travado (a pipeta só vai pegar o HNO2)
-  const hcl = acidos18.find(a => a.name === 'HCl');
-  if (hcl) { escurecerBeaker(hcl.beaker, true); hcl.locked = true; }
+function c18EscurecerHCl() {   // 58s: escurece o balão de HCl em fade e trava (a pipeta só vai pegar o HNCO)
+  const fl = bench18.find(it => it.flask);
+  if (fl) escurecerBeakerFade(fl.beaker, true, 700);
+  const hcl = acidos18.find(a => a.name === 'HCl');   // trava a posição do balão (x=1.0) pra pipeta não encher ali
+  if (hcl) hcl.locked = true;
 }
 function c18Pipeta() {   // 58s: pipeta aparece (travada) em cima da água
   cena18Pipeta = true; pipDragBloqueada = true;
@@ -5507,28 +5614,31 @@ function c18Pipeta() {   // 58s: pipeta aparece (travada) em cima da água
   pipette.position.set(wx, 4.2, PLANE_Z);
   fade3D(pipette, 1, 700);
 }
-function c18PipetaInterativa() {   // 1:17: libera o movimento; interação igual ao 1.3B (só o HNO2)
+function c18PipetaInterativa() {   // 1min: pipeta fade in + interativa; igual ao 1.3B (só o HNCO)
   const wx = bench18.find(it => it.water).beaker.position.x;
   pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
   pipette.position.set(wx, 4.2, PLANE_Z);
   if (!pipette.visible) fade3D(pipette, 1, 500);
   pipAguaX = wx; pipReagentes = acidos18; pip18Ativo = true; pipDragBloqueada = false;
   demoInterativo = { ativo: false, encheu: false, derramou: false, expelindo: false };
-  c18Encheu = false;
+  c18Encheu = false; c18Pingou = false;
   $id('ajudaBtn').style.display = '';
 }
-// pipeta cheia -> toca o dialogo1.8A por cima da cena (sem passar por tocarFaixa, que desmontaria a cena18 e a pipeta)
-function c18Dialogo18A() {
-  const i = idxFaixa('dialogo1.8A');
+// toca uma faixa POR CIMA da cena, sem passar por tocarFaixa (que desmontaria a cena18/pipeta). Roda o EVENTOS da faixa, se houver.
+function tocarFaixaSuave(id) {
+  const i = idxFaixa(id);
   if (i < 0) return;
   faixaAtual = i; faixaTerminou = false;
   limparStory();
-  const pb = $id('playBtn'); pb.classList.remove('jogar'); pb.style.display = 'none';   // cena interativa: sem play durante o 1.8A
+  const pb = $id('playBtn'); pb.classList.remove('jogar'); pb.style.display = 'none';   // cena interativa: sem play durante 1.8A/1.8B
   player.src = FAIXAS[i].arquivo;
   const pr = player.play(); if (pr && pr.catch) pr.catch(() => {});
   if (typeof marcarSumario === 'function') marcarSumario();
   if (typeof preloadProxima === 'function') preloadProxima(i);
+  if (typeof EVENTOS[id] === 'function') EVENTOS[id]();
 }
+function c18Dialogo18A() { pipDragBloqueada = true; tocarFaixaSuave('dialogo1.8A'); }   // pipeta cheia -> 1.8A (trava a interação; libera no fim do áudio)
+function c18Dialogo18B() { pipDragBloqueada = true; tocarFaixaSuave('dialogo1.8B'); }   // pingou os 3 H+ -> 1.8B (zoom na água em 1s)
 
 // ---- Aparato de transferência do gás: tubo de vidro + funil invertido + válvula (abre/fecha) ----
 // Grupo separado dos recipientes -> monta/desmonta sem mexer neles. Sem nenhum texto.
