@@ -283,9 +283,10 @@
     color: var(--acid); text-shadow: 0 0 16px var(--acid-glow);
   }
   .st-desce { position: relative; top: 0.84em; }   /* desce ~0.75 linha (0.75 x line-height 1.12) */
-  .st-menor2 { font-size: clamp(28px, 8.5vw, 46px); }   /* ~2 pontos menor que o padrão */
+  .st-menor2 { font-size: clamp(26px, 7.5vw, 42px); }   /* um pouco menor que o padrão */
   .st-amarelo { color: #ffd21e; }
   .st-sobe1 { position: relative; top: -1.12em; }   /* sobe 1 linha */
+  .st-sobe05 { position: relative; top: -0.56em; }   /* sobe 0,5 linha */
   /* Texto dos indicadores (persiste entre 1.4 e 1.4A, sem flicker) */
   #indicadorTxt {
     position: fixed; top: 50%; left: 0; right: 0; z-index: 41;
@@ -1107,8 +1108,8 @@
   .proj18.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   .proj18.alfa  { font-size: clamp(18px, 4.8vw, 30px); color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, .85); }
   .proj18.fraco { font-size: clamp(20px, 5.6vw, 34px); color: #ffe14d; text-shadow: 0 2px 10px rgba(0, 0, 0, .9); }   /* amarelo p/ contrastar com a água azul */
-  .proj18.corr  { display: flex; align-items: center; gap: .3em; font-size: clamp(16px, 4.6vw, 26px); color: #ff5252; text-shadow: 0 2px 10px rgba(0, 0, 0, .85); }
-  .proj18.corr .ic { font-size: 1.3em; }
+  .proj18.corr  { display: flex; align-items: center; gap: .3em; font-size: clamp(16px, 4.6vw, 26px); color: #ff5252; text-shadow: 0 2px 10px rgba(0, 0, 0, .85); line-height: 1.05; text-align: center; }
+  .proj18.corr .ic { font-size: 1.6em; }
   .proj18.forte { font-size: clamp(20px, 5.8vw, 36px); color: #ff5252; text-shadow: 0 2px 10px rgba(0, 0, 0, .9); }   /* HCl: extremamente forte */
   .proj18.sol   { font-size: clamp(14px, 3.8vw, 22px); color: #cdeaff; text-shadow: 0 2px 8px rgba(0, 0, 0, .85); }   /* rótulo "solução de ..." */
   #cena17 .c17-eqs {
@@ -1572,7 +1573,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.61.0</div>
+<div id="versao">v1.62.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1832,7 +1833,7 @@
 <!-- Rótulos do dialogo1.8B projetados na cena -->
 <div id="c18bAlfa" class="proj18 alfa">&#945; = 3%</div>
 <div id="c18bFraco" class="proj18 fraco">Fraco</div>
-<div id="c18bCorr" class="proj18 corr"><span class="ic">&#9888;&#65039;</span> Super Corrosivo</div>
+<div id="c18bCorr" class="proj18 corr"><span class="ic">&#9888;&#65039;</span><span>Super<br>Corrosivo</span></div>
 
 <!-- Rótulos do dialogo1.8D projetados na cena -->
 <div id="c18dAlfa" class="proj18 alfa">&#945; = 92%</div>
@@ -3666,25 +3667,27 @@ const EVENTOS = {
     { t: 39.7, fn: () => $id('nomeHCl').classList.add('show') },      // "ácido clorídrico" em cima do HCl
     { t: 41.0, fn: () => $id('nomeHNCO').classList.add('show') },     // "Ácido Isociânico" em cima do HNCO
     { t: 47.0, fn: () => { $id('nomeHCl').classList.remove('show'); $id('nomeHNCO').classList.remove('show'); } },
-    { t: 52.0, fn: () => stShow('center', '“Nem todas as moléculas de um ácido são ionizáveis”', 'st-menor2 st-sobe1') },   // 2pt menor + sobe 1 linha
+    { t: 52.0, fn: () => stShow('center', '“Nem todas as moléculas de um ácido são ionizáveis”', 'st-menor2 st-sobe05') },   // menor + sobe 0,5 linha
     { t: 56.0, fn: stSair },
     { t: 58.0, fn: c18EscurecerHCl },                              // escurece o balão de HCl em fade (e trava)
     { t: 60.0, fn: c18PipetaInterativa },                         // 1min: pipeta entra em fade in e já fica interativa (encher no HNCO)
   ]),
   'dialogo1.8B':  () => rodarStory([
-    { t: 1.0,  fn: () => irParaCamera({ theta: -0.002, phi: 1.534, dist: 15.0, target: [3.6, 4.4, 0.85] }, true, 1500) },   // zoom na água
-    { t: 7.0,  fn: () => fade3D(pipette, 0, 700) },                    // some a pipeta em fade out
+    { t: 0.3,  fn: () => fade3D(pipette, 0, 300) },                    // a pipeta some rápido (0,3s)
+    { t: 1.0,  fn: () => { irParaCamera({ theta: -0.002, phi: 1.534, dist: 15.0, target: [3.6, 4.4, 0.85] }, true, 1500); stShow('center', 'Das 100 moléculas'); } },   // zoom na água + texto
+    { t: 5.0,  fn: () => stShow('center', 'somente 3 ionizaram') },   // embaixo do anterior
+    { t: 10.5, fn: stSair },                                          // os dois textos somem 0,5s antes do α
     { t: 11.0, fn: () => $id('c18bAlfa').classList.add('show') },      // α = 3% (grau de ionização) em cima da água
-    { t: 20.0, fn: () => $id('c18bFraco').classList.add('show') },     // "Fraco" em cima da água
+    { t: 19.2, fn: () => $id('c18bFraco').classList.add('show') },     // "Fraco" em cima da água
     { t: 21.3, fn: () => irParaCamera({ theta: -0.002, phi: 1.534, dist: 26.0, target: [0.6, 5.0, 0.77] }, true, 1500) },   // câmera volta ao estado antes do zoom (bancada)
-    { t: 26.0, fn: () => $id('c18bCorr').classList.add('show') },      // ⚠️ "Super Corrosivo" em cima do ácido isociânico (HNCO)
+    { t: 26.0, fn: () => $id('c18bCorr').classList.add('show') },      // ⚠️ "Super Corrosivo" (2 linhas) em cima do ácido isociânico (HNCO)
     { t: 32.0, fn: () => { $id('c18bAlfa').classList.remove('show'); $id('c18bFraco').classList.remove('show'); $id('c18bCorr').classList.remove('show'); } },   // tudo some em fade out
   ]),
   'dialogo1.8C':  () => rodarStory([
     { t: 0.0,  fn: c18cCena },                                    // câmera + escurece o vidro de HNCO em fade
     { t: 1.0,  fn: c18cPiscaAgua },                               // a água pisca (fade out/in) e reaparece sem os 3 H+
     { t: 12.0, fn: c18cMontar },                                  // aparato (HCl -> água) em fade in + arma a válvula
-    { t: 17.5, fn: c18cDica },                                    // dedinho apertando o botão (válvula) — fica 2s e some
+    { t: 15.9, fn: c18cDica },                                    // dedinho apertando o botão (válvula) — fica 2s e some
   ]),
   'dialogo1.8D':  () => rodarStory([
     { t: 15.6, fn: () => $id('c18dAlfa').classList.add('show') },     // α = 92%
@@ -3838,7 +3841,7 @@ player.addEventListener('ended', () => {
     const _id18 = FAIXAS[faixaAtual].id;
     if (_id18 === 'dialogo1.8' && !pip18Ativo) c18PipetaInterativa();   // fallback: se o áudio acabar antes do cue de 60s, garante a pipeta interativa
     if (_id18 === 'dialogo1.8A') { pipDragBloqueada = false; escurecerBeakerFade(pipette, false, 400); }   // libera + normaliza a pipeta ao terminar o 1.8A
-    if (_id18 === 'dialogo1.8C') { if (!c18cArmado && (!aparato18 || !aparato18.visible)) c18cMontar(); c18cDica(); }   // garante o aparato/dica se o áudio acabou antes dos cues
+    if (_id18 === 'dialogo1.8C') { if (!c18cArmado && (!aparato18 || !aparato18.visible)) c18cMontar(); c18cDicaLoop(); }   // garante o aparato; lembrete do dedinho começa 5s depois
     $id('playBtn').style.display = 'none'; return;
   }
   // fim do tutorial 1.1E -> botão de play vira "JOGAR"
@@ -5646,6 +5649,8 @@ function c18EsconderBancada() {
   if (beaker18d) { beaker18d.visible = false; escurecerBeaker(beaker18d, false); }             // becker extra do 1.8D
   borbulhas18.forEach(bb => scene.remove(bb.mesh)); borbulhas18.length = 0;                     // limpa borbulhas do gás
   if (typeof tutorHand !== 'undefined' && tutorHand) tutorHand.classList.remove('show', 'tap', 'tapLoop');
+  if (typeof _dicaTimer !== 'undefined') clearTimeout(_dicaTimer);
+  if (typeof _dicaLoop !== 'undefined') clearTimeout(_dicaLoop);
   if (cena18Pipeta) {   // só reseta a pipeta se ela estava no modo do 1.8 (não mexe no 1.3B)
     cena18Pipeta = false; pip18Ativo = false; pipDragBloqueada = false; pipAguaX = WATER_X; pipReagentes = reagents;
     pipette.visible = false; pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
@@ -5747,8 +5752,9 @@ function makeAparato() {
   aro.position.y = 0.15; vg.add(aro);
   valvula18Cap = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.34, 0.2, 28), new THREE.MeshPhongMaterial({ color: 0xd9534f, emissive: 0x000000, shininess: 90, specular: 0xffffff }));   // tampa que "acende"
   valvula18Cap.position.y = 0.24; vg.add(valvula18Cap);
-  const anelTopo = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.03, 10, 24), new THREE.MeshPhongMaterial({ color: 0xffffff }));   // detalhe no topo
+  const anelTopo = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.03, 10, 24), new THREE.MeshPhongMaterial({ color: 0xffffff }));   // detalhe na face
   anelTopo.rotation.x = Math.PI / 2; anelTopo.position.y = 0.35; vg.add(anelTopo);
+  vg.rotation.x = Math.PI / 2;   // botão apontando pra frente (em direção à câmera), não pra cima
   g.add(vg);
   valvula18 = vg; valvula18Aberta = true;
   return g;
@@ -5790,6 +5796,16 @@ function c18cDica() {   // 17.5s: dedinho apertando o botão (válvula em (2.4, 
   clearTimeout(_dicaTimer);
   _dicaTimer = setTimeout(() => tutorHand.classList.remove('show', 'tapLoop'), 2000);   // some após 2s (fade padrão)
 }
+let _dicaLoop = null;
+// depois que o áudio do 1.8C acaba: se demorar +5s pra apertar, o dedinho aparece (2s) e repete a cada 10s até apertar
+function c18cDicaLoop() {
+  clearTimeout(_dicaLoop);
+  _dicaLoop = setTimeout(function tick() {
+    if (!c18cArmado) return;                 // já apertou -> para
+    c18cDica();                              // aparece por 2s (some sozinho)
+    _dicaLoop = setTimeout(tick, 10000);     // repete a cada 10s
+  }, 5000);
+}
 // botão "acende" ao ser apertado e volta ao normal em 3s
 function c18cAcender() {
   if (!valvula18Cap) return;
@@ -5811,15 +5827,13 @@ function c18Borbulhas(dur) {   // gás borbulhando no fundo da água por 'dur' m
 function c18cValvulaPress() {
   if (!c18cArmado) { toggleValvula(); return; }   // fora do 1.8C: comportamento antigo (abre/fecha)
   c18cArmado = false;
-  clearTimeout(_dicaTimer); tutorHand.classList.remove('show', 'tap', 'tapLoop');   // some o dedinho
+  clearTimeout(_dicaTimer); clearTimeout(_dicaLoop); tutorHand.classList.remove('show', 'tap', 'tapLoop');   // some o dedinho e para o loop de lembrete
   if (typeof playSfx === 'function') playSfx('click');
   c18cAcender();        // botão acende por 3s
   c18Borbulhas(4000);   // o gás flui do HCl pra água por ~4s
-  setTimeout(() => {
-    limparHmais();                                                          // tira os 3 H+ antigos (HNCO do 1.8B)
-    mostrarHmais(92, bench18.find(it => it.water).beaker.position.x);       // 92 H+ (HCl, forte)
-    c18Dialogo18D();
-  }, 4000);
+  const wx = bench18.find(it => it.water).beaker.position.x;
+  setTimeout(() => { limparHmais(); mostrarHmais(64, wx); }, 4000);   // após 4s: tira os 3 H+ antigos e mostra 64 H+ (HCl, forte)
+  setTimeout(() => c18Dialogo18D(), 6000);                            // 1.8D atrasado +2s (2s depois dos H+)
 }
 function c18Dialogo18D() { tocarFaixaSuave('dialogo1.8D'); }
 // 1.8D t22: somem as vidrarias dos ácidos (balão de HCl + béquer de HNCO) e o aparato
