@@ -288,6 +288,7 @@
   .st-amarelo { color: #ffd21e; }
   .st-sobe1 { position: relative; top: -1.12em; }   /* sobe 1 linha */
   .st-sobe05 { position: relative; top: -0.56em; }   /* sobe 0,5 linha */
+  .st-sobe15 { position: relative; top: -1.68em; }   /* sobe 1,5 linha */
   /* Texto dos indicadores (persiste entre 1.4 e 1.4A, sem flicker) */
   #indicadorTxt {
     position: fixed; top: 50%; left: 0; right: 0; z-index: 41;
@@ -1586,7 +1587,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.67.0</div>
+<div id="versao">v1.68.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1860,6 +1861,8 @@
 <div id="c18dForte" class="proj18 forte">Extremamente forte!</div>
 <div id="c18dLabHNCO" class="proj18 sol">solução de HNCO</div>
 <div id="c18dLabHCl" class="proj18 sol">Solução de HCl</div>
+<div id="c18dA3" class="proj18 alfa">&#945; = 3%</div>
+<div id="c18dA92" class="proj18 alfa">&#945; = 92%</div>
 
 <!-- Botão de ajuda (demonstração interativa 1.3B) -->
 <button id="ajudaBtn" aria-label="Ajuda">Ajuda</button>
@@ -3305,6 +3308,8 @@ function animate() {
   projNomeAc(document.getElementById('c18dForte'), 3.8, 4.0);
   projNomeAc(document.getElementById('c18dLabHCl'), 3.8, 3.9);
   projNomeAc(document.getElementById('c18dLabHNCO'), -0.5, 3.9);   // becker de HNCO afastado à esquerda
+  projNomeAc(document.getElementById('c18dA3'), -0.5, 4.7);        // α = 3% em cima do becker de HNCO
+  projNomeAc(document.getElementById('c18dA92'), 3.8, 4.7);        // α = 92% em cima do becker de HCl
 
   // borbulhas do gás (1.8C) subindo na água
   for (let i = borbulhas18.length - 1; i >= 0; i--) {
@@ -3833,7 +3838,8 @@ const EVENTOS = {
     { t: 10.7, fn: () => stShow('center', '92 ionizaram', 'st-menor2 st-sobe1') },   // embaixo do anterior
     { t: 15.6, fn: () => { stSair(); $id('c18dAlfa').classList.add('show'); } },     // some os 2 textos e entra o α = 92%
     { t: 19.0, fn: () => $id('c18dForte').classList.add('show') },    // "Extremamente forte!"
-    { t: 22.0, fn: () => { $id('c18dAlfa').classList.remove('show'); $id('c18dForte').classList.remove('show'); c18dSomemAcidos(); } },   // somem os textos + as vidrarias dos ácidos
+    { t: 22.0, fn: () => { $id('c18dAlfa').classList.remove('show'); $id('c18dForte').classList.remove('show'); c18dSomemAcidos();
+                           $id('c18dA3').classList.add('show'); $id('c18dA92').classList.add('show'); } },   // somem os textos/vidrarias; entram os α em cima de cada becker
     { t: 23.0, fn: c18dBeakerHNCO },                              // becker da solução de HNCO (3 H+) + rótulos das duas soluções
   ]),
   // (o teste de condutividade — c18eIniciar/montarAparelho18e — está GUARDADO pra um diálogo futuro)
@@ -3852,17 +3858,24 @@ const EVENTOS = {
     { t: 1.0,  fn: c18fSomeTabela },                                   // a tabela do grau de ionização sai em fade out
     { t: 2.0,  fn: () => irParaCamera({ theta: -0.002, phi: 1.534, dist: 16.0, target: [1.65, 3.2, 0.8] }, true, 1500) },   // zoom in: os 2 béqueres centralizados
     { t: 6.0,  fn: () => hmaisSprites.forEach(s => s.userData.fadeOut = true) },   // H+ das duas soluções somem em fade
-    { t: 11.0, fn: () => stShow('center', 'Como os químicos sabem se liberam mais ou menos H<sup>+</sup> em solução?', 'st-menor2') },
+    { t: 11.0, fn: () => stShow('center', 'Como os químicos sabem se liberam mais ou menos H<sup>+</sup> em solução?', 'st-menor3 st-sobe15') },   // bem menor + sobe 1,5 linha
     { t: 18.8, fn: () => stShow('center', 'Um indicador ácido-base faz isso?', 'st-menor2 st-amarelo') },   // embaixo, em amarelo
     { t: 27.3, fn: stSair },                                           // os dois textos saem (animação padrão)
-    { t: 28.0, fn: () => irParaCamera({ theta: -1.711, phi: 1.551, dist: 30.22, target: [1.67, 3.29, 0.64] }, true, 5000) },   // a posição guardada (vista lateral); chega em 33s
-    { t: 34.0, fn: () => stShow('center', 'Vamos medir a condutibilidade elétrica da solução.', 'st-menor2') },
+    { t: 28.0, fn: () => { irParaCamera({ theta: -1.711, phi: 1.551, dist: 30.22, target: [1.67, 3.29, 0.64] }, true, 5000); c18fSomeBancada(); } },   // câmera vira (chega em 33s); béqueres/nomes/α saem em fade out
+    { t: 34.0, fn: () => stShow('center', 'Vamos medir a condutibilidade elétrica da solução.', 'st-menor3 st-sobe15') },   // bem menor + sobe 1,5 linha
     { t: 38.0, fn: stSair },
     { t: 43.4, fn: montarAparelho18e },                                // o aparelho todo em fade in (lâmpada apagada; eletrodo de fora, arrastável)
   ]),
 };
 function c18eTabShow(id) { const el = $id(id); if (el) el.classList.add('show'); }
 function c18fSomeTabela() { const tab = $id('c18eTab'); if (tab) tab.querySelectorAll('span').forEach(s => s.classList.remove('show')); }
+// 28s do 1.8F (junto com a virada de câmera): os béqueres, os nomes das soluções e os α saem em fade out
+function c18fSomeBancada() {
+  const ag = bench18.find(it => it.water);
+  if (ag && ag.beaker.visible) fade3D(ag.beaker, 0, 700);
+  if (beaker18d && beaker18d.visible) fade3D(beaker18d, 0, 700);
+  ['c18dLabHNCO', 'c18dLabHCl', 'c18dA3', 'c18dA92'].forEach(id => { const el = $id(id); if (el) el.classList.remove('show'); });
+}
 // Pulo direto pro 1.8F pelo sumário: recria o estado do fim do 1.8D (título + "c)" + as duas soluções com H+).
 // No fluxo normal (vindo do 1.8E) o "c)" já está na tela -> não faz nada.
 function c18fPreparar() {
@@ -3879,6 +3892,7 @@ function c18fPreparar() {
   if (ag) fade3D(ag.beaker, 1, 600);         // solução de HCl (direita)
   mostrarHmais(64, 3.8);                     // com os 64 H+ do fim do 1.8D
   c18dBeakerHNCO();                          // becker da solução de HNCO (3 H+) + rótulos das duas soluções
+  $id('c18dA3').classList.add('show'); $id('c18dA92').classList.add('show');   // e os α em cima de cada becker
 }
 
 const player = new Audio();
@@ -5812,7 +5826,7 @@ function c18Deslizar() {
 function c18LimparTextos() {
   const al = $id('c18Alerta'); if (al) al.classList.remove('show');
   const fc = $id('c18Forcas'); if (fc) fc.innerHTML = '';
-  ['nomeHCl', 'nomeHNCO', 'c18bAlfa', 'c18bFraco', 'c18bCorr', 'c18dAlfa', 'c18dForte', 'c18dLabHNCO', 'c18dLabHCl'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
+  ['nomeHCl', 'nomeHNCO', 'c18bAlfa', 'c18bFraco', 'c18bCorr', 'c18dAlfa', 'c18dForte', 'c18dLabHNCO', 'c18dLabHCl', 'c18dA3', 'c18dA92'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
   const tab = $id('c18eTab'); if (tab) tab.querySelectorAll('span').forEach(s => s.classList.remove('show'));   // tabela do grau de ionização (1.8E)
   if (typeof tutorHand !== 'undefined' && tutorHand) tutorHand.classList.remove('show', 'tap', 'tapLoop');   // some o dedinho do 1.8C
 }
