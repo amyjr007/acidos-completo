@@ -1079,6 +1079,18 @@
   #cena18 .c18-forcas .fw { animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
   @keyframes c18FwIn { from { opacity: 0; transform: translateY(-16px) scale(.6); } to { opacity: 1; transform: none; } }
   @keyframes c18FwOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-14px) scale(.5); } }
+  /* tabela do grau de ionização (1.8E) — montada em etapas embaixo do "c)" */
+  #cena18 .c18e-tab {
+    position: absolute; top: 23%; left: 0; right: 0; padding: 0 16px;
+    display: flex; flex-direction: column; align-items: center; gap: .34em;
+    font-family: system-ui, sans-serif; font-weight: 800; text-align: center;
+    font-size: clamp(18px, 5.2vw, 30px); color: #f2fbe4; text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
+  }
+  #cena18 .c18e-lin { display: flex; align-items: baseline; gap: .55em; white-space: nowrap; }
+  #cena18 .c18e-titulo { color: #cdeaff; }
+  #cena18 .c18e-nome { color: #ffd21e; }
+  #cena18 .c18e-tab span { opacity: 0; }
+  #cena18 .c18e-tab span.show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
   /* alerta chamativo (força x corrosão) — mesmo estilo/keyframes do 1.7A */
   #cena18 .c18-alerta {
     position: absolute; top: 29%; left: 0; right: 0; text-align: center; padding: 0 20px;
@@ -1574,7 +1586,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.64.0</div>
+<div id="versao">v1.65.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1739,6 +1751,13 @@
   <div class="c18-sub">c) Quanto à força dos ácidos</div>
   <div class="c18-forcas" id="c18Forcas"></div>
   <div class="c18-alerta" id="c18Alerta"><span class="c18-alerta-ico">&#9888;&#65039;</span><span>A força de um ácido não tem a ver com corrosão!</span></div>
+  <!-- 1.8E: grau de ionização (tabela montada em etapas, embaixo do "c)") -->
+  <div class="c18e-tab" id="c18eTab">
+    <div class="c18e-lin c18e-titulo"><span id="c18eGrau">Grau de ionização</span><span id="c18eAlfaEq">&nbsp;= &#945;</span></div>
+    <div class="c18e-lin"><span id="c18eC1" class="c18e-cond">&#945; &le; 5%</span><span id="c18eN1" class="c18e-nome">Fraco</span></div>
+    <div class="c18e-lin"><span id="c18eC2" class="c18e-cond">5% &lt; &#945; &lt; 50%</span><span id="c18eN2" class="c18e-nome">Moderado</span></div>
+    <div class="c18e-lin"><span id="c18eC3" class="c18e-cond">&#945; &ge; 50%</span><span id="c18eN3" class="c18e-nome">Forte</span></div>
+  </div>
 </div>
 
 <!-- Quiz rápido entre 1.6 e 1.7: hidrácido x oxiácido -->
@@ -3816,11 +3835,19 @@ const EVENTOS = {
     { t: 22.0, fn: () => { $id('c18dAlfa').classList.remove('show'); $id('c18dForte').classList.remove('show'); c18dSomemAcidos(); } },   // somem os textos + as vidrarias dos ácidos
     { t: 23.0, fn: c18dBeakerHNCO },                              // becker da solução de HNCO (3 H+) + rótulos das duas soluções
   ]),
-  'dialogo1.8E':  () => {   // teste de condutividade (interativo; roda por timers — funciona mesmo sem o áudio 1.8E)
-    $id('playBtn').style.display = 'none';
-    c18eIniciar();
-  },
+  // (o teste de condutividade — c18eIniciar/montarAparelho18e — está GUARDADO pra um diálogo futuro)
+  'dialogo1.8E':  () => rodarStory([
+    { t: 5.0,  fn: () => c18eTabShow('c18eGrau') },     // "Grau de ionização" embaixo do "c)"
+    { t: 10.5, fn: () => c18eTabShow('c18eAlfaEq') },   // "= α" do lado
+    { t: 11.5, fn: () => c18eTabShow('c18eC1') },       // α ≤ 5%
+    { t: 17.0, fn: () => c18eTabShow('c18eN1') },       // "Fraco" do lado
+    { t: 18.6, fn: () => c18eTabShow('c18eC2') },       // 5% < α < 50%
+    { t: 23.5, fn: () => c18eTabShow('c18eN2') },       // "Moderado" do lado
+    { t: 26.0, fn: () => c18eTabShow('c18eC3') },       // α ≥ 50%
+    { t: 29.5, fn: () => c18eTabShow('c18eN3') },       // "Forte" do lado
+  ]),
 };
+function c18eTabShow(id) { const el = $id(id); if (el) el.classList.add('show'); }
 
 const player = new Audio();
 player.preload = 'auto';
@@ -3961,8 +3988,8 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.6' && typeof cena16IluminaAmbas === 'function') cena16IluminaAmbas();
   // fim do 1.6A / 1.7B: esconde o play (o quiz é respondido pelos botões)
   if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo1.6A' || FAIXAS[faixaAtual].id === 'dialogo1.7B')) { $id('playBtn').style.display = 'none'; return; }
-  // fim do 1.8 / 1.8A / 1.8C / 1.8E: cena interativa -> esconde o play. Ao fim do 1.8A libera a pipeta; no 1.8C garante aparato+dica pra apertar a válvula.
-  if (FAIXAS[faixaAtual] && ['dialogo1.8', 'dialogo1.8A', 'dialogo1.8C', 'dialogo1.8E'].includes(FAIXAS[faixaAtual].id)) {
+  // fim do 1.8 / 1.8A / 1.8C: cena interativa -> esconde o play. Ao fim do 1.8A libera a pipeta; no 1.8C garante aparato+dica pra apertar a válvula.
+  if (FAIXAS[faixaAtual] && ['dialogo1.8', 'dialogo1.8A', 'dialogo1.8C'].includes(FAIXAS[faixaAtual].id)) {
     const _id18 = FAIXAS[faixaAtual].id;
     if (_id18 === 'dialogo1.8' && !pip18Ativo) c18PipetaInterativa();   // fallback: se o áudio acabar antes do cue de 60s, garante a pipeta interativa
     if (_id18 === 'dialogo1.8A') { pipDragBloqueada = false; escurecerBeakerFade(pipette, false, 400); }   // libera + normaliza a pipeta ao terminar o 1.8A
@@ -5752,6 +5779,7 @@ function c18LimparTextos() {
   const al = $id('c18Alerta'); if (al) al.classList.remove('show');
   const fc = $id('c18Forcas'); if (fc) fc.innerHTML = '';
   ['nomeHCl', 'nomeHNCO', 'c18bAlfa', 'c18bFraco', 'c18bCorr', 'c18dAlfa', 'c18dForte', 'c18dLabHNCO', 'c18dLabHCl'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
+  const tab = $id('c18eTab'); if (tab) tab.querySelectorAll('span').forEach(s => s.classList.remove('show'));   // tabela do grau de ionização (1.8E)
   if (typeof tutorHand !== 'undefined' && tutorHand) tutorHand.classList.remove('show', 'tap', 'tapLoop');   // some o dedinho do 1.8C
 }
 function esconderCena18() {
