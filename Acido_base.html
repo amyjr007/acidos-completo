@@ -1158,10 +1158,10 @@
   .c18g-slot.centro.sel { background: rgba(76, 200, 80, .85); border-color: #4cc850; color: #08140a; }   /* seleção: verde */
   .c18g-slot sub { font-size: .62em; }
   .c18g-slot.agua { opacity: .28; cursor: default; }   /* água escura: não selecionável por enquanto */
-  #c18gCarrossel.giraL .c18g-slot { animation: c18gSlideL .22s ease both; }
-  #c18gCarrossel.giraR .c18g-slot { animation: c18gSlideR .22s ease both; }
-  @keyframes c18gSlideL { from { transform: translateX(14px); opacity: .2; } }
-  @keyframes c18gSlideR { from { transform: translateX(-14px); opacity: .2; } }
+  #c18gCarrossel.giraL .c18g-slot { animation: c18gSlideL .3s cubic-bezier(.17, .67, .3, 1) both; }
+  #c18gCarrossel.giraR .c18g-slot { animation: c18gSlideR .3s cubic-bezier(.17, .67, .3, 1) both; }
+  @keyframes c18gSlideL { from { transform: translateX(26px); opacity: .15; } }
+  @keyframes c18gSlideR { from { transform: translateX(-26px); opacity: .15; } }
   #cena17 .c17-eqs {
     position: absolute; left: 0; right: 0; top: 31%;
     display: grid; justify-content: center; align-items: baseline;
@@ -1623,7 +1623,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.77.0</div>
+<div id="versao">v1.78.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2673,14 +2673,15 @@ function atualizarLampada18e() {   // circuito fechado (fonte ligada + eletrodos
     if (glow18a) { glow18a.material.opacity = 0; glow18b.material.opacity = 0; }
     return;
   }
-  const f = lamp18Forca;   // brilho proporcional à força do ácido (1 = máxima)
+  const f = lamp18Forca;   // brilho proporcional à força: fortes 1, moderados 0.4, fracos 0.01
   const niv = f >= 0.75 ? { c: 0xfff3b0, e: 0xffcc44, o: 0.98 }
-            : f >= 0.4  ? { c: 0xf3e6b0, e: 0xd9a02e, o: 0.85 }
-            :             { c: 0xe6dfc2, e: 0x8a6a1e, o: 0.75 };   // bem fraquinha
+            : f >= 0.3  ? { c: 0xf3e6b0, e: 0xd9a02e, o: 0.85 }
+            : f >= 0.1  ? { c: 0xe6dfc2, e: 0x8a6a1e, o: 0.75 }
+            :             { c: 0xd6d2c2, e: 0x352a10, o: 0.68 };   // ~1%: um resquício de brilho, quase apagada
   bulbo18eMat.color.setHex(niv.c); bulbo18eMat.emissive.setHex(niv.e); bulbo18eMat.opacity = niv.o;
   bulbo18eMat.emissiveIntensity = 1 + f * 0.8;   // o bulbo "estoura" mais quando forte
   if (luz18e) luz18e.intensity = 2.4 * f;
-  glow18Base = { a: 0.35 + 0.65 * f, b: 0.15 + 0.6 * f };   // halos proporcionais à força
+  glow18Base = { a: Math.min(1, 0.05 + 0.95 * f), b: 0.7 * f };   // halos proporcionais à força (1% -> quase nada)
   if (glow18a) {
     glow18a.material.opacity = glow18Base.a; glow18b.material.opacity = glow18Base.b;
     glow18b.scale.set(2.6 + 2.4 * f, 2.6 + 2.4 * f, 1);      // auréola maior quanto mais forte
@@ -4167,16 +4168,16 @@ function c18gEsconderEscolha() {
   if (b) b.classList.remove('show');
   if (c) c.classList.remove('show');
 }
-// carrossel de líquidos do 1.8G1 — f = fator de brilho da lâmpada (1 = intensidade máxima)
+// carrossel de líquidos do 1.8G1 — f = fator de brilho: fortes 100%, moderados 40%, fracos 1%
 const C18G_ACIDOS = [
   { html: 'HCl', parts: [{ t: 'HCl' }], f: 1 },
   { html: 'HNO<sub>3</sub>', parts: [{ t: 'HNO' }, { t: '3', sub: true }], f: 1 },
-  { html: 'H<sub>2</sub>SO<sub>4</sub>', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'SO' }, { t: '4', sub: true }], f: 0.8 },
-  { html: 'H<sub>3</sub>PO<sub>4</sub>', parts: [{ t: 'H' }, { t: '3', sub: true }, { t: 'PO' }, { t: '4', sub: true }], f: 0.5 },
-  { html: 'HF', parts: [{ t: 'HF' }], f: 0.5 },
-  { html: 'HNCO', parts: [{ t: 'HNCO' }], f: 0.22 },
-  { html: 'H<sub>2</sub>CO<sub>3</sub>', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'CO' }, { t: '3', sub: true }], f: 0.22 },
-  { html: 'H<sub>2</sub>S', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'S' }], f: 0.22 },
+  { html: 'H<sub>2</sub>SO<sub>4</sub>', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'SO' }, { t: '4', sub: true }], f: 1 },
+  { html: 'H<sub>3</sub>PO<sub>4</sub>', parts: [{ t: 'H' }, { t: '3', sub: true }, { t: 'PO' }, { t: '4', sub: true }], f: 0.4 },
+  { html: 'HF', parts: [{ t: 'HF' }], f: 0.4 },
+  { html: 'HNCO', parts: [{ t: 'HNCO' }], f: 0.01 },
+  { html: 'H<sub>2</sub>CO<sub>3</sub>', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'CO' }, { t: '3', sub: true }], f: 0.01 },
+  { html: 'H<sub>2</sub>S', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'S' }], f: 0.01 },
   { html: 'H<sub>2</sub>O', agua: true },   // H2O: desabilitada por enquanto
 ];
 // (o wiring dos cliques do carrossel fica mais abaixo, depois da definição do $id)
@@ -4446,14 +4447,29 @@ function c18gGira(dir) {   // gira infinito (circular) com animação + vibraç�
   c18gRender();
 }
 const c18gSlotL = $id('c18gL'), c18gSlotC = $id('c18gC'), c18gSlotR = $id('c18gR');
-// SWIPE lateral no carrossel: arrasta pra esquerda avança, pra direita volta (gira infinito)
-let c18gSwipe = null, c18gSwipou = false;
+// SWIPE lateral no carrossel com ACELERAÇÃO: arraste rápido gira vários passos, desacelerando como roleta
+let c18gSwipe = null, c18gSwipou = false, c18gRolando = false;
 const c18gCarEl = $id('c18gCarrossel');
-c18gCarEl.addEventListener('pointerdown', e => { c18gSwipe = { x: e.clientX, id: e.pointerId }; c18gSwipou = false; });
+function c18gMomentum(dir, passos) {   // gira 'passos' vezes com intervalos crescentes (desaceleração)
+  c18gRolando = true;
+  let delay = 90;
+  (function passo(n) {
+    c18gGira(dir);
+    if (n > 1) { setTimeout(() => passo(n - 1), delay); delay += 70; }
+    else c18gRolando = false;
+  })(passos);
+}
+c18gCarEl.addEventListener('pointerdown', e => { c18gSwipe = { x: e.clientX, t0: performance.now(), id: e.pointerId }; c18gSwipou = false; });
 c18gCarEl.addEventListener('pointerup', e => {
   if (!c18gSwipe || e.pointerId !== c18gSwipe.id) return;
-  const dx = e.clientX - c18gSwipe.x; c18gSwipe = null;
-  if (Math.abs(dx) > 24) { c18gSwipou = true; c18gGira(dx < 0 ? 1 : -1); }
+  const dx = e.clientX - c18gSwipe.x;
+  const v = Math.abs(dx) / Math.max(1, performance.now() - c18gSwipe.t0);   // velocidade do arraste (px/ms)
+  c18gSwipe = null;
+  if (Math.abs(dx) > 24 && !c18gRolando) {
+    c18gSwipou = true;
+    const passos = Math.min(5, Math.max(1, Math.round(v * 4)));   // arraste rápido = mais passos
+    c18gMomentum(dx < 0 ? 1 : -1, passos);
+  }
 });
 c18gCarEl.addEventListener('pointercancel', () => { c18gSwipe = null; });
 const c18gFoiSwipe = () => { const s = c18gSwipou; c18gSwipou = false; return s; };   // suprime o clique que vem depois do arraste
