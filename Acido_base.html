@@ -1589,7 +1589,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.70.0</div>
+<div id="versao">v1.71.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2424,7 +2424,9 @@ const borbulhas18 = [];
 let aparelho18e = null, bulbo18eMat = null, luz18e = null, lamp18Acesa = false;
 let botao18Power = null, botao18PowerCap = null, fonte18Ligada = false;
 let botao18Ele = null, eletrodos18Grp = null, eletrodos18Baixo = false, eletrodos18Anim = false;
-let fio18eA = null, fio18eB = null;
+let fio18eA = null, fio18eB = null, beq18e = null;
+let power18Bloqueado = true, ele18Bloqueado = true;   // as interações são liberadas pelos diálogos 1.8G/1.8G1
+let c18g1Disparado = false, c18g2Armado = false, lamp18Fraca = false;
 const ELE18_Y_CIMA = 5.1, ELE18_Y_BAIXO = 4.3;   // altura do suporte dos eletrodos (ponta = y - 2.15; solução até y≈2.28)
 function makeAparelho18e() {
   const g = new THREE.Group(), AX = 1.67;
@@ -2453,9 +2455,9 @@ function makeAparelho18e() {
   bulbo.position.set(AX, 6.4, 0.5); g.add(bulbo);
   luz18e = new THREE.PointLight(0xffcc55, 0, 14);
   luz18e.position.set(AX, 6.4, 0.5); g.add(luz18e);
-  // béquer com a solução aquosa (eletrólito)
-  const beq = makeBeaker(1.5, 3.2, 0x4aa8e8, 0.62);
-  beq.position.set(AX, 0.3, 3.4); g.add(beq);
+  // béquer com a solução aquosa (eletrólito) — no 1.8G1 ele sai e entra o da solução de HNCO
+  beq18e = makeBeaker(1.5, 3.2, 0x4aa8e8, 0.62);
+  beq18e.position.set(AX, 0.3, 3.4); g.add(beq18e);
   // suporte dos eletrodos: haste vertical + braço; os 2 eletrodos ficam FIXOS, PARALELOS e suspensos pra baixo
   const metal = new THREE.MeshPhongMaterial({ color: 0x6b7075, shininess: 70 });
   const hasteV = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 6.3, 14), metal);
@@ -2524,24 +2526,61 @@ function atualizarLampada18e() {   // circuito fechado (fonte ligada + eletrodos
   const acesa = fonte18Ligada && eletrodos18Baixo;
   if (acesa === lamp18Acesa) return;
   lamp18Acesa = acesa;
-  bulbo18eMat.color.setHex(acesa ? 0xfff3b0 : 0xc9ccd0);
-  bulbo18eMat.emissive.setHex(acesa ? 0xffbb33 : 0x000000);
-  bulbo18eMat.opacity = acesa ? 0.95 : 0.6;
-  if (luz18e) luz18e.intensity = acesa ? 1.5 : 0;
+  if (!acesa) {
+    bulbo18eMat.color.setHex(0xc9ccd0); bulbo18eMat.emissive.setHex(0x000000); bulbo18eMat.opacity = 0.6;
+    if (luz18e) luz18e.intensity = 0;
+    return;
+  }
+  if (lamp18Fraca) {   // solução de ácido fraco (HNCO): acende BEM fraquinha
+    bulbo18eMat.color.setHex(0xe6dfc2); bulbo18eMat.emissive.setHex(0x7a5c16); bulbo18eMat.opacity = 0.72;
+    if (luz18e) luz18e.intensity = 0.3;
+  } else {
+    bulbo18eMat.color.setHex(0xfff3b0); bulbo18eMat.emissive.setHex(0xffbb33); bulbo18eMat.opacity = 0.95;
+    if (luz18e) luz18e.intensity = 1.5;
+  }
+  if (c18g2Armado) {   // 1.8G1: acendeu fraquinha -> espera 1s e ativa o 1.8G2 (uma vez)
+    c18g2Armado = false; ele18Bloqueado = true;
+    setTimeout(() => { if (typeof tocarFaixaSuave === 'function') tocarFaixaSuave('dialogo1.8G2'); }, 1000);
+  }
 }
 function resetAparelho18e() {
   fonte18Ligada = false; eletrodos18Baixo = false; eletrodos18Anim = false; lamp18Acesa = false;
+  power18Bloqueado = true; ele18Bloqueado = true; c18g1Disparado = false; c18g2Armado = false; lamp18Fraca = false;
   if (!aparelho18e) return;
   aparelho18e.visible = false;
   botao18PowerCap.material.color.setHex(0x1d5c2a); botao18PowerCap.material.emissive.setHex(0x000000);
   bulbo18eMat.color.setHex(0xc9ccd0); bulbo18eMat.emissive.setHex(0x000000); bulbo18eMat.opacity = 0.6;
   if (luz18e) luz18e.intensity = 0;
   eletrodos18Grp.position.y = ELE18_Y_CIMA;
+  if (beq18e) beq18e.visible = true;   // béquer original do aparelho de volta (caso o 1.8G1 o tenha trocado)
   atualizarFios18e();
 }
 function montarAparelho18e() {   // entra em fade in: lâmpada apagada, fonte desligada, eletrodos suspensos
   if (!aparelho18e) { aparelho18e = makeAparelho18e(); aparelho18e.visible = false; scene.add(aparelho18e); }
   fade3D(aparelho18e, 1, 800);
+}
+// clique nos botões respeitando os bloqueios dos diálogos guiados (1.8G/1.8G1)
+function c18gPowerClick() {
+  if (power18Bloqueado) return;
+  togglePower18();
+  if (typeof tutorHand !== 'undefined' && tutorHand) tutorHand.classList.remove('show', 'tap', 'tapLoop');
+  if (fonte18Ligada && !c18g1Disparado) {   // ligou a máquina -> 1.8G1 (delay de 1s); trava o interruptor
+    c18g1Disparado = true; power18Bloqueado = true;
+    setTimeout(() => { if (typeof tocarFaixaSuave === 'function') tocarFaixaSuave('dialogo1.8G1'); }, 1000);
+  }
+}
+function c18gEleClick() { if (!ele18Bloqueado) toggleEletrodos18(); }
+// 18s do 1.8G1: sai o béquer do aparelho e entra o da solução de HNCO (usado no 1.8D) sob os eletrodos
+function c18g1TrocaBequer() {
+  if (beq18e) fade3D(beq18e, 0, 700);
+  if (!beaker18d) {
+    beaker18d = makeBeaker(1.6, 3.4, 0x4aa8e8, 0.62);
+    beaker18d.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    beaker18d.visible = false; scene.add(beaker18d);
+  }
+  beaker18d.position.set(1.67, 0.3, 3.4);
+  fade3D(beaker18d, 1, 700);
+  lamp18Fraca = true;   // HNCO é fraco: se o circuito fechar, a lâmpada acende bem fraquinha
 }
 
 // gotas
@@ -3002,8 +3041,8 @@ renderer.domElement.addEventListener('pointerdown', e => {
     ndc.x = (e.clientX / innerWidth) * 2 - 1;
     ndc.y = -(e.clientY / innerHeight) * 2 + 1;
     raycaster.setFromCamera(ndc, camera);
-    if (botao18Power && raycaster.intersectObject(botao18Power, true).length) { togglePower18(); return; }
-    if (botao18Ele && raycaster.intersectObject(botao18Ele, true).length) { toggleEletrodos18(); return; }
+    if (botao18Power && raycaster.intersectObject(botao18Power, true).length) { c18gPowerClick(); return; }
+    if (botao18Ele && raycaster.intersectObject(botao18Ele, true).length) { c18gEleClick(); return; }
   }
 
   // válvula do aparato de transferência (1.8): clique abre/fecha a conexão
@@ -3497,6 +3536,9 @@ const FAIXAS = [
   { id: 'dialogo1.8D',  arquivo: 'audios/dialogo1.8D.mp3',  titulo: 'Diálogo 1.8D' },
   { id: 'dialogo1.8E',  arquivo: 'audios/dialogo1.8E.mp3',  titulo: 'Diálogo 1.8E' },
   { id: 'dialogo1.8F',  arquivo: 'audios/dialogo1.8F.mp3',  titulo: 'Diálogo 1.8F' },
+  { id: 'dialogo1.8G',  arquivo: 'audios/dialogo1.8G.mp3',  titulo: 'Diálogo 1.8G' },
+  { id: 'dialogo1.8G1', arquivo: 'audios/dialogo1.8G1.mp3', titulo: 'Diálogo 1.8G1' },
+  { id: 'dialogo1.8G2', arquivo: 'audios/dialogo1.8G2.mp3', titulo: 'Diálogo 1.8G2' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -3887,11 +3929,38 @@ const EVENTOS = {
     { t: 28.0, fn: () => { irParaCamera({ theta: -1.711, phi: 1.551, dist: 30.22, target: [1.67, 3.29, 0.64] }, true, 5000); c18fSomeBancada(); } },   // câmera vira (chega em 33s); béqueres/nomes/α saem em fade out
     { t: 34.0, fn: () => stShow('center', 'Vamos medir a condutibilidade elétrica da solução.', 'st-menor3 st-sobe25') },   // bem menor + sobe 2,5 linhas
     { t: 38.0, fn: stSair },
-    { t: 43.4, fn: montarAparelho18e },                                // o aparelho todo em fade in (lâmpada apagada; eletrodo de fora, arrastável)
+    { t: 43.4, fn: montarAparelho18e },                                // o aparelho todo em fade in (lâmpada apagada, botões travados; o 1.8G guia a interação)
+  ]),
+  'dialogo1.8G':  () => rodarStory([
+    { t: 0.0,  fn: c18gIniciar },                                      // câmera nova + estado inicial (fonte OFF, eletrodos em cima); só o interruptor clicável
+    { t: 11.0, fn: () => mao18Apontar(0.99, 5.9, -3.15) },             // mãozinha apontando pro interruptor (à esquerda da lâmpada)
+  ]),
+  'dialogo1.8G1': () => rodarStory([
+    { t: 3.4,  fn: () => { mao18Apontar(1.67, 3.9, 4.8); clearTimeout(_dicaTimer); _dicaTimer = setTimeout(() => tutorHand.classList.remove('show', 'tapLoop'), 2000); } },   // aponta o botão do suporte (ainda SEM interação)
+    { t: 18.0, fn: c18g1TrocaBequer },                                 // sai o béquer do aparelho; entra o da solução de HNCO
   ]),
 };
 function c18eTabShow(id) { const el = $id(id); if (el) el.classList.add('show'); }
 function c18fSomeTabela() { const tab = $id('c18eTab'); if (tab) tab.querySelectorAll('span').forEach(s => s.classList.remove('show')); }
+// mãozinha apontando pra um ponto 3D da cena (tap em loop; some com remove('show'))
+function mao18Apontar(px, py, pz) {
+  const v = new THREE.Vector3(px, py, pz).project(camera);
+  tutorHand.style.transition = 'none';
+  tutorHand.style.left = ((v.x * 0.5 + 0.5) * innerWidth) + 'px';
+  tutorHand.style.top = ((-v.y * 0.5 + 0.5) * innerHeight) + 'px';
+  void tutorHand.offsetWidth; tutorHand.style.transition = '';
+  tutorHand.classList.add('show', 'tapLoop');
+}
+// t=0 do 1.8G: câmera nova + aparelho no estado inicial; só o interruptor da fonte fica clicável
+function c18gIniciar() {
+  if (!aparelho18e || !aparelho18e.visible) montarAparelho18e();      // garante o aparelho (ex.: replay)
+  if (eletrodos18Baixo && !eletrodos18Anim) toggleEletrodos18();      // eletrodos em cima
+  if (fonte18Ligada) togglePower18();                                 // fonte desligada
+  lamp18Fraca = false; c18g1Disparado = false; c18g2Armado = false;
+  power18Bloqueado = false; ele18Bloqueado = true;                    // SÓ o interruptor liberado
+  if (beq18e && !beq18e.visible) { if (beaker18d && beaker18d.visible) fade3D(beaker18d, 0, 300); fade3D(beq18e, 1, 300); }   // béquer original de volta (replay pós-troca)
+  irParaCamera({ theta: -1.633, phi: 1.551, dist: 22.06, target: [1.7, 4.2, 0.54] }, true, 1500);
+}
 // 28s do 1.8F (junto com a virada de câmera): os béqueres, os nomes das soluções e os α saem em fade out
 function c18fSomeBancada() {
   const ag = bench18.find(it => it.water);
@@ -3968,9 +4037,9 @@ function tocarFaixa(i) {
   if (typeof fecharQuiz4 === 'function') fecharQuiz4();   // some a questão 4 (arrastar)
   if (typeof fecharQuizFim === 'function') fecharQuizFim();   // some o card de nota final
   if (typeof limparOverlaysQuiz === 'function') limparOverlaysQuiz();   // garante que nenhum overlay de quiz/cena fique sobreposto
-  if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
-  if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
-  if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
+  if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
+  if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
+  if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
@@ -4062,13 +4131,19 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.6' && typeof cena16IluminaAmbas === 'function') cena16IluminaAmbas();
   // fim do 1.6A / 1.7B: esconde o play (o quiz é respondido pelos botões)
   if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo1.6A' || FAIXAS[faixaAtual].id === 'dialogo1.7B')) { $id('playBtn').style.display = 'none'; return; }
-  // fim do 1.8 / 1.8A / 1.8C / 1.8F: cena interativa -> esconde o play. Ao fim do 1.8A libera a pipeta; no 1.8C garante aparato+dica pra apertar a válvula.
-  if (FAIXAS[faixaAtual] && ['dialogo1.8', 'dialogo1.8A', 'dialogo1.8C', 'dialogo1.8F'].includes(FAIXAS[faixaAtual].id)) {
+  // fim do 1.8F: garante o aparelho na cena; o play APARECE (é ele que leva ao 1.8G, onde a interação é guiada)
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.8F' && (!aparelho18e || !aparelho18e.visible)) montarAparelho18e();
+  // fim do 1.8 / 1.8A / 1.8C / 1.8G / 1.8G1: cena interativa -> esconde o play.
+  if (FAIXAS[faixaAtual] && ['dialogo1.8', 'dialogo1.8A', 'dialogo1.8C', 'dialogo1.8G', 'dialogo1.8G1'].includes(FAIXAS[faixaAtual].id)) {
     const _id18 = FAIXAS[faixaAtual].id;
     if (_id18 === 'dialogo1.8' && !pip18Ativo) c18PipetaInterativa();   // fallback: se o áudio acabar antes do cue de 60s, garante a pipeta interativa
     if (_id18 === 'dialogo1.8A') { pipDragBloqueada = false; escurecerBeakerFade(pipette, false, 400); }   // libera + normaliza a pipeta ao terminar o 1.8A
     if (_id18 === 'dialogo1.8C') { if (!c18cArmado && (!aparato18 || !aparato18.visible)) c18cMontar(); c18cDicaLoop(); }   // garante o aparato; lembrete do dedinho começa 5s depois
-    if (_id18 === 'dialogo1.8F' && (!aparelho18e || !aparelho18e.visible)) montarAparelho18e();   // fallback: se o áudio acabar antes do cue de 43.4s, garante o aparelho
+    if (_id18 === 'dialogo1.8G' && !c18g1Disparado) mao18Apontar(0.99, 5.9, -3.15);   // sem play: só o interruptor leva adiante (garante a mãozinha)
+    if (_id18 === 'dialogo1.8G1') {   // sem play: libera SÓ o botão do suporte; ao acender fraquinha -> 1.8G2
+      if (beq18e && beq18e.visible) c18g1TrocaBequer();   // fallback: se o áudio acabou antes do cue de 18s
+      ele18Bloqueado = false; power18Bloqueado = true; c18g2Armado = true;
+    }
     $id('playBtn').style.display = 'none'; return;
   }
   // fim do tutorial 1.1E -> botão de play vira "JOGAR"
@@ -6076,10 +6151,10 @@ function c18dSomemAcidos() {
 function c18dBeakerHNCO() {
   if (!beaker18d) {
     beaker18d = makeBeaker(1.6, 3.4, 0x4aa8e8, 0.62);
-    beaker18d.position.set(-0.5, 0.3, 1.5);
     beaker18d.traverse(o => { if (o.isMesh) o.castShadow = true; });
     beaker18d.visible = false; scene.add(beaker18d);
   }
+  beaker18d.position.set(-0.5, 0.3, 1.5);   // sempre reposiciona (o 1.8G1 o move pra debaixo dos eletrodos)
   fade3D(beaker18d, 1, 700);
   mostrarHmais(3, -0.5);   // 3 H+ na solução de HNCO (fraco)
   $id('c18dLabHNCO').classList.add('show');   // "solução de HNCO" (becker novo, esq)
