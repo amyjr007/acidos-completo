@@ -1586,7 +1586,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.66.0</div>
+<div id="versao">v1.67.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3848,6 +3848,7 @@ const EVENTOS = {
     { t: 29.5, fn: () => c18eTabShow('c18eN3') },       // "Forte" do lado
   ]),
   'dialogo1.8F':  () => rodarStory([
+    { t: 0.0,  fn: c18fPreparar },                                     // pulo direto pelo sumário: monta o estado pós-1.8D (no fluxo normal não faz nada)
     { t: 1.0,  fn: c18fSomeTabela },                                   // a tabela do grau de ionização sai em fade out
     { t: 2.0,  fn: () => irParaCamera({ theta: -0.002, phi: 1.534, dist: 16.0, target: [1.65, 3.2, 0.8] }, true, 1500) },   // zoom in: os 2 béqueres centralizados
     { t: 6.0,  fn: () => hmaisSprites.forEach(s => s.userData.fadeOut = true) },   // H+ das duas soluções somem em fade
@@ -3862,6 +3863,23 @@ const EVENTOS = {
 };
 function c18eTabShow(id) { const el = $id(id); if (el) el.classList.add('show'); }
 function c18fSomeTabela() { const tab = $id('c18eTab'); if (tab) tab.querySelectorAll('span').forEach(s => s.classList.remove('show')); }
+// Pulo direto pro 1.8F pelo sumário: recria o estado do fim do 1.8D (título + "c)" + as duas soluções com H+).
+// No fluxo normal (vindo do 1.8E) o "c)" já está na tela -> não faz nada.
+function c18fPreparar() {
+  if (cena18El.querySelector('.c18-sub').classList.contains('show')) return;
+  c18Iniciar();                                                       // título "Classificação dos ácidos" + cenas 16/17/18 ativas
+  const subB = cena17El.querySelector('.c17-sub');
+  subB.classList.remove('show'); subB.style.transform = 'translateX(130vw)';   // "b)" fora da tela
+  const subC = cena18El.querySelector('.c18-sub');
+  subC.style.transform = 'translateX(0)'; subC.classList.add('show');          // "c)" direto na tela
+  if (typeof esconderAcidosBancada === 'function') esconderAcidosBancada();
+  if (waterBeaker.visible) fade3D(waterBeaker, 0, 300);
+  c18EsconderBancada(); c18LimparTextos();
+  const ag = bench18.find(it => it.water);
+  if (ag) fade3D(ag.beaker, 1, 600);         // solução de HCl (direita)
+  mostrarHmais(64, 3.8);                     // com os 64 H+ do fim do 1.8D
+  c18dBeakerHNCO();                          // becker da solução de HNCO (3 H+) + rótulos das duas soluções
+}
 
 const player = new Audio();
 player.preload = 'auto';
@@ -4062,6 +4080,7 @@ const SUMARIO = [
   { titulo: 'Classificação quanto aos H ionizáveis',    faixa: idxFaixa('dialogo1.7') },
   { titulo: 'Quiz 3',                       faixa: idxFaixa('dialogo1.7B') },
   { titulo: 'Classificação quanto à força', faixa: idxFaixa('dialogo1.8') },
+  { titulo: 'A condutibilidade elétrica dos ácidos', faixa: idxFaixa('dialogo1.8F') },
 ];
 
 SUMARIO.forEach(item => {
