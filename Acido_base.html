@@ -1589,7 +1589,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.71.0</div>
+<div id="versao">v1.72.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1911,7 +1911,8 @@ function animPausar() { if (_pausadoDesde == null) _pausadoDesde = performance.n
 function animRetomar() { if (_pausadoDesde != null) { _tempoPausado += performance.now() - _pausadoDesde; _pausadoDesde = null; } }
 
 // ---------- Iluminação (estilo cartoon suave) ----------
-scene.add(new THREE.HemisphereLight(0xd6f0a8, 0x18240f, 0.9));
+const hemiLight = new THREE.HemisphereLight(0xd6f0a8, 0x18240f, 0.9);
+scene.add(hemiLight);
 const key = new THREE.DirectionalLight(0xf4ffe0, 1.1);
 key.position.set(8, 14, 6);
 key.castShadow = true;
@@ -2424,9 +2425,24 @@ const borbulhas18 = [];
 let aparelho18e = null, bulbo18eMat = null, luz18e = null, lamp18Acesa = false;
 let botao18Power = null, botao18PowerCap = null, fonte18Ligada = false;
 let botao18Ele = null, eletrodos18Grp = null, eletrodos18Baixo = false, eletrodos18Anim = false;
-let fio18eA = null, fio18eB = null, beq18e = null;
+let fio18eA = null, fio18eB = null, beq18e = null, luzPower18 = null;
 let power18Bloqueado = true, ele18Bloqueado = true;   // as interações são liberadas pelos diálogos 1.8G/1.8G1
 let c18g1Disparado = false, c18g2Armado = false, lamp18Fraca = false;
+// escurece a iluminação geral da cena (1.8G) pra realçar as luzes do aparelho; off restaura o padrão
+let cena18gEscura = false;
+function escurecerCena18g(on, dur = 800) {
+  if (on === cena18gEscura) return;
+  cena18gEscura = on;
+  const alvo = on ? { h: 0.22, k: 0.28, f: 0.1 } : { h: 0.9, k: 1.1, f: 0.4 };
+  const de = { h: hemiLight.intensity, k: key.intensity, f: fill.intensity }, t0 = performance.now();
+  (function step() {
+    const t = Math.min(1, (performance.now() - t0) / dur);
+    hemiLight.intensity = de.h + (alvo.h - de.h) * t;
+    key.intensity = de.k + (alvo.k - de.k) * t;
+    fill.intensity = de.f + (alvo.f - de.f) * t;
+    if (t < 1) requestAnimationFrame(step);
+  })();
+}
 const ELE18_Y_CIMA = 5.1, ELE18_Y_BAIXO = 4.3;   // altura do suporte dos eletrodos (ponta = y - 2.15; solução até y≈2.28)
 function makeAparelho18e() {
   const g = new THREE.Group(), AX = 1.67;
@@ -2447,6 +2463,8 @@ function makeAparelho18e() {
   const powerHit = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.1, 1.0), new THREE.MeshBasicMaterial({ visible: false }));   // área de toque generosa
   botao18Power.add(powerHit);
   g.add(botao18Power);
+  luzPower18 = new THREE.PointLight(0x2ee060, 0, 5);   // luzinha verde real do interruptor (acende ao ligar)
+  luzPower18.position.set(AX - 0.85, 6.32, -3.15); g.add(luzPower18);
   // lâmpada indicadora: soquete na prateleira + bulbo (APAGADA; acende trocando o emissive)
   const soq = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.36, 0.5, 22), new THREE.MeshPhongMaterial({ color: 0xcfcfcf, shininess: 90 }));
   soq.position.set(AX, 5.79, 0.5); g.add(soq);
@@ -2505,7 +2523,8 @@ function atualizarFios18e() {
 function togglePower18() {   // botão esquerdo da fonte: liga (luz verde) / desliga
   fonte18Ligada = !fonte18Ligada;
   botao18PowerCap.material.color.setHex(fonte18Ligada ? 0x35e065 : 0x1d5c2a);
-  botao18PowerCap.material.emissive.setHex(fonte18Ligada ? 0x18a83c : 0x000000);
+  botao18PowerCap.material.emissive.setHex(fonte18Ligada ? 0x27d954 : 0x000000);
+  if (luzPower18) luzPower18.intensity = fonte18Ligada ? 0.8 : 0;   // luzinha verde real ilumina em volta
   if (typeof playSfx === 'function') playSfx('click');
   atualizarLampada18e();
 }
@@ -2532,11 +2551,11 @@ function atualizarLampada18e() {   // circuito fechado (fonte ligada + eletrodos
     return;
   }
   if (lamp18Fraca) {   // solução de ácido fraco (HNCO): acende BEM fraquinha
-    bulbo18eMat.color.setHex(0xe6dfc2); bulbo18eMat.emissive.setHex(0x7a5c16); bulbo18eMat.opacity = 0.72;
-    if (luz18e) luz18e.intensity = 0.3;
-  } else {
-    bulbo18eMat.color.setHex(0xfff3b0); bulbo18eMat.emissive.setHex(0xffbb33); bulbo18eMat.opacity = 0.95;
-    if (luz18e) luz18e.intensity = 1.5;
+    bulbo18eMat.color.setHex(0xe6dfc2); bulbo18eMat.emissive.setHex(0x8a6a1e); bulbo18eMat.opacity = 0.75;
+    if (luz18e) luz18e.intensity = 0.55;
+  } else {   // brilho reforçado (a cena fica escurecida no 1.8G)
+    bulbo18eMat.color.setHex(0xfff3b0); bulbo18eMat.emissive.setHex(0xffcc44); bulbo18eMat.opacity = 0.98;
+    if (luz18e) luz18e.intensity = 2.4;
   }
   if (c18g2Armado) {   // 1.8G1: acendeu fraquinha -> espera 1s e ativa o 1.8G2 (uma vez)
     c18g2Armado = false; ele18Bloqueado = true;
@@ -2551,6 +2570,7 @@ function resetAparelho18e() {
   botao18PowerCap.material.color.setHex(0x1d5c2a); botao18PowerCap.material.emissive.setHex(0x000000);
   bulbo18eMat.color.setHex(0xc9ccd0); bulbo18eMat.emissive.setHex(0x000000); bulbo18eMat.opacity = 0.6;
   if (luz18e) luz18e.intensity = 0;
+  if (luzPower18) luzPower18.intensity = 0;
   eletrodos18Grp.position.y = ELE18_Y_CIMA;
   if (beq18e) beq18e.visible = true;   // béquer original do aparelho de volta (caso o 1.8G1 o tenha trocado)
   atualizarFios18e();
@@ -3959,6 +3979,7 @@ function c18gIniciar() {
   lamp18Fraca = false; c18g1Disparado = false; c18g2Armado = false;
   power18Bloqueado = false; ele18Bloqueado = true;                    // SÓ o interruptor liberado
   if (beq18e && !beq18e.visible) { if (beaker18d && beaker18d.visible) fade3D(beaker18d, 0, 300); fade3D(beq18e, 1, 300); }   // béquer original de volta (replay pós-troca)
+  escurecerCena18g(true);                                             // cena escurece: o efeito de ligar as luzes fica mais dramático
   irParaCamera({ theta: -1.633, phi: 1.551, dist: 22.06, target: [1.7, 4.2, 0.54] }, true, 1500);
 }
 // 28s do 1.8F (junto com a virada de câmera): os béqueres, os nomes das soluções e os α saem em fade out
@@ -5955,7 +5976,8 @@ function c18EsconderBancada() {
   if (typeof tutorHand !== 'undefined' && tutorHand) tutorHand.classList.remove('show', 'tap', 'tapLoop');
   if (typeof _dicaTimer !== 'undefined') clearTimeout(_dicaTimer);
   if (typeof _dicaLoop !== 'undefined') clearTimeout(_dicaLoop);
-  if (typeof resetAparelho18e === 'function') resetAparelho18e();   // teste de condutividade (1.8E)
+  if (typeof resetAparelho18e === 'function') resetAparelho18e();   // teste de condutividade (1.8F/1.8G)
+  if (typeof escurecerCena18g === 'function') escurecerCena18g(false);   // restaura a iluminação padrão da cena
   if (cena18Pipeta) {   // só reseta a pipeta se ela estava no modo do 1.8 (não mexe no 1.3B)
     cena18Pipeta = false; pip18Ativo = false; pipDragBloqueada = false; pipAguaX = WATER_X; pipReagentes = reagents;
     pipette.visible = false; pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
