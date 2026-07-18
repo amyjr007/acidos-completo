@@ -1506,6 +1506,15 @@
   #tutorHand.tap .mao { animation: maoTap .45s ease; }
   #tutorHand.tapLoop .mao { animation: maoTap .8s ease infinite; }   /* dedinho apertando o botão (1.8C) */
   @keyframes maoTap { 0%, 100% { transform: scale(1); } 42% { transform: scale(.68); } }
+  /* Seta-tutorial (1.8G) — aponta pra lâmpada/eletrodos, com fade e leve balanço */
+  #setaTut {
+    position: fixed; left: 50%; top: 50%; z-index: 80; pointer-events: none; opacity: 0;
+    transform: translate(-50%, -50%); transition: opacity .5s ease;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .55));
+  }
+  #setaTut.show { opacity: 1; }
+  #setaTut svg { display: block; animation: setaTutBob 1s ease-in-out infinite; }
+  @keyframes setaTutBob { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(9px); } }
 
   /* ---------- Mãozinha de OK (dialogo1.3) ---------- */
   #okHand {
@@ -1623,7 +1632,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.79.0</div>
+<div id="versao">v1.80.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1879,6 +1888,9 @@
 
 <!-- Mãozinha do tutorial (dialogo0.1) -->
 <div id="tutorHand"><span class="mao">&#128070;</span></div>
+
+<!-- Seta-tutorial (1.8G): aponta pra lâmpada / eletrodos -->
+<div id="setaTut"><svg viewBox="0 0 100 44" width="88" height="39" aria-hidden="true"><path d="M2 22 H70 M52 6 L74 22 L52 38" fill="none" stroke="#ffd21e" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
 
 <!-- Mãozinha de OK (dialogo1.3, fim da demonstração) -->
 <div id="okHand">&#128077;</div>
@@ -2465,6 +2477,7 @@ const borbulhas18 = [];
 // Interação: botão ESQUERDO da fonte liga/desliga (luz verde); botão na haste desce/sobe os eletrodos.
 // A lâmpada acende quando o circuito fecha: fonte LIGADA + eletrodos NA solução.
 let aparelho18e = null, bulbo18eMat = null, luz18e = null, lamp18Acesa = false;
+let filamento18Mat = null;   // filamento de tungstênio (incandesce conforme a força -> ajuda a diferenciar o brilho)
 let botao18Power = null, botao18PowerCap = null, fonte18Ligada = false;
 let botao18Ele = null, eletrodos18Grp = null, eletrodos18Baixo = false, eletrodos18Anim = false;
 let fio18eA = null, fio18eB = null, beq18e = null, beq18sel = null, luzPower18 = null;
@@ -2473,6 +2486,10 @@ let c18g1Disparado = false, c18g2Tocado = false, c18g3Armado = false;
 let aguaLiberada = false;   // água só fica selecionável depois que a lâmpada acende a 1ª vez
 let c18gTravado = false;    // trava toda interação da cena (ex.: enquanto toca dialogo1.8h2o)
 let c18gAguaAtual = false;  // a solução atual do béquer é a água (H2O)
+let h2oJaTocou = false;     // dialogo1.8h2o só 1x por sessão do app (NÃO reseta na navegação; só num reload)
+let c18gEscolherUsado = false, eleUsado = false;   // já abriu o carrossel / já mexeu no botão dos eletrodos
+let maoTutTimer = null;     // timer da mãozinha-tutorial (reaparece de 10 em 10s até o usuário apertar)
+let setaTutAlvo = null, maoTutAlvo = null;   // alvos dos ponteiros-tutorial (acompanhados no animate); {x,y,z} 3D ou {el} HTML
 const audioH2O18 = new Audio('audios/dialogo1.8h2o.mp3'); audioH2O18.preload = 'auto';
 let lamp18Forca = 1;   // fator de brilho da lâmpada (0..1) conforme o ácido escolhido
 // brilho realista da lâmpada: halos aditivos (núcleo + auréola) que "vazam" do bulbo, com cintilação
@@ -2575,6 +2592,15 @@ function makeAparelho18e() {
   bulbo18eMat = new THREE.MeshPhongMaterial({ color: 0xc9ccd0, emissive: 0x000000, transparent: true, opacity: 0.6, shininess: 150, specular: 0xffffff });
   const bulbo = new THREE.Mesh(new THREE.SphereGeometry(0.52, 22, 16), bulbo18eMat);
   bulbo.position.set(AX, 6.4, 0.5); g.add(bulbo);
+  // filamento de tungstênio no centro do bulbo (bobina helicoidal + 2 fios de sustentação); incandesce quando acende
+  filamento18Mat = new THREE.MeshBasicMaterial({ color: 0x2a2a2a });   // apagado = cinza escuro (auto-iluminado, não depende de luz)
+  const filGrp = new THREE.Group(); filGrp.position.set(AX, 6.4, 0.5);
+  const helixPts = []; const voltas = 5, hFil = 0.34, rFil = 0.085;
+  for (let i = 0; i <= voltas * 12; i++) { const a = i / 12 * Math.PI * 2, ky = i / (voltas * 12); helixPts.push(new THREE.Vector3(Math.cos(a) * rFil, -hFil / 2 + hFil * ky, Math.sin(a) * rFil)); }
+  const coil = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(helixPts), 90, 0.016, 6, false), filamento18Mat);
+  filGrp.add(coil);
+  [-rFil, rFil].forEach(dx => { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.26, 6), filamento18Mat); w.position.set(dx, -0.3, 0); filGrp.add(w); });   // 2 fios de sustentação até o soquete
+  g.add(filGrp);
   luz18e = new THREE.PointLight(0xffcc55, 0, 14);
   luz18e.position.set(AX, 6.4, 0.5); g.add(luz18e);
   // halos do brilho (aditivos, por cima de tudo): núcleo forte + auréola ampla que "vaza" do bulbo
@@ -2673,6 +2699,7 @@ function apagarLampada18e() {   // aparência de lâmpada apagada (circuito aber
   bulbo18eMat.color.setHex(0xc9ccd0); bulbo18eMat.emissive.setHex(0x000000); bulbo18eMat.opacity = 0.6;
   bulbo18eMat.emissiveIntensity = 1;
   if (luz18e) luz18e.intensity = 0;
+  if (filamento18Mat) filamento18Mat.color.setHex(0x2a2a2a);   // filamento frio (cinza escuro)
   glow18Base = { a: 0, b: 0 };
   if (glow18a) { glow18a.material.opacity = 0; glow18b.material.opacity = 0; }
 }
@@ -2686,6 +2713,8 @@ function aplicarBrilhoLampada18() {   // aplica o brilho conforme lamp18Forca (0
             :             { c: 0xd6d2c2, e: 0x352a10, o: 0.68 };   // ~1%: um resquício de brilho, quase apagada
   bulbo18eMat.color.setHex(niv.c); bulbo18eMat.emissive.setHex(niv.e); bulbo18eMat.opacity = niv.o;
   bulbo18eMat.emissiveIntensity = 1 + f * 0.8;   // o bulbo "estoura" mais quando forte
+  // filamento incandescente: da brasa vermelho-escura (fraco) até branco-amarelado (forte) — reforça a diferença de intensidade
+  if (filamento18Mat) filamento18Mat.color.setHex(f >= 0.75 ? 0xfff2c8 : f >= 0.3 ? 0xffa348 : f >= 0.1 ? 0xd9661e : 0x8f2e0a);
   if (luz18e) luz18e.intensity = 2.4 * f;
   glow18Base = { a: Math.min(1, 0.05 + 0.95 * f), b: 0.7 * f };   // halos proporcionais à força (1% -> quase nada)
   if (glow18a) {
@@ -2708,7 +2737,9 @@ function atualizarLampada18e() {   // circuito fechado (fonte ligada + eletrodos
 function resetAparelho18e() {
   fonte18Ligada = false; eletrodos18Baixo = false; eletrodos18Anim = false; lamp18Acesa = false;
   power18Bloqueado = true; ele18Bloqueado = true; c18g1Disparado = false; c18g2Tocado = false; c18g3Armado = false; lamp18Forca = 1;
-  aguaLiberada = false; c18gAguaAtual = false; c18gTravado = false; try { audioH2O18.pause(); } catch (e) {}
+  aguaLiberada = false; c18gAguaAtual = false; c18gTravado = false; c18gEscolherUsado = false; eleUsado = false;
+  if (typeof maoTutParar === 'function') maoTutParar(); if (typeof setaTutSair === 'function') setaTutSair();
+  try { audioH2O18.pause(); } catch (e) {}
   if (beq18sel) { scene.remove(beq18sel); beq18sel = null; }   // béquer escolhido no carrossel fora
   if (!aparelho18e) return;
   aparelho18e.visible = false;
@@ -2732,13 +2763,13 @@ function montarAparelho18e() {   // entra em fade in: lâmpada apagada, fonte de
 function c18gPowerClick() {
   if (c18gTravado || power18Bloqueado) return;
   togglePower18(); vib18(20);
-  if (typeof tutorHand !== 'undefined' && tutorHand) tutorHand.classList.remove('show', 'tap', 'tapLoop');
+  if (typeof maoTutParar === 'function') maoTutParar();   // some a mãozinha do interruptor (e para o timer)
   if (fonte18Ligada && !c18g1Disparado) {   // primeira ligada -> 1.8G1 (delay de 1s); o interruptor segue livre
     c18g1Disparado = true;
     setTimeout(() => { if (typeof tocarFaixaSuave === 'function') tocarFaixaSuave('dialogo1.8G1'); }, 1000);
   }
 }
-function c18gEleClick() { if (!c18gTravado && !ele18Bloqueado) { vib18(20); toggleEletrodos18(); } }
+function c18gEleClick() { if (!c18gTravado && !ele18Bloqueado) { eleUsado = true; maoTutParar(); vib18(20); toggleEletrodos18(); } }
 // carrossel do 1.8G1: troca só o líquido do teste. O béquer atual sai em fade e entra um novo com a
 // etiqueta da fórmula. Se o suporte estiver abaixado, ele CONTINUA mergulhado (não reseta mais a máquina):
 // só muda a intensidade do brilho conforme a nova substância.
@@ -2763,7 +2794,8 @@ function c18gTrocarLiquido(ac) {
 }
 // água selecionada com os eletrodos mergulhados -> toca dialogo1.8h2o e trava toda a interação até acabar
 function c18gAguaDialogo() {
-  if (c18gTravado) return;
+  if (c18gTravado || h2oJaTocou) return;   // só 1x por sessão do app (nem pela navegação rápida)
+  h2oJaTocou = true;
   c18gTravado = true;
   try { player.pause(); } catch (e) {}
   try { audioH2O18.currentTime = 0; } catch (e) {}
@@ -3547,6 +3579,10 @@ function animate() {
     _okEl.style.top = ((-_okVec.y * 0.5 + 0.5) * innerHeight) + 'px';
   }
 
+  // ponteiros-tutorial (1.8G) acompanham o alvo 3D enquanto a câmera anima (null-check: seguro no load)
+  if (maoTutAlvo) posMaoTut();
+  if (setaTutAlvo) posSetaTut();
+
   // nomes dos ácidos (1.8) acompanhando os frascos: HNCO (x=-1.8) e HCl/balão (x=1.0)
   projNomeAc(document.getElementById('nomeHNCO'), -1.8);
   projNomeAc(document.getElementById('nomeHCl'), 1.0);
@@ -4130,23 +4166,45 @@ const EVENTOS = {
   ]),
   'dialogo1.8G':  () => rodarStory([
     { t: 0.0,  fn: c18gIniciar },                                      // câmera nova + estado inicial (fonte OFF, eletrodos em cima); só o interruptor clicável
-    { t: 11.0, fn: () => mao18Apontar(0.99, 5.9, -3.15) },             // mãozinha apontando pro interruptor (à esquerda da lâmpada)
+    { t: 0.8,  fn: () => setaTutApontar(1.67, 5.65, 0.65) },           // seta -> lâmpada (fade in)
+    { t: 3.0,  fn: setaTutSair },                                      // seta some
+    { t: 4.0,  fn: () => setaTutApontar(1.67, 3.8, 3.4) },             // seta -> eletrodos
+    { t: 7.0,  fn: setaTutSair },                                      // seta some
+    { t: 10.0, fn: () => maoTutIniciar(() => mao18Apontar(0.99, 5.9, -3.15), () => c18g1Disparado) },   // mão -> interruptor (3s, repete de 10 em 10s até ligar)
   ]),
   'dialogo1.8G1': () => rodarStory([
-    { t: 1.6,  fn: () => $id('c18gEscolher').classList.add('show') },  // botão discreto "Escolha o líquido" no canto inferior esquerdo
+    { t: 1.6,  fn: () => { $id('c18gEscolher').classList.add('show'); maoTutIniciar(() => maoApontarEl($id('c18gEscolher')), () => c18gEscolherUsado); } },   // botão "Escolha o líquido" + mão apontando
+  ]),
+  'dialogo1.8G2': () => rodarStory([
+    { t: 1.0,  fn: () => maoTutIniciar(() => mao18Apontar(1.67, 4.0, 4.8), () => eleUsado) },   // mão -> botão que sobe/baixa os eletrodos
   ]),
 };
 function c18eTabShow(id) { const el = $id(id); if (el) el.classList.add('show'); }
 function c18fSomeTabela() { const tab = $id('c18eTab'); if (tab) tab.querySelectorAll('span').forEach(s => s.classList.remove('show')); }
-// mãozinha apontando pra um ponto 3D da cena (tap em loop; some com remove('show'))
-function mao18Apontar(px, py, pz) {
-  const v = new THREE.Vector3(px, py, pz).project(camera);
-  tutorHand.style.transition = 'none';
-  tutorHand.style.left = ((v.x * 0.5 + 0.5) * innerWidth) + 'px';
-  tutorHand.style.top = ((-v.y * 0.5 + 0.5) * innerHeight) + 'px';
-  void tutorHand.offsetWidth; tutorHand.style.transition = '';
-  tutorHand.classList.add('show', 'tapLoop');
+// Ponteiros-tutorial (mãozinha + seta) que ACOMPANHAM o alvo 3D quadro a quadro (a câmera pode estar animando)
+function _projAlvo(a) {   // {x,y} em pixels de tela pra um alvo 3D ({x,y,z}) ou HTML ({el})
+  if (a.el) { const r = a.el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
+  const v = new THREE.Vector3(a.x, a.y, a.z).project(camera);
+  return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * innerHeight };
 }
+function posMaoTut() { if (!maoTutAlvo) return; const el = document.getElementById('tutorHand'), p = _projAlvo(maoTutAlvo); el.style.transition = 'none'; el.style.left = p.x + 'px'; el.style.top = p.y + 'px'; }
+function posSetaTut() { if (!setaTutAlvo) return; const el = document.getElementById('setaTut'), p = _projAlvo(setaTutAlvo); el.style.left = (p.x - 62) + 'px'; el.style.top = p.y + 'px'; }   // à esquerda do alvo, ponta apontando pra ele
+function mao18Apontar(px, py, pz) { maoTutAlvo = { x: px, y: py, z: pz }; posMaoTut(); tutorHand.classList.add('show', 'tapLoop'); }
+function maoApontarEl(el) { if (!el) return; maoTutAlvo = { el }; posMaoTut(); tutorHand.classList.add('show', 'tapLoop'); }
+// mãozinha que aparece por 3s e reaparece de 10 em 10s até o usuário fazer a ação (jaFez() vira true)
+function maoTutParar() { clearTimeout(maoTutTimer); maoTutTimer = null; maoTutAlvo = null; tutorHand.classList.remove('show', 'tap', 'tapLoop'); }
+function maoTutIniciar(apontar, jaFez) {
+  maoTutParar();
+  const ciclo = () => {
+    if (jaFez && jaFez()) { maoTutParar(); return; }
+    apontar();   // define maoTutAlvo + mostra
+    setTimeout(() => { if (!(jaFez && jaFez())) tutorHand.classList.remove('show', 'tapLoop'); }, 3000);   // some após 3s
+    maoTutTimer = setTimeout(ciclo, 10000);   // reaparece de 10 em 10s
+  };
+  ciclo();
+}
+function setaTutApontar(px, py, pz) { setaTutAlvo = { x: px, y: py, z: pz }; posSetaTut(); $id('setaTut').classList.add('show'); }
+function setaTutSair() { setaTutAlvo = null; const el = $id('setaTut'); if (el) el.classList.remove('show'); }
 // Pulo direto pro 1.8G pelo sumário (item 18): garante título + "c)" na tela e some qualquer resíduo
 // de outros momentos (béqueres, balão, aparato do gás, H+, pipeta). No fluxo normal é inofensivo.
 function c18gPreparar() {
@@ -4177,7 +4235,7 @@ function c18gIniciar() {
   if (eletrodos18Baixo && !eletrodos18Anim) toggleEletrodos18();      // eletrodos em cima
   if (fonte18Ligada) togglePower18();                                 // fonte desligada
   lamp18Forca = 1; c18g1Disparado = false; c18g2Tocado = false; c18g3Armado = false;
-  aguaLiberada = false; c18gAguaAtual = false; c18gTravado = false;
+  aguaLiberada = false; c18gAguaAtual = false; c18gTravado = false; c18gEscolherUsado = false; eleUsado = false;
   power18Bloqueado = false; ele18Bloqueado = true;                    // SÓ o interruptor liberado
   c18gEsconderEscolha();                                              // UI de escolha zerada
   if (beq18sel) { scene.remove(beq18sel); beq18sel = null; }          // béquer escolhido fora (replay)
@@ -4381,9 +4439,9 @@ player.addEventListener('ended', () => {
     if (_id18 === 'dialogo1.8' && !pip18Ativo) c18PipetaInterativa();   // fallback: se o áudio acabar antes do cue de 60s, garante a pipeta interativa
     if (_id18 === 'dialogo1.8A') { pipDragBloqueada = false; escurecerBeakerFade(pipette, false, 400); }   // libera + normaliza a pipeta ao terminar o 1.8A
     if (_id18 === 'dialogo1.8C') { if (!c18cArmado && (!aparato18 || !aparato18.visible)) c18cMontar(); c18cDicaLoop(); }   // garante o aparato; lembrete do dedinho começa 5s depois
-    if (_id18 === 'dialogo1.8G' && !c18g1Disparado) mao18Apontar(0.99, 5.9, -3.15);   // sem play: só o interruptor leva adiante (garante a mãozinha)
-    if (_id18 === 'dialogo1.8G1') $id('c18gEscolher').classList.add('show');   // sem play: garante o botão "Escolha o líquido"
-    if (_id18 === 'dialogo1.8G2') { ele18Bloqueado = false; c18g3Armado = true; }   // sem play: libera o botão do suporte; 1ª acesa -> 1.8G3
+    if (_id18 === 'dialogo1.8G' && !c18g1Disparado) maoTutIniciar(() => mao18Apontar(0.99, 5.9, -3.15), () => c18g1Disparado);   // sem play: mãozinha no interruptor
+    if (_id18 === 'dialogo1.8G1') { $id('c18gEscolher').classList.add('show'); maoTutIniciar(() => maoApontarEl($id('c18gEscolher')), () => c18gEscolherUsado); }   // botão + mãozinha
+    if (_id18 === 'dialogo1.8G2') { ele18Bloqueado = false; c18g3Armado = true; maoTutIniciar(() => mao18Apontar(1.67, 4.0, 4.8), () => eleUsado); }   // libera o suporte + mãozinha
     $id('playBtn').style.display = 'none'; return;
   }
   // fim do tutorial 1.1E -> botão de play vira "JOGAR"
@@ -4512,6 +4570,7 @@ c18gSlotC.addEventListener('click', () => {
 });
 $id('c18gEscolher').addEventListener('click', () => {
   if (c18gTravado) return;
+  c18gEscolherUsado = true; maoTutParar();   // já abriu o carrossel -> some a mãozinha
   vib18(15);
   c18gRender();
   $id('c18gCarrossel').classList.toggle('show');
@@ -4567,6 +4626,8 @@ function limparStory() {
   resetCena11E();
   resetCena12();
   tutorHand.classList.remove('show', 'tap');
+  if (typeof maoTutParar === 'function') maoTutParar();   // para o timer da mãozinha-tutorial (1.8G)
+  if (typeof setaTutSair === 'function') setaTutSair();   // some a seta-tutorial (1.8G)
   esconderMaoOk();   // fade out (não some instantâneo, pra não dar flash na transição)
   fecharSumario();
 }
