@@ -1128,9 +1128,9 @@
   .proj18.corr .ic { font-size: 1.6em; }
   .proj18.forte { font-size: clamp(20px, 5.8vw, 36px); color: #ff5252; text-shadow: 0 2px 10px rgba(0, 0, 0, .9); }   /* HCl: extremamente forte */
   .proj18.sol   { font-size: clamp(14px, 3.8vw, 22px); color: #cdeaff; text-shadow: 0 2px 8px rgba(0, 0, 0, .85); }   /* rótulo "solução de ..." */
-  /* 1.8G1: botão discreto "Escolha o líquido" + carrossel de fórmulas */
+  /* 1.8G1: botão discreto "Escolha o líquido" + carrossel circular de 3 fórmulas */
   #c18gEscolher {
-    position: fixed; left: 12px; bottom: 14px; z-index: 60;
+    position: fixed; left: 12px; bottom: 46px; z-index: 60;   /* ~1,5 linha acima */
     font-family: system-ui, sans-serif; font-size: clamp(11px, 3vw, 14px); font-weight: 600;
     color: #cfe0b8; background: rgba(8, 14, 6, .45); border: 1px solid rgba(255, 255, 255, .18);
     padding: 6px 12px; border-radius: 9px; cursor: pointer;
@@ -1138,20 +1138,29 @@
   }
   #c18gEscolher.show { opacity: .85; pointer-events: auto; }
   #c18gCarrossel {
-    position: fixed; left: 12px; bottom: 54px; z-index: 60;
-    display: flex; gap: 8px; padding: 10px 12px; overflow-x: auto; max-width: calc(100vw - 24px);
-    background: rgba(10, 16, 8, .92); border: 1px solid rgba(166, 229, 52, .3); border-radius: 12px;
-    opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity .3s ease, transform .3s ease;
+    position: fixed; left: 12px; bottom: 88px; z-index: 60;
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    background: rgba(10, 16, 8, .92); border: 1px solid rgba(166, 229, 52, .3); border-radius: 14px;
+    opacity: 0; pointer-events: none; transform: translateY(14px); transition: opacity .3s ease, transform .3s ease;
   }
   #c18gCarrossel.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
-  .c18g-item {
-    font-family: "Cambria Math", Georgia, serif; font-weight: 800; font-size: clamp(16px, 4.6vw, 21px);
-    color: #f2fbe4; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .2);
-    padding: 8px 13px; border-radius: 10px; cursor: pointer; white-space: nowrap;
+  .c18g-slot {
+    font-family: "Cambria Math", Georgia, serif; font-weight: 800; font-size: clamp(14px, 4vw, 18px);
+    color: #d8e6c6; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .16);
+    padding: 7px 11px; border-radius: 10px; cursor: pointer; white-space: nowrap;
+    opacity: .55; transform: scale(.86); transition: background .2s ease;
   }
-  .c18g-item sub { font-size: .62em; }
-  .c18g-item:active { background: rgba(166, 229, 52, .25); }
-  .c18g-item.agua { opacity: .32; cursor: default; }   /* água escura: não selecionável por enquanto */
+  .c18g-slot.centro {
+    font-size: clamp(19px, 5.4vw, 25px); color: #f2fbe4; opacity: 1; transform: scale(1);
+    border-color: rgba(166, 229, 52, .55); background: rgba(166, 229, 52, .1);
+  }
+  .c18g-slot.centro.sel { background: rgba(76, 200, 80, .85); border-color: #4cc850; color: #08140a; }   /* seleção: verde */
+  .c18g-slot sub { font-size: .62em; }
+  .c18g-slot.agua { opacity: .28; cursor: default; }   /* água escura: não selecionável por enquanto */
+  #c18gCarrossel.giraL .c18g-slot { animation: c18gSlideL .22s ease both; }
+  #c18gCarrossel.giraR .c18g-slot { animation: c18gSlideR .22s ease both; }
+  @keyframes c18gSlideL { from { transform: translateX(14px); opacity: .2; } }
+  @keyframes c18gSlideR { from { transform: translateX(-14px); opacity: .2; } }
   #cena17 .c17-eqs {
     position: absolute; left: 0; right: 0; top: 31%;
     display: grid; justify-content: center; align-items: baseline;
@@ -1613,7 +1622,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.74.0</div>
+<div id="versao">v1.75.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1890,14 +1899,12 @@
 <div id="c18dA3" class="proj18 alfa">&#945; = 3%</div>
 <div id="c18dA92" class="proj18 alfa">&#945; = 92%</div>
 
-<!-- 1.8G1: escolha do líquido do teste de condutividade (botão discreto + carrossel) -->
+<!-- 1.8G1: escolha do líquido do teste de condutividade (botão discreto + carrossel circular de 3) -->
 <button id="c18gEscolher">Escolha o líquido</button>
 <div id="c18gCarrossel">
-  <button class="c18g-item" data-i="0">HCl</button>
-  <button class="c18g-item" data-i="1">H<sub>2</sub>SO<sub>4</sub></button>
-  <button class="c18g-item" data-i="2">H<sub>3</sub>PO<sub>4</sub></button>
-  <button class="c18g-item" data-i="3">HNCO</button>
-  <button class="c18g-item agua" data-i="4" disabled>H<sub>2</sub>O</button>
+  <button class="c18g-slot" id="c18gL"></button>
+  <button class="c18g-slot centro" id="c18gC"></button>
+  <button class="c18g-slot" id="c18gR"></button>
 </div>
 
 <!-- Botão de ajuda (demonstração interativa 1.3B) -->
@@ -2463,6 +2470,23 @@ let fio18eA = null, fio18eB = null, beq18e = null, beq18sel = null, luzPower18 =
 let power18Bloqueado = true, ele18Bloqueado = true;   // as interações são liberadas pelos diálogos 1.8G/1.8G2
 let c18g1Disparado = false, c18g2Tocado = false, c18g3Armado = false;
 let lamp18Nivel = 'forte';   // força do ácido escolhido: 'forte' | 'moderado' | 'fraco' (brilho da lâmpada)
+// sons do aparelho + vibração
+const snd18Click = new Audio('audios/click_sound.m4a');
+const snd18Arm = new Audio('audios/moving_arm.mp3'); snd18Arm.volume = 0.5;   // som do braço a 50%
+snd18Click.preload = 'auto'; snd18Arm.preload = 'auto';
+function tocar18(a) { try { a.currentTime = 0; const p = a.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+function vib18(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+// tween de escala: o objeto some encolhendo (para=0) ou aparece crescendo (para=1)
+function escala3D(obj, para, ms, onEnd) {
+  const de = obj.scale.x, t0 = performance.now();
+  obj.visible = true;
+  (function st() {
+    const k = Math.min(1, (performance.now() - t0) / ms), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    obj.scale.setScalar(Math.max(de + (para - de) * e, 0.001));
+    if (k < 1) requestAnimationFrame(st);
+    else { if (para === 0) obj.visible = false; if (onEnd) onEnd(); }
+  })();
+}
 // escurece a iluminação geral da cena (1.8G) pra realçar as luzes do aparelho; off restaura o padrão
 let cena18gEscura = false;
 function escurecerCena18g(on, dur = 800) {
@@ -2493,12 +2517,12 @@ function makeAparelho18e() {
   knob.rotation.z = Math.PI / 2; knob.position.set(AX - 0.72, 6.3, -2.3); g.add(knob);
   botao18Power = new THREE.Group();
   botao18Power.position.set(AX - 0.68, 6.32, -3.15);
-  botao18PowerCap = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.41, 0.32), new THREE.MeshPhongMaterial({ color: 0x1d5c2a, emissive: 0x000000, shininess: 60 }));   // 15% maior
+  botao18PowerCap = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.41, 0.32), new THREE.MeshPhongMaterial({ color: 0xc0392b, emissive: 0x6e150c, shininess: 60 }));   // 15% maior; desligado = luz VERMELHA
   botao18Power.add(botao18PowerCap);
   const powerHit = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.1, 1.0), new THREE.MeshBasicMaterial({ visible: false }));   // área de toque generosa
   botao18Power.add(powerHit);
   g.add(botao18Power);
-  luzPower18 = new THREE.PointLight(0x2ee060, 0, 5);   // luzinha verde real do interruptor (acende ao ligar)
+  luzPower18 = new THREE.PointLight(0xff4030, 0.3, 5);   // luzinha do interruptor: vermelha (desligado) / verde (ligado)
   luzPower18.position.set(AX - 0.85, 6.32, -3.15); g.add(luzPower18);
   // lâmpada indicadora: soquete na prateleira + bulbo (APAGADA; acende trocando o emissive)
   const soq = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.36, 0.5, 22), new THREE.MeshPhongMaterial({ color: 0xcfcfcf, shininess: 90 }));
@@ -2555,18 +2579,22 @@ function atualizarFios18e() {
   fio18eA.geometry.dispose(); fio18eA.geometry = _fio18eGeo(fio18eCurvaA());
   fio18eB.geometry.dispose(); fio18eB.geometry = _fio18eGeo(fio18eCurvaB());
 }
-function togglePower18() {   // botão esquerdo da fonte: liga (luz verde) / desliga
+function togglePower18() {   // botão esquerdo da fonte: ligado = luz VERDE; desligado = luz VERMELHA
   fonte18Ligada = !fonte18Ligada;
-  botao18PowerCap.material.color.setHex(fonte18Ligada ? 0x35e065 : 0x1d5c2a);
-  botao18PowerCap.material.emissive.setHex(fonte18Ligada ? 0x27d954 : 0x000000);
-  if (luzPower18) luzPower18.intensity = fonte18Ligada ? 0.8 : 0;   // luzinha verde real ilumina em volta
-  if (typeof playSfx === 'function') playSfx('click');
+  botao18PowerCap.material.color.setHex(fonte18Ligada ? 0x35e065 : 0xc0392b);
+  botao18PowerCap.material.emissive.setHex(fonte18Ligada ? 0x27d954 : 0x6e150c);
+  if (luzPower18) {
+    luzPower18.color.setHex(fonte18Ligada ? 0x2ee060 : 0xff4030);
+    luzPower18.intensity = fonte18Ligada ? 0.8 : 0.3;
+  }
+  tocar18(snd18Click);
   atualizarLampada18e();
 }
 function toggleEletrodos18() {   // botão da haste: eletrodos descem até encostar na solução / sobem
   if (eletrodos18Anim || !eletrodos18Grp) return;
   eletrodos18Anim = true;
-  if (typeof playSfx === 'function') playSfx('click');
+  tocar18(snd18Click);   // clique do botão
+  tocar18(snd18Arm);     // + som do braço movendo (volume 50%)
   const de = eletrodos18Grp.position.y, para = eletrodos18Baixo ? ELE18_Y_CIMA : ELE18_Y_BAIXO, t0 = performance.now();
   (function step() {
     const k = Math.min(1, (performance.now() - t0) / 900), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
@@ -2602,10 +2630,10 @@ function resetAparelho18e() {
   if (beq18sel) { scene.remove(beq18sel); beq18sel = null; }   // béquer escolhido no carrossel fora
   if (!aparelho18e) return;
   aparelho18e.visible = false;
-  botao18PowerCap.material.color.setHex(0x1d5c2a); botao18PowerCap.material.emissive.setHex(0x000000);
+  botao18PowerCap.material.color.setHex(0xc0392b); botao18PowerCap.material.emissive.setHex(0x6e150c);   // desligado = vermelho
   bulbo18eMat.color.setHex(0xc9ccd0); bulbo18eMat.emissive.setHex(0x000000); bulbo18eMat.opacity = 0.6;
   if (luz18e) luz18e.intensity = 0;
-  if (luzPower18) luzPower18.intensity = 0;
+  if (luzPower18) { luzPower18.color.setHex(0xff4030); luzPower18.intensity = 0.3; }
   eletrodos18Grp.position.y = ELE18_Y_CIMA;
   if (beq18e) beq18e.visible = true;   // béquer original do aparelho de volta (caso o 1.8G1 o tenha trocado)
   atualizarFios18e();
@@ -2614,17 +2642,18 @@ function montarAparelho18e() {   // entra em fade in: lâmpada apagada, fonte de
   if (!aparelho18e) { aparelho18e = makeAparelho18e(); aparelho18e.visible = false; scene.add(aparelho18e); }
   fade3D(aparelho18e, 1, 800);
 }
-// clique nos botões respeitando os bloqueios dos diálogos guiados (1.8G/1.8G1)
+// clique nos botões respeitando os bloqueios dos diálogos guiados (1.8G/1.8G2).
+// Depois da 1ª interação, o interruptor fica LIVRE: liga/desliga a qualquer momento.
 function c18gPowerClick() {
   if (power18Bloqueado) return;
-  togglePower18();
+  togglePower18(); vib18(20);
   if (typeof tutorHand !== 'undefined' && tutorHand) tutorHand.classList.remove('show', 'tap', 'tapLoop');
-  if (fonte18Ligada && !c18g1Disparado) {   // ligou a máquina -> 1.8G1 (delay de 1s); trava o interruptor
-    c18g1Disparado = true; power18Bloqueado = true;
+  if (fonte18Ligada && !c18g1Disparado) {   // primeira ligada -> 1.8G1 (delay de 1s); o interruptor segue livre
+    c18g1Disparado = true;
     setTimeout(() => { if (typeof tocarFaixaSuave === 'function') tocarFaixaSuave('dialogo1.8G1'); }, 1000);
   }
 }
-function c18gEleClick() { if (!ele18Bloqueado) toggleEletrodos18(); }
+function c18gEleClick() { if (!ele18Bloqueado) { vib18(20); toggleEletrodos18(); } }
 // carrossel do 1.8G1: troca o líquido do teste. O béquer atual sai em fade e entra um novo com a
 // etiqueta da fórmula. Se o suporte estiver abaixado, o aparelho reseta (circuito continua ligado):
 // o suporte volta pra cima e a iluminação da cena volta ao normal (a lâmpada apaga).
@@ -2636,14 +2665,17 @@ function c18gTrocarLiquido(ac) {
     atualizarLampada18e();   // lâmpada apaga + iluminação da cena volta ao normal
   }
   const antigo = (beq18sel && beq18sel.visible) ? beq18sel : (beq18e && beq18e.visible ? beq18e : null);
-  if (antigo) fade3D(antigo, 0, 500, antigo !== beq18e ? () => scene.remove(antigo) : undefined);
+  if (antigo) escala3D(antigo, 0, 450, () => {   // o antigo encolhe até sumir
+    if (antigo !== beq18e) scene.remove(antigo);
+    else antigo.scale.setScalar(1);              // o béquer do aparelho volta ao tamanho (fica só invisível)
+  });
   const b = makeBeaker(1.5, 3.2, 0x4aa8e8, 0.62);
   b.position.set(1.67, 0.3, 3.4);
   b.rotation.y = -Math.PI / 2;             // etiqueta de frente pra câmera (que olha de -X)
   addLabel(b, ac.parts, 1.5, 3.2);         // etiqueta com a fórmula do ácido escolhido
   b.traverse(o => { if (o.isMesh) o.castShadow = true; });
-  b.visible = false; scene.add(b);
-  fade3D(b, 1, 600);
+  b.scale.setScalar(0.001); scene.add(b);
+  setTimeout(() => escala3D(b, 1, 500), 320);    // o novo aparece crescendo (meio sobreposto à saída do antigo)
   beq18sel = b;
   lamp18Nivel = ac.forca;                  // define o brilho da lâmpada quando o circuito fechar
 }
@@ -4016,8 +4048,32 @@ function mao18Apontar(px, py, pz) {
   void tutorHand.offsetWidth; tutorHand.style.transition = '';
   tutorHand.classList.add('show', 'tapLoop');
 }
+// Pulo direto pro 1.8G pelo sumário (item 18): garante título + "c)" na tela e some qualquer resíduo
+// de outros momentos (béqueres, balão, aparato do gás, H+, pipeta). No fluxo normal é inofensivo.
+function c18gPreparar() {
+  const subC = cena18El.querySelector('.c18-sub');
+  if (!subC.classList.contains('show')) {
+    c18Iniciar();
+    const subB = cena17El.querySelector('.c17-sub');
+    subB.classList.remove('show'); subB.style.transform = 'translateX(130vw)';
+    subC.style.transform = 'translateX(0)'; subC.classList.add('show');
+  }
+  if (typeof esconderAcidosBancada === 'function') esconderAcidosBancada();
+  if (waterBeaker.visible) fade3D(waterBeaker, 0, 300);
+  bench18.forEach(it => { it.beaker.visible = false; if (it.label) it.label.visible = false; });
+  acidos18.forEach(a => { a.beaker.visible = false; if (a.label) a.label.visible = false; });
+  if (aparato18) aparato18.visible = false;
+  if (beaker18d) beaker18d.visible = false;
+  if (typeof limparHmais === 'function') limparHmais();
+  if (cena18Pipeta) {
+    cena18Pipeta = false; pip18Ativo = false; pipDragBloqueada = false; pipAguaX = WATER_X; pipReagentes = reagents;
+    pipette.visible = false; pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
+  }
+  c18LimparTextos();
+}
 // t=0 do 1.8G: câmera nova + aparelho no estado inicial; só o interruptor da fonte fica clicável
 function c18gIniciar() {
+  c18gPreparar();                                                     // cena coerente também no pulo direto pelo sumário
   if (!aparelho18e || !aparelho18e.visible) montarAparelho18e();      // garante o aparelho (ex.: replay)
   if (eletrodos18Baixo && !eletrodos18Anim) toggleEletrodos18();      // eletrodos em cima
   if (fonte18Ligada) togglePower18();                                 // fonte desligada
@@ -4036,11 +4092,11 @@ function c18gEsconderEscolha() {
 }
 // carrossel de líquidos do 1.8G1 (fórmulas; água escura = ainda não selecionável)
 const C18G_ACIDOS = [
-  { parts: [{ t: 'HCl' }], forca: 'forte' },
-  { parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'SO' }, { t: '4', sub: true }], forca: 'forte' },
-  { parts: [{ t: 'H' }, { t: '3', sub: true }, { t: 'PO' }, { t: '4', sub: true }], forca: 'moderado' },
-  { parts: [{ t: 'HNCO' }], forca: 'fraco' },
-  { agua: true },   // H2O: desabilitada por enquanto
+  { html: 'HCl', parts: [{ t: 'HCl' }], forca: 'forte' },
+  { html: 'H<sub>2</sub>SO<sub>4</sub>', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'SO' }, { t: '4', sub: true }], forca: 'forte' },
+  { html: 'H<sub>3</sub>PO<sub>4</sub>', parts: [{ t: 'H' }, { t: '3', sub: true }, { t: 'PO' }, { t: '4', sub: true }], forca: 'moderado' },
+  { html: 'HNCO', parts: [{ t: 'HNCO' }], forca: 'fraco' },
+  { html: 'H<sub>2</sub>O', agua: true },   // H2O: desabilitada por enquanto
 ];
 // (o wiring dos cliques do carrossel fica mais abaixo, depois da definição do $id)
 // 28s do 1.8F (junto com a virada de câmera): os béqueres, os nomes das soluções e os α saem em fade out
@@ -4277,7 +4333,7 @@ const SUMARIO = [
   { titulo: 'Classificação quanto aos H ionizáveis',    faixa: idxFaixa('dialogo1.7') },
   { titulo: 'Quiz 3',                       faixa: idxFaixa('dialogo1.7B') },
   { titulo: 'Classificação quanto à força', faixa: idxFaixa('dialogo1.8') },
-  { titulo: 'A condutibilidade elétrica dos ácidos', faixa: idxFaixa('dialogo1.8F') },
+  { titulo: 'A condutibilidade elétrica dos ácidos', faixa: idxFaixa('dialogo1.8G') },
 ];
 
 SUMARIO.forEach(item => {
@@ -4291,15 +4347,40 @@ SUMARIO.forEach(item => {
   $id('sheetList').appendChild(li);
 });
 
-// wiring do carrossel "Escolha o líquido" (1.8G1) — precisa rodar depois da definição do $id
-$id('c18gEscolher').addEventListener('click', () => $id('c18gCarrossel').classList.toggle('show'));
-document.querySelectorAll('.c18g-item').forEach(btn => btn.addEventListener('click', () => {
-  const ac = C18G_ACIDOS[+btn.dataset.i];
-  if (!ac || ac.agua) return;                       // água não selecionável nesse momento
-  $id('c18gCarrossel').classList.remove('show');
-  c18gTrocarLiquido(ac);                            // troca o béquer (com etiqueta da fórmula)
+// wiring do carrossel circular "Escolha o líquido" (1.8G1) — precisa rodar depois da definição do $id
+let c18gIdx = 0;   // índice do item no CENTRO
+function c18gRender() {
+  const n = C18G_ACIDOS.length;
+  [[c18gSlotL, (c18gIdx + n - 1) % n], [c18gSlotC, c18gIdx], [c18gSlotR, (c18gIdx + 1) % n]].forEach(([el, i]) => {
+    el.innerHTML = C18G_ACIDOS[i].html;
+    el.classList.toggle('agua', !!C18G_ACIDOS[i].agua);
+  });
+}
+function c18gGira(dir) {   // gira infinito (circular) com animação + vibração leve
+  c18gIdx = (c18gIdx + dir + C18G_ACIDOS.length) % C18G_ACIDOS.length;
+  vib18(10);
+  const car = $id('c18gCarrossel');
+  car.classList.remove('giraL', 'giraR'); void car.offsetWidth;
+  car.classList.add(dir > 0 ? 'giraL' : 'giraR');
+  c18gRender();
+}
+const c18gSlotL = $id('c18gL'), c18gSlotC = $id('c18gC'), c18gSlotR = $id('c18gR');
+c18gSlotL.addEventListener('click', () => c18gGira(-1));
+c18gSlotR.addEventListener('click', () => c18gGira(1));
+c18gSlotC.addEventListener('click', () => {
+  const ac = C18G_ACIDOS[c18gIdx];
+  if (ac.agua) return;                              // água não selecionável nesse momento
+  vib18(30);
+  c18gSlotC.classList.add('sel');                   // seleção fica verde...
+  setTimeout(() => { $id('c18gCarrossel').classList.remove('show'); c18gSlotC.classList.remove('sel'); }, 380);   // ...e o carrossel desce de volta
+  c18gTrocarLiquido(ac);                            // troca o béquer (encolhe o antigo, cresce o novo com etiqueta)
   if (!c18g2Tocado) { c18g2Tocado = true; tocarFaixaSuave('dialogo1.8G2'); }   // primeira escolha -> 1.8G2
-}));
+});
+$id('c18gEscolher').addEventListener('click', () => {
+  vib18(15);
+  c18gRender();
+  $id('c18gCarrossel').classList.toggle('show');
+});
 
 function abrirSumario()  { sheet.classList.add('open');    sheetOverlay.hidden = false; }
 function fecharSumario() { sheet.classList.remove('open'); sheetOverlay.hidden = true;  }
