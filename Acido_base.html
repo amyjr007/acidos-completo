@@ -1089,7 +1089,7 @@
   #cena18 .c18e-lin { display: flex; align-items: baseline; gap: .55em; white-space: nowrap; }
   #cena18 .c18e-titulo { color: #cdeaff; }
   #cena18 .c18e-nome { color: #ffd21e; }
-  #cena18 .c18e-tab span { opacity: 0; }
+  #cena18 .c18e-tab span { opacity: 0; transition: opacity .6s ease; }   /* remoção do .show sai em fade out */
   #cena18 .c18e-tab span.show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
   /* alerta chamativo (força x corrosão) — mesmo estilo/keyframes do 1.7A */
   #cena18 .c18-alerta {
@@ -1586,7 +1586,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.65.0</div>
+<div id="versao">v1.66.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3468,6 +3468,7 @@ const FAIXAS = [
   { id: 'dialogo1.8C',  arquivo: 'audios/dialogo1.8C.mp3',  titulo: 'Diálogo 1.8C' },
   { id: 'dialogo1.8D',  arquivo: 'audios/dialogo1.8D.mp3',  titulo: 'Diálogo 1.8D' },
   { id: 'dialogo1.8E',  arquivo: 'audios/dialogo1.8E.mp3',  titulo: 'Diálogo 1.8E' },
+  { id: 'dialogo1.8F',  arquivo: 'audios/dialogo1.8F.mp3',  titulo: 'Diálogo 1.8F' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -3846,8 +3847,21 @@ const EVENTOS = {
     { t: 26.0, fn: () => c18eTabShow('c18eC3') },       // α ≥ 50%
     { t: 29.5, fn: () => c18eTabShow('c18eN3') },       // "Forte" do lado
   ]),
+  'dialogo1.8F':  () => rodarStory([
+    { t: 1.0,  fn: c18fSomeTabela },                                   // a tabela do grau de ionização sai em fade out
+    { t: 2.0,  fn: () => irParaCamera({ theta: -0.002, phi: 1.534, dist: 16.0, target: [1.65, 3.2, 0.8] }, true, 1500) },   // zoom in: os 2 béqueres centralizados
+    { t: 6.0,  fn: () => hmaisSprites.forEach(s => s.userData.fadeOut = true) },   // H+ das duas soluções somem em fade
+    { t: 11.0, fn: () => stShow('center', 'Como os químicos sabem se liberam mais ou menos H<sup>+</sup> em solução?', 'st-menor2') },
+    { t: 18.8, fn: () => stShow('center', 'Um indicador ácido-base faz isso?', 'st-menor2 st-amarelo') },   // embaixo, em amarelo
+    { t: 27.3, fn: stSair },                                           // os dois textos saem (animação padrão)
+    { t: 28.0, fn: () => irParaCamera({ theta: -1.711, phi: 1.551, dist: 30.22, target: [1.67, 3.29, 0.64] }, true, 5000) },   // a posição guardada (vista lateral); chega em 33s
+    { t: 34.0, fn: () => stShow('center', 'Vamos medir a condutibilidade elétrica da solução.', 'st-menor2') },
+    { t: 38.0, fn: stSair },
+    { t: 43.4, fn: montarAparelho18e },                                // o aparelho todo em fade in (lâmpada apagada; eletrodo de fora, arrastável)
+  ]),
 };
 function c18eTabShow(id) { const el = $id(id); if (el) el.classList.add('show'); }
+function c18fSomeTabela() { const tab = $id('c18eTab'); if (tab) tab.querySelectorAll('span').forEach(s => s.classList.remove('show')); }
 
 const player = new Audio();
 player.preload = 'auto';
@@ -3894,9 +3908,9 @@ function tocarFaixa(i) {
   if (typeof fecharQuiz4 === 'function') fecharQuiz4();   // some a questão 4 (arrastar)
   if (typeof fecharQuizFim === 'function') fecharQuizFim();   // some o card de nota final
   if (typeof limparOverlaysQuiz === 'function') limparOverlaysQuiz();   // garante que nenhum overlay de quiz/cena fique sobreposto
-  if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
-  if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
-  if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes; os fades do 1.8E são manuais)
+  if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
+  if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
+  if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
@@ -3988,12 +4002,13 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.6' && typeof cena16IluminaAmbas === 'function') cena16IluminaAmbas();
   // fim do 1.6A / 1.7B: esconde o play (o quiz é respondido pelos botões)
   if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo1.6A' || FAIXAS[faixaAtual].id === 'dialogo1.7B')) { $id('playBtn').style.display = 'none'; return; }
-  // fim do 1.8 / 1.8A / 1.8C: cena interativa -> esconde o play. Ao fim do 1.8A libera a pipeta; no 1.8C garante aparato+dica pra apertar a válvula.
-  if (FAIXAS[faixaAtual] && ['dialogo1.8', 'dialogo1.8A', 'dialogo1.8C'].includes(FAIXAS[faixaAtual].id)) {
+  // fim do 1.8 / 1.8A / 1.8C / 1.8F: cena interativa -> esconde o play. Ao fim do 1.8A libera a pipeta; no 1.8C garante aparato+dica pra apertar a válvula.
+  if (FAIXAS[faixaAtual] && ['dialogo1.8', 'dialogo1.8A', 'dialogo1.8C', 'dialogo1.8F'].includes(FAIXAS[faixaAtual].id)) {
     const _id18 = FAIXAS[faixaAtual].id;
     if (_id18 === 'dialogo1.8' && !pip18Ativo) c18PipetaInterativa();   // fallback: se o áudio acabar antes do cue de 60s, garante a pipeta interativa
     if (_id18 === 'dialogo1.8A') { pipDragBloqueada = false; escurecerBeakerFade(pipette, false, 400); }   // libera + normaliza a pipeta ao terminar o 1.8A
     if (_id18 === 'dialogo1.8C') { if (!c18cArmado && (!aparato18 || !aparato18.visible)) c18cMontar(); c18cDicaLoop(); }   // garante o aparato; lembrete do dedinho começa 5s depois
+    if (_id18 === 'dialogo1.8F' && (!aparelho18e || !aparelho18e.visible)) montarAparelho18e();   // fallback: se o áudio acabar antes do cue de 43.4s, garante o aparelho
     $id('playBtn').style.display = 'none'; return;
   }
   // fim do tutorial 1.1E -> botão de play vira "JOGAR"
