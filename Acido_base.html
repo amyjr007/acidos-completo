@@ -289,6 +289,8 @@
   .st-sobe1 { position: relative; top: -1.12em; }   /* sobe 1 linha */
   .st-sobe05 { position: relative; top: -0.56em; }   /* sobe 0,5 linha */
   .st-sobe15 { position: relative; top: -1.68em; }   /* sobe 1,5 linha */
+  .st-sobe25 { position: relative; top: -2.8em; }    /* sobe 2,5 linhas */
+  .st-sobe3 { position: relative; top: -3.36em; }    /* sobe 3 linhas */
   /* Texto dos indicadores (persiste entre 1.4 e 1.4A, sem flicker) */
   #indicadorTxt {
     position: fixed; top: 50%; left: 0; right: 0; z-index: 41;
@@ -1587,7 +1589,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.69.0</div>
+<div id="versao">v1.70.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2415,14 +2417,15 @@ function escurecerCopo(idx, on) { escurecerBeaker(reagents[idx] && reagents[idx]
 // borbulhas do gás (1.8C): esferas subindo na água
 const borbulhas18 = [];
 
-// ---- dialogo1.8E: teste de condutividade (fonte + lâmpada + eletrodos no béquer) ----
-// A câmera do 1.8E olha de -X (vista lateral), então o aparelho se espalha ao longo de Z, todo em x≈1.67.
-let aparelho18e = null, eletrodo18e = null, fioMovel18e = null, bulbo18eMat = null, luz18e = null;
-let eletrodo18Ativo = false, eletroDrag = null, lamp18Acesa = false;
-const ELE18_INI = { x: 1.67, y: 4.7, z: 5.4 };    // eletrodo solto: suspenso FORA da solução, à direita do béquer
-const ELE18_ALVO = { x: 1.67, y: 2.7, z: 3.9 };   // posição final, dentro da solução
-const ELE18_SURF = 2.28;                          // superfície da solução do béquer do teste
-const eletrodoPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0), -1.67);   // arraste no plano x=1.67
+// ---- dialogo1.8F: teste de condutividade (fonte + lâmpada + eletrodos paralelos suspensos) ----
+// A câmera olha de -X (vista lateral), então o aparelho se espalha ao longo de Z, todo em x≈1.67.
+// Interação: botão ESQUERDO da fonte liga/desliga (luz verde); botão na haste desce/sobe os eletrodos.
+// A lâmpada acende quando o circuito fecha: fonte LIGADA + eletrodos NA solução.
+let aparelho18e = null, bulbo18eMat = null, luz18e = null, lamp18Acesa = false;
+let botao18Power = null, botao18PowerCap = null, fonte18Ligada = false;
+let botao18Ele = null, eletrodos18Grp = null, eletrodos18Baixo = false, eletrodos18Anim = false;
+let fio18eA = null, fio18eB = null;
+const ELE18_Y_CIMA = 5.1, ELE18_Y_BAIXO = 4.3;   // altura do suporte dos eletrodos (ponta = y - 2.15; solução até y≈2.28)
 function makeAparelho18e() {
   const g = new THREE.Group(), AX = 1.67;
   const madeira = new THREE.MeshPhongMaterial({ color: 0x8a5a33, shininess: 20 });
@@ -2430,13 +2433,18 @@ function makeAparelho18e() {
   poste.position.set(AX, 0.3 + 2.55, -3.6); g.add(poste);
   const prat = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.28, 6.0), madeira);   // prateleira
   prat.position.set(AX, 5.4, -1.4); g.add(prat);
-  // fonte de alimentação: caixa cinza + knob + botão ON/OFF (face voltada pra câmera, -X)
+  // fonte de alimentação: caixa cinza + knob; botão ESQUERDO (ON/OFF) clicável, 15% maior
   const fonte = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.3, 2.0), new THREE.MeshPhongMaterial({ color: 0xd6d9dc, shininess: 60 }));
   fonte.position.set(AX, 6.19, -2.7); g.add(fonte);
   const knob = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.16, 20), new THREE.MeshPhongMaterial({ color: 0x3a4148, shininess: 80 }));
   knob.rotation.z = Math.PI / 2; knob.position.set(AX - 0.72, 6.3, -2.3); g.add(knob);
-  const onoff = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.36, 0.28), new THREE.MeshPhongMaterial({ color: 0x1d5c2a }));
-  onoff.position.set(AX - 0.68, 6.32, -3.15); g.add(onoff);
+  botao18Power = new THREE.Group();
+  botao18Power.position.set(AX - 0.68, 6.32, -3.15);
+  botao18PowerCap = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.41, 0.32), new THREE.MeshPhongMaterial({ color: 0x1d5c2a, emissive: 0x000000, shininess: 60 }));   // 15% maior
+  botao18Power.add(botao18PowerCap);
+  const powerHit = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.1, 1.0), new THREE.MeshBasicMaterial({ visible: false }));   // área de toque generosa
+  botao18Power.add(powerHit);
+  g.add(botao18Power);
   // lâmpada indicadora: soquete na prateleira + bulbo (APAGADA; acende trocando o emissive)
   const soq = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.36, 0.5, 22), new THREE.MeshPhongMaterial({ color: 0xcfcfcf, shininess: 90 }));
   soq.position.set(AX, 5.79, 0.5); g.add(soq);
@@ -2448,57 +2456,92 @@ function makeAparelho18e() {
   // béquer com a solução aquosa (eletrólito)
   const beq = makeBeaker(1.5, 3.2, 0x4aa8e8, 0.62);
   beq.position.set(AX, 0.3, 3.4); g.add(beq);
-  // eletrodo fixo (grafite), já mergulhado
+  // suporte dos eletrodos: haste vertical + braço; os 2 eletrodos ficam FIXOS, PARALELOS e suspensos pra baixo
+  const metal = new THREE.MeshPhongMaterial({ color: 0x6b7075, shininess: 70 });
+  const hasteV = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 6.3, 14), metal);
+  hasteV.position.set(AX, 0.3 + 3.15, 4.8); g.add(hasteV);
+  const braco = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 1.5, 12), metal);
+  braco.rotation.x = Math.PI / 2; braco.position.set(AX, 6.4, 4.05); g.add(braco);
+  eletrodos18Grp = new THREE.Group();   // grupo que sobe/desce: haste deslizante + bloco + 2 eletrodos
+  const slide = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 2.6, 10), new THREE.MeshPhongMaterial({ color: 0x9aa0a6, shininess: 80 }));
+  slide.position.set(0, 1.3, 0); eletrodos18Grp.add(slide);
+  const bloco = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 1.3), new THREE.MeshPhongMaterial({ color: 0x2b3a42, shininess: 40 }));
+  eletrodos18Grp.add(bloco);
   const grafite = new THREE.MeshPhongMaterial({ color: 0x23262b, shininess: 45 });
-  const eFixo = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 2.0, 14), grafite);
-  eFixo.position.set(AX, 2.6, 2.85); eFixo.rotation.x = 0.1; g.add(eFixo);
-  // eletrodo móvel (grupo com área de toque bem maior) — começa FORA da solução
-  eletrodo18e = new THREE.Group();
-  eletrodo18e.add(new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 2.0, 14), grafite.clone()));
-  const hit = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 2.5, 8), new THREE.MeshBasicMaterial({ visible: false }));
-  eletrodo18e.add(hit);
-  eletrodo18e.position.set(ELE18_INI.x, ELE18_INI.y, ELE18_INI.z);
-  g.add(eletrodo18e);
-  // fios: vermelho (fonte -> lâmpada), preto (lâmpada -> eletrodo fixo), preto móvel (fonte -> eletrodo solto)
-  const mkFio = (pts, cor) => new THREE.Mesh(
-    new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(p[0], p[1], p[2]))), 24, 0.055, 8),
-    new THREE.MeshPhongMaterial({ color: cor, shininess: 30 }));
+  [-0.4, 0.4].forEach(dz => {   // eletrodos paralelos, verticais, apontando pra baixo
+    const el = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 2.0, 14), grafite.clone());
+    el.position.set(0, -1.15, dz); eletrodos18Grp.add(el);
+  });
+  eletrodos18Grp.position.set(AX, ELE18_Y_CIMA, 3.4);
+  g.add(eletrodos18Grp);
+  // botão dos eletrodos (na haste, virado pra câmera): aperta -> descem até a solução; aperta de novo -> sobem
+  botao18Ele = new THREE.Group();
+  botao18Ele.position.set(AX, 4.4, 4.8);
+  botao18Ele.rotation.z = Math.PI / 2;   // tampa apontando pra -X (câmera)
+  const eBase = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.36, 0.18, 22), new THREE.MeshPhongMaterial({ color: 0x2b3a42, shininess: 50 }));
+  botao18Ele.add(eBase);
+  const eCap = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.26, 0.16, 22), new THREE.MeshPhongMaterial({ color: 0x2b6cb0, shininess: 90 }));
+  eCap.position.y = 0.15; botao18Ele.add(eCap);
+  const eHit = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.9, 8), new THREE.MeshBasicMaterial({ visible: false }));
+  botao18Ele.add(eHit);
+  g.add(botao18Ele);
+  // fios: vermelho (fonte -> lâmpada); pretos (lâmpada -> eletrodo A, fonte -> eletrodo B) acompanham a descida
+  const mkFio = (pts, cor) => new THREE.Mesh(_fio18eGeo(pts), new THREE.MeshPhongMaterial({ color: cor, shininess: 30 }));
   g.add(mkFio([[AX, 6.0, -1.9], [AX - 0.45, 4.9, -0.8], [AX, 5.65, 0.35]], 0xc0392b));
-  g.add(mkFio([[AX, 5.65, 0.65], [AX - 0.4, 4.3, 1.9], [AX, 3.7, 2.83]], 0x2b2b2b));
-  fioMovel18e = mkFio([[AX, 6.0, -3.3], [AX, 6.6, 0.8], [ELE18_INI.x, ELE18_INI.y + 1.05, ELE18_INI.z]], 0x2b2b2b);
-  g.add(fioMovel18e);
+  fio18eA = mkFio(fio18eCurvaA(), 0x2b2b2b); g.add(fio18eA);
+  fio18eB = mkFio(fio18eCurvaB(), 0x2b2b2b); g.add(fio18eB);
   return g;
 }
-function atualizarFioMovel18e() {   // o fio preto acompanha o eletrodo durante o arraste
-  if (!fioMovel18e || !eletrodo18e) return;
-  const p = eletrodo18e.position;
-  fioMovel18e.geometry.dispose();
-  fioMovel18e.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
-    new THREE.Vector3(1.67, 6.0, -3.3), new THREE.Vector3(1.67, 6.6, 0.8),
-    new THREE.Vector3(p.x, p.y + 1.05, p.z),
-  ]), 24, 0.055, 8);
+function _fio18eGeo(pts) { return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(p[0], p[1], p[2]))), 24, 0.055, 8); }
+function fio18eCurvaA() { const y = eletrodos18Grp ? eletrodos18Grp.position.y : ELE18_Y_CIMA; return [[1.67, 5.65, 0.65], [1.27, 4.6, 1.9], [1.67, y - 0.15, 3.0]]; }   // lâmpada -> eletrodo A
+function fio18eCurvaB() { const y = eletrodos18Grp ? eletrodos18Grp.position.y : ELE18_Y_CIMA; return [[1.67, 6.0, -3.3], [1.67, 6.9, 0.6], [1.67, y - 0.15, 3.8]]; }   // fonte -> eletrodo B
+function atualizarFios18e() {
+  if (!fio18eA) return;
+  fio18eA.geometry.dispose(); fio18eA.geometry = _fio18eGeo(fio18eCurvaA());
+  fio18eB.geometry.dispose(); fio18eB.geometry = _fio18eGeo(fio18eCurvaB());
 }
-function acenderLampada18e() {
-  if (lamp18Acesa) return;
-  lamp18Acesa = true;
-  bulbo18eMat.color.setHex(0xfff3b0); bulbo18eMat.emissive.setHex(0xffbb33); bulbo18eMat.opacity = 0.95;
-  if (luz18e) luz18e.intensity = 1.5;
+function togglePower18() {   // botão esquerdo da fonte: liga (luz verde) / desliga
+  fonte18Ligada = !fonte18Ligada;
+  botao18PowerCap.material.color.setHex(fonte18Ligada ? 0x35e065 : 0x1d5c2a);
+  botao18PowerCap.material.emissive.setHex(fonte18Ligada ? 0x18a83c : 0x000000);
   if (typeof playSfx === 'function') playSfx('click');
+  atualizarLampada18e();
+}
+function toggleEletrodos18() {   // botão da haste: eletrodos descem até encostar na solução / sobem
+  if (eletrodos18Anim || !eletrodos18Grp) return;
+  eletrodos18Anim = true;
+  if (typeof playSfx === 'function') playSfx('click');
+  const de = eletrodos18Grp.position.y, para = eletrodos18Baixo ? ELE18_Y_CIMA : ELE18_Y_BAIXO, t0 = performance.now();
+  (function step() {
+    const k = Math.min(1, (performance.now() - t0) / 900), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    eletrodos18Grp.position.y = de + (para - de) * e;
+    atualizarFios18e();
+    if (k < 1) requestAnimationFrame(step);
+    else { eletrodos18Baixo = !eletrodos18Baixo; eletrodos18Anim = false; atualizarLampada18e(); }
+  })();
+}
+function atualizarLampada18e() {   // circuito fechado (fonte ligada + eletrodos na solução) -> lâmpada acesa
+  const acesa = fonte18Ligada && eletrodos18Baixo;
+  if (acesa === lamp18Acesa) return;
+  lamp18Acesa = acesa;
+  bulbo18eMat.color.setHex(acesa ? 0xfff3b0 : 0xc9ccd0);
+  bulbo18eMat.emissive.setHex(acesa ? 0xffbb33 : 0x000000);
+  bulbo18eMat.opacity = acesa ? 0.95 : 0.6;
+  if (luz18e) luz18e.intensity = acesa ? 1.5 : 0;
 }
 function resetAparelho18e() {
-  eletrodo18Ativo = false; eletroDrag = null; lamp18Acesa = false;
+  fonte18Ligada = false; eletrodos18Baixo = false; eletrodos18Anim = false; lamp18Acesa = false;
   if (!aparelho18e) return;
   aparelho18e.visible = false;
+  botao18PowerCap.material.color.setHex(0x1d5c2a); botao18PowerCap.material.emissive.setHex(0x000000);
   bulbo18eMat.color.setHex(0xc9ccd0); bulbo18eMat.emissive.setHex(0x000000); bulbo18eMat.opacity = 0.6;
   if (luz18e) luz18e.intensity = 0;
-  eletrodo18e.position.set(ELE18_INI.x, ELE18_INI.y, ELE18_INI.z); eletrodo18e.rotation.x = 0;
-  atualizarFioMovel18e();
+  eletrodos18Grp.position.y = ELE18_Y_CIMA;
+  atualizarFios18e();
 }
-function montarAparelho18e() {   // entra em fade in com a lâmpada apagada; libera o arraste do eletrodo
+function montarAparelho18e() {   // entra em fade in: lâmpada apagada, fonte desligada, eletrodos suspensos
   if (!aparelho18e) { aparelho18e = makeAparelho18e(); aparelho18e.visible = false; scene.add(aparelho18e); }
-  lamp18Acesa = false;
   fade3D(aparelho18e, 1, 800);
-  eletrodo18Ativo = true;
 }
 
 // gotas
@@ -2954,12 +2997,13 @@ renderer.domElement.addEventListener('pointerdown', e => {
     return;
   }
 
-  // eletrodo do teste de condutividade (1.8E): agarra pra arrastar até a solução
-  if (eletrodo18Ativo && !eletroDrag && aparelho18e && aparelho18e.visible) {
+  // botões do teste de condutividade (1.8F): ON/OFF da fonte (luz verde) e desce/sobe dos eletrodos
+  if (aparelho18e && aparelho18e.visible) {
     ndc.x = (e.clientX / innerWidth) * 2 - 1;
     ndc.y = -(e.clientY / innerHeight) * 2 + 1;
     raycaster.setFromCamera(ndc, camera);
-    if (raycaster.intersectObject(eletrodo18e, true).length) { eletroDrag = { id: e.pointerId }; return; }
+    if (botao18Power && raycaster.intersectObject(botao18Power, true).length) { togglePower18(); return; }
+    if (botao18Ele && raycaster.intersectObject(botao18Ele, true).length) { toggleEletrodos18(); return; }
   }
 
   // válvula do aparato de transferência (1.8): clique abre/fecha a conexão
@@ -3047,26 +3091,6 @@ renderer.domElement.addEventListener('pointermove', e => {
     }
     return;
   }
-  // arraste do eletrodo (1.8E) na vista lateral: move em Y/Z; ao mergulhar na solução, encaixa e a lâmpada acende
-  if (eletroDrag && e.pointerId === eletroDrag.id) {
-    ndc.x = (e.clientX / innerWidth) * 2 - 1;
-    ndc.y = -(e.clientY / innerHeight) * 2 + 1;
-    raycaster.setFromCamera(ndc, camera);
-    if (raycaster.ray.intersectPlane(eletrodoPlane, planePoint)) {
-      eletrodo18e.position.y = Math.max(2.2, Math.min(5.6, planePoint.y));
-      eletrodo18e.position.z = Math.max(1.6, Math.min(6.2, planePoint.z));
-      atualizarFioMovel18e();
-      const tipY = eletrodo18e.position.y - 1.0, ez = eletrodo18e.position.z;   // ponta de baixo do eletrodo
-      if (tipY < ELE18_SURF && ez > 2.5 && ez < 4.3) {   // entrou na solução
-        eletrodo18e.position.set(ELE18_ALVO.x, ELE18_ALVO.y, ELE18_ALVO.z);
-        eletrodo18e.rotation.x = -0.1;
-        atualizarFioMovel18e();
-        eletrodo18Ativo = false; eletroDrag = null;
-        acenderLampada18e();
-      }
-    }
-    return;
-  }
 
   if (!pointers.has(e.pointerId)) return;
   const prev = pointers.get(e.pointerId);
@@ -3113,7 +3137,6 @@ renderer.domElement.addEventListener('pointermove', e => {
 function endPointer(e) {
   holdClear();
   if (copiaPendente) { copiar(copiaPendente); copiaPendente = null; }   // copia ao soltar (gesto válido no celular)
-  if (eletroDrag && e.pointerId === eletroDrag.id) { eletroDrag = null; return; }   // solta o eletrodo (1.8E) onde estiver
   if (litmusDrag && e.pointerId === litmusDrag.id) {
     litmusDrag = null;
     if (papel) soltarPapel(papel);
@@ -3858,11 +3881,11 @@ const EVENTOS = {
     { t: 1.0,  fn: c18fSomeTabela },                                   // a tabela do grau de ionização sai em fade out
     { t: 2.0,  fn: () => irParaCamera({ theta: -0.002, phi: 1.534, dist: 16.0, target: [1.65, 3.2, 0.8] }, true, 1500) },   // zoom in: os 2 béqueres centralizados
     { t: 6.0,  fn: () => hmaisSprites.forEach(s => s.userData.fadeOut = true) },   // H+ das duas soluções somem em fade
-    { t: 11.0, fn: () => stShow('center', 'Como os químicos sabem se liberam mais ou menos H<sup>+</sup> em solução?', 'st-menor3 st-sobe15') },   // bem menor + sobe 1,5 linha
+    { t: 11.0, fn: () => stShow('center', 'Como os químicos sabem se liberam mais ou menos H<sup>+</sup> em solução?', 'st-menor3 st-sobe3') },   // bem menor + sobe 3 linhas
     { t: 18.8, fn: () => stShow('center', 'Um indicador ácido-base faz isso?', 'st-menor2 st-amarelo') },   // embaixo, em amarelo
     { t: 27.3, fn: stSair },                                           // os dois textos saem (animação padrão)
     { t: 28.0, fn: () => { irParaCamera({ theta: -1.711, phi: 1.551, dist: 30.22, target: [1.67, 3.29, 0.64] }, true, 5000); c18fSomeBancada(); } },   // câmera vira (chega em 33s); béqueres/nomes/α saem em fade out
-    { t: 34.0, fn: () => stShow('center', 'Vamos medir a condutibilidade elétrica da solução.', 'st-menor3 st-sobe15') },   // bem menor + sobe 1,5 linha
+    { t: 34.0, fn: () => stShow('center', 'Vamos medir a condutibilidade elétrica da solução.', 'st-menor3 st-sobe25') },   // bem menor + sobe 2,5 linhas
     { t: 38.0, fn: stSair },
     { t: 43.4, fn: montarAparelho18e },                                // o aparelho todo em fade in (lâmpada apagada; eletrodo de fora, arrastável)
   ]),
