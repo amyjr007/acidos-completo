@@ -1623,7 +1623,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.78.0</div>
+<div id="versao">v1.79.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2470,6 +2470,10 @@ let botao18Ele = null, eletrodos18Grp = null, eletrodos18Baixo = false, eletrodo
 let fio18eA = null, fio18eB = null, beq18e = null, beq18sel = null, luzPower18 = null;
 let power18Bloqueado = true, ele18Bloqueado = true;   // as interações são liberadas pelos diálogos 1.8G/1.8G2
 let c18g1Disparado = false, c18g2Tocado = false, c18g3Armado = false;
+let aguaLiberada = false;   // água só fica selecionável depois que a lâmpada acende a 1ª vez
+let c18gTravado = false;    // trava toda interação da cena (ex.: enquanto toca dialogo1.8h2o)
+let c18gAguaAtual = false;  // a solução atual do béquer é a água (H2O)
+const audioH2O18 = new Audio('audios/dialogo1.8h2o.mp3'); audioH2O18.preload = 'auto';
 let lamp18Forca = 1;   // fator de brilho da lâmpada (0..1) conforme o ácido escolhido
 // brilho realista da lâmpada: halos aditivos (núcleo + auréola) que "vazam" do bulbo, com cintilação
 let glow18a = null, glow18b = null, glow18Base = { a: 0, b: 0 };
@@ -2653,7 +2657,10 @@ function toggleEletrodos18() {   // botão da haste: eletrodos descem até encos
     eletrodos18Grp.position.y = de + (para - de) * e;
     atualizarFios18e();
     if (k < 1) requestAnimationFrame(step);
-    else { eletrodos18Baixo = !eletrodos18Baixo; eletrodos18Anim = false; atualizarSeta18(); atualizarLampada18e(); }
+    else {
+      eletrodos18Baixo = !eletrodos18Baixo; eletrodos18Anim = false; atualizarSeta18(); atualizarLampada18e();
+      if (eletrodos18Baixo && c18gAguaAtual) c18gAguaDialogo();   // baixou os eletrodos na água -> dialogo1.8h2o
+    }
   })();
 }
 function atualizarSeta18() {   // em cima -> seta pra baixo; embaixo -> seta pra cima
@@ -2661,19 +2668,18 @@ function atualizarSeta18() {   // em cima -> seta pra baixo; embaixo -> seta pra
   seta18Spr.material.map = eletrodos18Baixo ? seta18TexCima : seta18TexBaixo;
   seta18Spr.material.needsUpdate = true;
 }
-function atualizarLampada18e() {   // circuito fechado (fonte ligada + eletrodos na solução) -> lâmpada acesa
-  const acesa = fonte18Ligada && eletrodos18Baixo;
-  if (acesa === lamp18Acesa) return;
-  lamp18Acesa = acesa;
-  if (!acesa) {
-    bulbo18eMat.color.setHex(0xc9ccd0); bulbo18eMat.emissive.setHex(0x000000); bulbo18eMat.opacity = 0.6;
-    bulbo18eMat.emissiveIntensity = 1;
-    if (luz18e) luz18e.intensity = 0;
-    glow18Base = { a: 0, b: 0 };
-    if (glow18a) { glow18a.material.opacity = 0; glow18b.material.opacity = 0; }
-    return;
-  }
+function apagarLampada18e() {   // aparência de lâmpada apagada (circuito aberto OU água, que não conduz)
+  if (!bulbo18eMat) return;
+  bulbo18eMat.color.setHex(0xc9ccd0); bulbo18eMat.emissive.setHex(0x000000); bulbo18eMat.opacity = 0.6;
+  bulbo18eMat.emissiveIntensity = 1;
+  if (luz18e) luz18e.intensity = 0;
+  glow18Base = { a: 0, b: 0 };
+  if (glow18a) { glow18a.material.opacity = 0; glow18b.material.opacity = 0; }
+}
+function aplicarBrilhoLampada18() {   // aplica o brilho conforme lamp18Forca (0 = água, não acende)
+  if (!bulbo18eMat) return;
   const f = lamp18Forca;   // brilho proporcional à força: fortes 1, moderados 0.4, fracos 0.01
+  if (f <= 0) { apagarLampada18e(); return; }   // água não conduz -> lâmpada apagada mesmo com o circuito fechado
   const niv = f >= 0.75 ? { c: 0xfff3b0, e: 0xffcc44, o: 0.98 }
             : f >= 0.3  ? { c: 0xf3e6b0, e: 0xd9a02e, o: 0.85 }
             : f >= 0.1  ? { c: 0xe6dfc2, e: 0x8a6a1e, o: 0.75 }
@@ -2686,6 +2692,14 @@ function atualizarLampada18e() {   // circuito fechado (fonte ligada + eletrodos
     glow18a.material.opacity = glow18Base.a; glow18b.material.opacity = glow18Base.b;
     glow18b.scale.set(2.6 + 2.4 * f, 2.6 + 2.4 * f, 1);      // auréola maior quanto mais forte
   }
+}
+function atualizarLampada18e() {   // circuito fechado (fonte ligada + eletrodos na solução) -> lâmpada acesa
+  const acesa = fonte18Ligada && eletrodos18Baixo;
+  if (acesa === lamp18Acesa) { if (acesa) aplicarBrilhoLampada18(); return; }   // já acesa: só reaplica o brilho (mudou o líquido)
+  lamp18Acesa = acesa;
+  if (!acesa) { apagarLampada18e(); return; }
+  aplicarBrilhoLampada18();
+  if (!aguaLiberada && lamp18Forca > 0) { aguaLiberada = true; if (typeof c18gRender === 'function') c18gRender(); }   // 1ª vez que a lâmpada acende -> libera a água
   if (c18g3Armado) {   // primeira vez que a lâmpada acende após a escolha -> 1.8G3 (1s de respiro)
     c18g3Armado = false;
     setTimeout(() => { if (typeof tocarFaixaSuave === 'function') tocarFaixaSuave('dialogo1.8G3'); }, 1000);
@@ -2694,6 +2708,7 @@ function atualizarLampada18e() {   // circuito fechado (fonte ligada + eletrodos
 function resetAparelho18e() {
   fonte18Ligada = false; eletrodos18Baixo = false; eletrodos18Anim = false; lamp18Acesa = false;
   power18Bloqueado = true; ele18Bloqueado = true; c18g1Disparado = false; c18g2Tocado = false; c18g3Armado = false; lamp18Forca = 1;
+  aguaLiberada = false; c18gAguaAtual = false; c18gTravado = false; try { audioH2O18.pause(); } catch (e) {}
   if (beq18sel) { scene.remove(beq18sel); beq18sel = null; }   // béquer escolhido no carrossel fora
   if (!aparelho18e) return;
   aparelho18e.visible = false;
@@ -2715,7 +2730,7 @@ function montarAparelho18e() {   // entra em fade in: lâmpada apagada, fonte de
 // clique nos botões respeitando os bloqueios dos diálogos guiados (1.8G/1.8G2).
 // Depois da 1ª interação, o interruptor fica LIVRE: liga/desliga a qualquer momento.
 function c18gPowerClick() {
-  if (power18Bloqueado) return;
+  if (c18gTravado || power18Bloqueado) return;
   togglePower18(); vib18(20);
   if (typeof tutorHand !== 'undefined' && tutorHand) tutorHand.classList.remove('show', 'tap', 'tapLoop');
   if (fonte18Ligada && !c18g1Disparado) {   // primeira ligada -> 1.8G1 (delay de 1s); o interruptor segue livre
@@ -2723,17 +2738,12 @@ function c18gPowerClick() {
     setTimeout(() => { if (typeof tocarFaixaSuave === 'function') tocarFaixaSuave('dialogo1.8G1'); }, 1000);
   }
 }
-function c18gEleClick() { if (!ele18Bloqueado) { vib18(20); toggleEletrodos18(); } }
-// carrossel do 1.8G1: troca o líquido do teste. O béquer atual sai em fade e entra um novo com a
-// etiqueta da fórmula. Se o suporte estiver abaixado, o aparelho reseta (circuito continua ligado):
-// o suporte volta pra cima e a iluminação da cena volta ao normal (a lâmpada apaga).
+function c18gEleClick() { if (!c18gTravado && !ele18Bloqueado) { vib18(20); toggleEletrodos18(); } }
+// carrossel do 1.8G1: troca só o líquido do teste. O béquer atual sai em fade e entra um novo com a
+// etiqueta da fórmula. Se o suporte estiver abaixado, ele CONTINUA mergulhado (não reseta mais a máquina):
+// só muda a intensidade do brilho conforme a nova substância.
 function c18gTrocarLiquido(ac) {
-  if (eletrodos18Baixo || eletrodos18Anim) {
-    eletrodos18Anim = false; eletrodos18Baixo = false;
-    eletrodos18Grp.position.y = ELE18_Y_CIMA;
-    atualizarFios18e();
-    atualizarLampada18e();   // lâmpada apaga + iluminação da cena volta ao normal
-  }
+  c18gAguaAtual = !!ac.agua;
   const antigo = (beq18sel && beq18sel.visible) ? beq18sel : (beq18e && beq18e.visible ? beq18e : null);
   if (antigo) escala3D(antigo, 0, 450, () => {   // o antigo encolhe até sumir
     if (antigo !== beq18e) scene.remove(antigo);
@@ -2747,8 +2757,19 @@ function c18gTrocarLiquido(ac) {
   b.scale.setScalar(0.001); scene.add(b);
   setTimeout(() => escala3D(b, 1, 500), 320);    // o novo aparece crescendo (meio sobreposto à saída do antigo)
   beq18sel = b;
-  lamp18Forca = ac.f;                      // brilho da lâmpada proporcional à força do ácido
+  lamp18Forca = (typeof ac.f === 'number') ? ac.f : 0;   // brilho proporcional à força (água = 0, não conduz)
+  if (fonte18Ligada && eletrodos18Baixo) aplicarBrilhoLampada18();   // eletrodos mergulhados: só atualiza o brilho (sem resetar)
   escurecerCena18g(true);                  // a partir da escolha, a luz da cena fica mais amena
+}
+// água selecionada com os eletrodos mergulhados -> toca dialogo1.8h2o e trava toda a interação até acabar
+function c18gAguaDialogo() {
+  if (c18gTravado) return;
+  c18gTravado = true;
+  try { player.pause(); } catch (e) {}
+  try { audioH2O18.currentTime = 0; } catch (e) {}
+  const pr = audioH2O18.play(); if (pr && pr.catch) pr.catch(() => { c18gTravado = false; });   // destrava se não conseguir tocar
+  const onEnd = () => { audioH2O18.removeEventListener('ended', onEnd); c18gTravado = false; };
+  audioH2O18.addEventListener('ended', onEnd);
 }
 
 // gotas
@@ -4156,6 +4177,7 @@ function c18gIniciar() {
   if (eletrodos18Baixo && !eletrodos18Anim) toggleEletrodos18();      // eletrodos em cima
   if (fonte18Ligada) togglePower18();                                 // fonte desligada
   lamp18Forca = 1; c18g1Disparado = false; c18g2Tocado = false; c18g3Armado = false;
+  aguaLiberada = false; c18gAguaAtual = false; c18gTravado = false;
   power18Bloqueado = false; ele18Bloqueado = true;                    // SÓ o interruptor liberado
   c18gEsconderEscolha();                                              // UI de escolha zerada
   if (beq18sel) { scene.remove(beq18sel); beq18sel = null; }          // béquer escolhido fora (replay)
@@ -4178,7 +4200,7 @@ const C18G_ACIDOS = [
   { html: 'HNCO', parts: [{ t: 'HNCO' }], f: 0.01 },
   { html: 'H<sub>2</sub>CO<sub>3</sub>', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'CO' }, { t: '3', sub: true }], f: 0.01 },
   { html: 'H<sub>2</sub>S', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'S' }], f: 0.01 },
-  { html: 'H<sub>2</sub>O', agua: true },   // H2O: desabilitada por enquanto
+  { html: 'H<sub>2</sub>O', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'O' }], f: 0, agua: true },   // H2O: só libera após a 1ª acesa; não conduz (f=0)
 ];
 // (o wiring dos cliques do carrossel fica mais abaixo, depois da definição do $id)
 // 28s do 1.8F (junto com a virada de câmera): os béqueres, os nomes das soluções e os α saem em fade out
@@ -4435,10 +4457,11 @@ function c18gRender() {
   const n = C18G_ACIDOS.length;
   [[c18gSlotL, (c18gIdx + n - 1) % n], [c18gSlotC, c18gIdx], [c18gSlotR, (c18gIdx + 1) % n]].forEach(([el, i]) => {
     el.innerHTML = C18G_ACIDOS[i].html;
-    el.classList.toggle('agua', !!C18G_ACIDOS[i].agua);
+    el.classList.toggle('agua', !!C18G_ACIDOS[i].agua && !aguaLiberada);   // água escura/travada só antes da 1ª acesa
   });
 }
 function c18gGira(dir) {   // gira infinito (circular) com animação + vibração leve
+  if (c18gTravado) return;
   c18gIdx = (c18gIdx + dir + C18G_ACIDOS.length) % C18G_ACIDOS.length;
   vib18(10);
   const car = $id('c18gCarrossel');
@@ -4459,7 +4482,7 @@ function c18gMomentum(dir, passos) {   // gira 'passos' vezes com intervalos cre
     else c18gRolando = false;
   })(passos);
 }
-c18gCarEl.addEventListener('pointerdown', e => { c18gSwipe = { x: e.clientX, t0: performance.now(), id: e.pointerId }; c18gSwipou = false; });
+c18gCarEl.addEventListener('pointerdown', e => { if (c18gTravado) return; c18gSwipe = { x: e.clientX, t0: performance.now(), id: e.pointerId }; c18gSwipou = false; });
 c18gCarEl.addEventListener('pointerup', e => {
   if (!c18gSwipe || e.pointerId !== c18gSwipe.id) return;
   const dx = e.clientX - c18gSwipe.x;
@@ -4476,16 +4499,19 @@ const c18gFoiSwipe = () => { const s = c18gSwipou; c18gSwipou = false; return s;
 c18gSlotL.addEventListener('click', () => { if (!c18gFoiSwipe()) c18gGira(-1); });
 c18gSlotR.addEventListener('click', () => { if (!c18gFoiSwipe()) c18gGira(1); });
 c18gSlotC.addEventListener('click', () => {
-  if (c18gFoiSwipe()) return;                       // era um arraste terminando no centro, não um clique
+  if (c18gTravado || c18gFoiSwipe()) return;         // travado, ou arraste terminando no centro (não é clique)
   const ac = C18G_ACIDOS[c18gIdx];
-  if (ac.agua) return;                              // água não selecionável nesse momento
+  if (ac.agua && !aguaLiberada) return;             // água só selecionável depois da 1ª acesa
   vib18(30);
   c18gSlotC.classList.add('sel');                   // seleção fica verde...
   setTimeout(() => { $id('c18gCarrossel').classList.remove('show'); c18gSlotC.classList.remove('sel'); }, 380);   // ...e o carrossel desce de volta
-  c18gTrocarLiquido(ac);                            // troca o béquer (encolhe o antigo, cresce o novo com etiqueta)
-  if (!c18g2Tocado) { c18g2Tocado = true; tocarFaixaSuave('dialogo1.8G2'); }   // primeira escolha -> 1.8G2
+  c18gTrocarLiquido(ac);                            // troca o béquer (mantém os eletrodos mergulhados, só muda o brilho)
+  if (ac.agua) {
+    if (eletrodos18Baixo) c18gAguaDialogo();         // água com eletrodos mergulhados -> dialogo1.8h2o (trava tudo)
+  } else if (!c18g2Tocado) { c18g2Tocado = true; tocarFaixaSuave('dialogo1.8G2'); }   // 1ª escolha (ácido) -> 1.8G2
 });
 $id('c18gEscolher').addEventListener('click', () => {
+  if (c18gTravado) return;
   vib18(15);
   c18gRender();
   $id('c18gCarrossel').classList.toggle('show');
