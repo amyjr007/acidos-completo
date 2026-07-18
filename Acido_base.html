@@ -1613,7 +1613,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.73.0</div>
+<div id="versao">v1.74.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -4042,14 +4042,7 @@ const C18G_ACIDOS = [
   { parts: [{ t: 'HNCO' }], forca: 'fraco' },
   { agua: true },   // H2O: desabilitada por enquanto
 ];
-$id('c18gEscolher').addEventListener('click', () => $id('c18gCarrossel').classList.toggle('show'));
-document.querySelectorAll('.c18g-item').forEach(btn => btn.addEventListener('click', () => {
-  const ac = C18G_ACIDOS[+btn.dataset.i];
-  if (!ac || ac.agua) return;                       // água não selecionável nesse momento
-  $id('c18gCarrossel').classList.remove('show');
-  c18gTrocarLiquido(ac);                            // troca o béquer (com etiqueta da fórmula)
-  if (!c18g2Tocado) { c18g2Tocado = true; tocarFaixaSuave('dialogo1.8G2'); }   // primeira escolha -> 1.8G2
-}));
+// (o wiring dos cliques do carrossel fica mais abaixo, depois da definição do $id)
 // 28s do 1.8F (junto com a virada de câmera): os béqueres, os nomes das soluções e os α saem em fade out
 function c18fSomeBancada() {
   const ag = bench18.find(it => it.water);
@@ -4297,6 +4290,16 @@ SUMARIO.forEach(item => {
   });
   $id('sheetList').appendChild(li);
 });
+
+// wiring do carrossel "Escolha o líquido" (1.8G1) — precisa rodar depois da definição do $id
+$id('c18gEscolher').addEventListener('click', () => $id('c18gCarrossel').classList.toggle('show'));
+document.querySelectorAll('.c18g-item').forEach(btn => btn.addEventListener('click', () => {
+  const ac = C18G_ACIDOS[+btn.dataset.i];
+  if (!ac || ac.agua) return;                       // água não selecionável nesse momento
+  $id('c18gCarrossel').classList.remove('show');
+  c18gTrocarLiquido(ac);                            // troca o béquer (com etiqueta da fórmula)
+  if (!c18g2Tocado) { c18g2Tocado = true; tocarFaixaSuave('dialogo1.8G2'); }   // primeira escolha -> 1.8G2
+}));
 
 function abrirSumario()  { sheet.classList.add('open');    sheetOverlay.hidden = false; }
 function fecharSumario() { sheet.classList.remove('open'); sheetOverlay.hidden = true;  }
