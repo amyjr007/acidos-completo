@@ -1622,7 +1622,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.75.0</div>
+<div id="versao">v1.76.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2469,9 +2469,20 @@ let botao18Ele = null, eletrodos18Grp = null, eletrodos18Baixo = false, eletrodo
 let fio18eA = null, fio18eB = null, beq18e = null, beq18sel = null, luzPower18 = null;
 let power18Bloqueado = true, ele18Bloqueado = true;   // as interações são liberadas pelos diálogos 1.8G/1.8G2
 let c18g1Disparado = false, c18g2Tocado = false, c18g3Armado = false;
-let lamp18Nivel = 'forte';   // força do ácido escolhido: 'forte' | 'moderado' | 'fraco' (brilho da lâmpada)
+let lamp18Forca = 1;   // fator de brilho da lâmpada (0..1) conforme o ácido escolhido
+let seta18Spr = null, seta18TexCima = null, seta18TexBaixo = null;   // seta de luz azul do botão do suporte (elevador)
+function seta18Tex(cima) {   // triângulo azul brilhante (▲/▼) em canvas
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128;
+  const x = cv.getContext('2d');
+  x.shadowColor = '#4db8ff'; x.shadowBlur = 26; x.fillStyle = '#8fd6ff';
+  x.beginPath();
+  if (cima) { x.moveTo(64, 20); x.lineTo(106, 88); x.lineTo(22, 88); }
+  else { x.moveTo(64, 108); x.lineTo(106, 40); x.lineTo(22, 40); }
+  x.closePath(); x.fill();
+  return new THREE.CanvasTexture(cv);
+}
 // sons do aparelho + vibração
-const snd18Click = new Audio('audios/click_sound.m4a');
+const snd18Click = new Audio('audios/click_sound.mp3');   // (convertido de .m4a — o m4a não tocava em todos os navegadores)
 const snd18Arm = new Audio('audios/moving_arm.mp3'); snd18Arm.volume = 0.5;   // som do braço a 50%
 snd18Click.preload = 'auto'; snd18Arm.preload = 'auto';
 function tocar18(a) { try { a.currentTime = 0; const p = a.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
@@ -2487,12 +2498,12 @@ function escala3D(obj, para, ms, onEnd) {
     else { if (para === 0) obj.visible = false; if (onEnd) onEnd(); }
   })();
 }
-// escurece a iluminação geral da cena (1.8G) pra realçar as luzes do aparelho; off restaura o padrão
+// deixa a iluminação geral mais AMENA (a partir da escolha do ácido) pra realçar as luzes do aparelho; off restaura o padrão
 let cena18gEscura = false;
 function escurecerCena18g(on, dur = 800) {
   if (on === cena18gEscura) return;
   cena18gEscura = on;
-  const alvo = on ? { h: 0.22, k: 0.28, f: 0.1 } : { h: 0.9, k: 1.1, f: 0.4 };
+  const alvo = on ? { h: 0.5, k: 0.62, f: 0.22 } : { h: 0.9, k: 1.1, f: 0.4 };
   const de = { h: hemiLight.intensity, k: key.intensity, f: fill.intensity }, t0 = performance.now();
   (function step() {
     const t = Math.min(1, (performance.now() - t0) / dur);
@@ -2524,6 +2535,16 @@ function makeAparelho18e() {
   g.add(botao18Power);
   luzPower18 = new THREE.PointLight(0xff4030, 0.3, 5);   // luzinha do interruptor: vermelha (desligado) / verde (ligado)
   luzPower18.position.set(AX - 0.85, 6.32, -3.15); g.add(luzPower18);
+  // "on/off" bem pequeno embaixo do botão
+  const cvOn = document.createElement('canvas'); cvOn.width = 256; cvOn.height = 96;
+  const cOn = cvOn.getContext('2d');
+  cOn.textAlign = 'center'; cOn.textBaseline = 'middle';
+  cOn.shadowColor = 'rgba(0,0,0,.8)'; cOn.shadowBlur = 8; cOn.fillStyle = '#dfe9f2';
+  cOn.font = '600 40px system-ui, sans-serif'; cOn.fillText('on/off', 128, 48);
+  const sprOn = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cvOn), transparent: true, depthTest: false }));
+  sprOn.scale.set(0.62, 0.23, 1);
+  sprOn.position.set(AX - 0.75, 5.94, -3.15);
+  g.add(sprOn);
   // lâmpada indicadora: soquete na prateleira + bulbo (APAGADA; acende trocando o emissive)
   const soq = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.36, 0.5, 22), new THREE.MeshPhongMaterial({ color: 0xcfcfcf, shininess: 90 }));
   soq.position.set(AX, 5.79, 0.5); g.add(soq);
@@ -2564,6 +2585,12 @@ function makeAparelho18e() {
   const eHit = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.9, 8), new THREE.MeshBasicMaterial({ visible: false }));
   botao18Ele.add(eHit);
   g.add(botao18Ele);
+  // seta de luz azul (estilo elevador) na frente do botão: pra BAIXO quando os eletrodos estão em cima, pra CIMA quando estão embaixo
+  seta18TexCima = seta18Tex(true); seta18TexBaixo = seta18Tex(false);
+  seta18Spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: seta18TexBaixo, transparent: true, depthTest: false }));
+  seta18Spr.scale.set(0.42, 0.42, 1);
+  seta18Spr.position.set(AX - 0.34, 4.4, 4.8);
+  g.add(seta18Spr);
   // fios: vermelho (fonte -> lâmpada); pretos (lâmpada -> eletrodo A, fonte -> eletrodo B) acompanham a descida
   const mkFio = (pts, cor) => new THREE.Mesh(_fio18eGeo(pts), new THREE.MeshPhongMaterial({ color: cor, shininess: 30 }));
   g.add(mkFio([[AX, 6.0, -1.9], [AX - 0.45, 4.9, -0.8], [AX, 5.65, 0.35]], 0xc0392b));
@@ -2601,24 +2628,29 @@ function toggleEletrodos18() {   // botão da haste: eletrodos descem até encos
     eletrodos18Grp.position.y = de + (para - de) * e;
     atualizarFios18e();
     if (k < 1) requestAnimationFrame(step);
-    else { eletrodos18Baixo = !eletrodos18Baixo; eletrodos18Anim = false; atualizarLampada18e(); }
+    else { eletrodos18Baixo = !eletrodos18Baixo; eletrodos18Anim = false; atualizarSeta18(); atualizarLampada18e(); }
   })();
+}
+function atualizarSeta18() {   // em cima -> seta pra baixo; embaixo -> seta pra cima
+  if (!seta18Spr) return;
+  seta18Spr.material.map = eletrodos18Baixo ? seta18TexCima : seta18TexBaixo;
+  seta18Spr.material.needsUpdate = true;
 }
 function atualizarLampada18e() {   // circuito fechado (fonte ligada + eletrodos na solução) -> lâmpada acesa
   const acesa = fonte18Ligada && eletrodos18Baixo;
   if (acesa === lamp18Acesa) return;
   lamp18Acesa = acesa;
-  escurecerCena18g(acesa);   // a iluminação da cena cai quando a lâmpada acende (efeito dramático) e volta quando apaga
   if (!acesa) {
     bulbo18eMat.color.setHex(0xc9ccd0); bulbo18eMat.emissive.setHex(0x000000); bulbo18eMat.opacity = 0.6;
     if (luz18e) luz18e.intensity = 0;
     return;
   }
-  const niv = lamp18Nivel === 'forte'    ? { c: 0xfff3b0, e: 0xffcc44, o: 0.98, i: 2.4 }
-            : lamp18Nivel === 'moderado' ? { c: 0xf3e6b0, e: 0xd9a02e, o: 0.85, i: 1.2 }
-            :                              { c: 0xe6dfc2, e: 0x8a6a1e, o: 0.75, i: 0.55 };   // fraco: BEM fraquinha
+  const f = lamp18Forca;   // brilho proporcional à força do ácido (1 = máxima)
+  const niv = f >= 0.75 ? { c: 0xfff3b0, e: 0xffcc44, o: 0.98 }
+            : f >= 0.4  ? { c: 0xf3e6b0, e: 0xd9a02e, o: 0.85 }
+            :             { c: 0xe6dfc2, e: 0x8a6a1e, o: 0.75 };   // bem fraquinha
   bulbo18eMat.color.setHex(niv.c); bulbo18eMat.emissive.setHex(niv.e); bulbo18eMat.opacity = niv.o;
-  if (luz18e) luz18e.intensity = niv.i;
+  if (luz18e) luz18e.intensity = 2.4 * f;
   if (c18g3Armado) {   // primeira vez que a lâmpada acende após a escolha -> 1.8G3 (1s de respiro)
     c18g3Armado = false;
     setTimeout(() => { if (typeof tocarFaixaSuave === 'function') tocarFaixaSuave('dialogo1.8G3'); }, 1000);
@@ -2626,7 +2658,7 @@ function atualizarLampada18e() {   // circuito fechado (fonte ligada + eletrodos
 }
 function resetAparelho18e() {
   fonte18Ligada = false; eletrodos18Baixo = false; eletrodos18Anim = false; lamp18Acesa = false;
-  power18Bloqueado = true; ele18Bloqueado = true; c18g1Disparado = false; c18g2Tocado = false; c18g3Armado = false; lamp18Nivel = 'forte';
+  power18Bloqueado = true; ele18Bloqueado = true; c18g1Disparado = false; c18g2Tocado = false; c18g3Armado = false; lamp18Forca = 1;
   if (beq18sel) { scene.remove(beq18sel); beq18sel = null; }   // béquer escolhido no carrossel fora
   if (!aparelho18e) return;
   aparelho18e.visible = false;
@@ -2635,6 +2667,7 @@ function resetAparelho18e() {
   if (luz18e) luz18e.intensity = 0;
   if (luzPower18) { luzPower18.color.setHex(0xff4030); luzPower18.intensity = 0.3; }
   eletrodos18Grp.position.y = ELE18_Y_CIMA;
+  atualizarSeta18();
   if (beq18e) beq18e.visible = true;   // béquer original do aparelho de volta (caso o 1.8G1 o tenha trocado)
   atualizarFios18e();
 }
@@ -2677,7 +2710,8 @@ function c18gTrocarLiquido(ac) {
   b.scale.setScalar(0.001); scene.add(b);
   setTimeout(() => escala3D(b, 1, 500), 320);    // o novo aparece crescendo (meio sobreposto à saída do antigo)
   beq18sel = b;
-  lamp18Nivel = ac.forca;                  // define o brilho da lâmpada quando o circuito fechar
+  lamp18Forca = ac.f;                      // brilho da lâmpada proporcional à força do ácido
+  escurecerCena18g(true);                  // a partir da escolha, a luz da cena fica mais amena
 }
 
 // gotas
@@ -4077,7 +4111,7 @@ function c18gIniciar() {
   if (!aparelho18e || !aparelho18e.visible) montarAparelho18e();      // garante o aparelho (ex.: replay)
   if (eletrodos18Baixo && !eletrodos18Anim) toggleEletrodos18();      // eletrodos em cima
   if (fonte18Ligada) togglePower18();                                 // fonte desligada
-  lamp18Nivel = 'forte'; c18g1Disparado = false; c18g2Tocado = false; c18g3Armado = false;
+  lamp18Forca = 1; c18g1Disparado = false; c18g2Tocado = false; c18g3Armado = false;
   power18Bloqueado = false; ele18Bloqueado = true;                    // SÓ o interruptor liberado
   c18gEsconderEscolha();                                              // UI de escolha zerada
   if (beq18sel) { scene.remove(beq18sel); beq18sel = null; }          // béquer escolhido fora (replay)
@@ -4090,12 +4124,16 @@ function c18gEsconderEscolha() {
   if (b) b.classList.remove('show');
   if (c) c.classList.remove('show');
 }
-// carrossel de líquidos do 1.8G1 (fórmulas; água escura = ainda não selecionável)
+// carrossel de líquidos do 1.8G1 — f = fator de brilho da lâmpada (1 = intensidade máxima)
 const C18G_ACIDOS = [
-  { html: 'HCl', parts: [{ t: 'HCl' }], forca: 'forte' },
-  { html: 'H<sub>2</sub>SO<sub>4</sub>', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'SO' }, { t: '4', sub: true }], forca: 'forte' },
-  { html: 'H<sub>3</sub>PO<sub>4</sub>', parts: [{ t: 'H' }, { t: '3', sub: true }, { t: 'PO' }, { t: '4', sub: true }], forca: 'moderado' },
-  { html: 'HNCO', parts: [{ t: 'HNCO' }], forca: 'fraco' },
+  { html: 'HCl', parts: [{ t: 'HCl' }], f: 1 },
+  { html: 'HNO<sub>3</sub>', parts: [{ t: 'HNO' }, { t: '3', sub: true }], f: 1 },
+  { html: 'H<sub>2</sub>SO<sub>4</sub>', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'SO' }, { t: '4', sub: true }], f: 0.8 },
+  { html: 'H<sub>3</sub>PO<sub>4</sub>', parts: [{ t: 'H' }, { t: '3', sub: true }, { t: 'PO' }, { t: '4', sub: true }], f: 0.5 },
+  { html: 'HF', parts: [{ t: 'HF' }], f: 0.5 },
+  { html: 'HNCO', parts: [{ t: 'HNCO' }], f: 0.22 },
+  { html: 'H<sub>2</sub>CO<sub>3</sub>', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'CO' }, { t: '3', sub: true }], f: 0.22 },
+  { html: 'H<sub>2</sub>S', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'S' }], f: 0.22 },
   { html: 'H<sub>2</sub>O', agua: true },   // H2O: desabilitada por enquanto
 ];
 // (o wiring dos cliques do carrossel fica mais abaixo, depois da definição do $id)
