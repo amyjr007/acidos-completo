@@ -1121,6 +1121,34 @@
   }
   #cena18 .c18j-frame.show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
   #cena18 .c18j-frame sub { font-size: .56em; }
+  #cena18 .c18j-frame .off { display: none; }              /* termo substituído sai do layout */
+  #cena18 .c18j-frame .num { color: #ffd21e; }             /* números da conta (4 − 2 = 2) */
+  #cena18 .c18i-lista .v { display: inline-block; transition: transform .45s cubic-bezier(.2, .9, .3, 1.5); transform-origin: left center; }
+  #cena18 .c18i-lista .v.maior { transform: scale(1.32); }   /* destaque do "= 2 ou 3" no 1.8K */
+  /* exemplos do 1.8K/1.8L: "Ex: H2SO4" grande, embaixo à esquerda */
+  #cena18 .c18k-ex {
+    position: absolute; top: 48%; left: 7%; display: flex; align-items: baseline; gap: .4em;
+    font-family: "Cambria Math", Georgia, serif; font-weight: 800; white-space: nowrap;
+    font-size: clamp(30px, 8.5vw, 50px); color: #f2fbe4; text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
+  }
+  #cena18 .c18k-ex .rot { font-family: system-ui, sans-serif; font-size: .52em; font-weight: 800; color: #cdeaff; }
+  #cena18 .c18k-ex sub { font-size: .58em; }
+  #cena18 .c18k-ex .p { display: inline-block; transition: transform .45s cubic-bezier(.2, .9, .3, 1.5); transform-origin: center bottom; }
+  #cena18 .c18k-ex .p.grande { transform: scale(1.35); }
+  #cena18 .c18k-ex .rot, #cena18 .c18k-ex .f { opacity: 0; transition: opacity .6s ease; }
+  #cena18 .c18k-ex .rot.show, #cena18 .c18k-ex .f.show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
+  /* opções de resposta do 1.8K */
+  #c18kOpcoes {
+    position: fixed; left: 50%; bottom: 13%; transform: translateX(-50%); z-index: 60;
+    display: flex; gap: 10px; opacity: 0; pointer-events: none; transition: opacity .4s ease;
+  }
+  #c18kOpcoes.show { opacity: 1; pointer-events: auto; }
+  #c18kOpcoes button {
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(14px, 4vw, 19px);
+    color: #f2fbe4; background: rgba(10, 16, 8, .92); border: 1.5px solid rgba(166, 229, 52, .5);
+    border-radius: 12px; padding: 10px 14px; cursor: pointer; white-space: nowrap;
+  }
+  #c18kOpcoes button:active { background: rgba(166, 229, 52, .3); }
   /* alerta chamativo (força x corrosão) — mesmo estilo/keyframes do 1.7A */
   #cena18 .c18-alerta {
     position: absolute; top: 29%; left: 0; right: 0; text-align: center; padding: 0 20px;
@@ -1651,7 +1679,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.90.0</div>
+<div id="versao">v1.91.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1839,11 +1867,27 @@
   <!-- 1.8J: regra dos oxiácidos (entra no lugar dos hidrácidos) -->
   <div class="c18i-lista" id="c18jLista">
     <div class="c18i-tit" id="c18jTit">Oxiácidos</div>
-    <div class="c18j-frame" id="c18jFrame"><span id="c18jOx">N&ordm; de Oxigênio</span><span id="c18jH">&minus; N&ordm; H<sub>ionizáveis</sub></span></div>
+    <div class="c18j-frame" id="c18jFrame"><span id="c18jOx">N&ordm; de Oxigênio</span><span id="c18jH">&minus; N&ordm; H<sub>ionizáveis</sub></span><span class="num off" id="c18jOxN">4</span><span class="num off" id="c18jHN">&minus; 2</span><span class="num off" id="c18jIg">=</span><span class="num off" id="c18jRes">2</span></div>
     <div class="c18i-lin"><span id="c18jForte">Forte</span><span class="v" id="c18jV1">= 2 ou 3</span></div>
     <div class="c18i-lin"><span id="c18jMod">Moderado</span><span class="v" id="c18jV2">= 1</span></div>
     <div class="c18i-lin"><span id="c18jFraco">Fraco</span><span class="v" id="c18jV3">= 0</span></div>
   </div>
+  <!-- 1.8K/1.8L: exemplos aplicando a regra dos oxiácidos (embaixo, lado esquerdo) -->
+  <div class="c18k-ex">
+    <span class="rot" id="c18kRot1">Ex:</span>
+    <span class="f" id="c18kForm1"><span class="p" id="c18kH2">H<sub>2</sub></span><span class="p">S</span><span class="p" id="c18kO4">O<sub>4</sub></span></span>
+  </div>
+  <div class="c18k-ex">
+    <span class="rot" id="c18kRot2">Ex<sub>2</sub>:</span>
+    <span class="f" id="c18kForm2"><span class="p">H<sub>3</sub></span><span class="p">P</span><span class="p">O<sub>4</sub></span></span>
+  </div>
+</div>
+
+<!-- 1.8K: opções de resposta do exemplo -->
+<div id="c18kOpcoes">
+  <button data-op="forte">1. Forte</button>
+  <button data-op="fraco">2. Fraco</button>
+  <button data-op="moderado">3. Moderado</button>
 </div>
 
 <!-- Quiz rápido entre 1.6 e 1.7: hidrácido x oxiácido -->
@@ -3818,6 +3862,10 @@ const FAIXAS = [
   { id: 'dialogo1.8H',  arquivo: 'audios/dialogo1.8H.mp3',  titulo: 'Diálogo 1.8H' },
   { id: 'dialogo1.8I',  arquivo: 'audios/dialogo1.8I.mp3',  titulo: 'Diálogo 1.8I' },
   { id: 'dialogo1.8J',  arquivo: 'audios/dialogo1.8J.mp3',  titulo: 'Diálogo 1.8J' },
+  { id: 'dialogo1.8K',  arquivo: 'audios/dialogo1.8K.mp3',  titulo: 'Diálogo 1.8K' },
+  { id: 'dialogo1.8KR', arquivo: 'audios/dialogo1.8KR.mp3', titulo: 'Diálogo 1.8K (acerto)' },
+  { id: 'dialogo1.8KW', arquivo: 'audios/dialogo1.8KW.mp3', titulo: 'Diálogo 1.8K (erro)' },
+  { id: 'dialogo1.8L',  arquivo: 'audios/dialogo1.8L.mp3',  titulo: 'Diálogo 1.8L' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -4254,8 +4302,56 @@ const EVENTOS = {
     { t: 25.0, fn: () => c18eTabShow('c18jFraco') },    // Fraco
     { t: 28.0, fn: () => c18eTabShow('c18jV3') },       // = 0
   ]),
+  'dialogo1.8K':  () => rodarStory([
+    { t: 1.0,  fn: () => c18eTabShow('c18kRot1') },     // "Ex:" embaixo, à esquerda
+    { t: 2.2,  fn: () => c18eTabShow('c18kForm1') },    // H2SO4 (fórmula grande)
+    { t: 5.7,  fn: () => $id('c18kO4').classList.add('grande') },   // cresce o O4
+    { t: 7.2,  fn: () => $id('c18kH2').classList.add('grande') },   // cresce o H2
+    { t: 10.0, fn: () => c18jSome('c18jOx') },          // "Nº de Oxigênio" sai em fade...
+    { t: 10.2, fn: () => c18jNum('c18jOxN') },          // ...e o 4 entra no lugar
+    { t: 10.8, fn: () => c18jSome('c18jH') },           // "− Nº H(ionizáveis)" sai...
+    { t: 11.0, fn: () => c18jNum('c18jHN') },           // ...e o "− 2" entra no lugar
+    { t: 12.7, fn: () => c18jNum('c18jIg') },           // =
+    { t: 13.6, fn: () => c18jNum('c18jRes') },          // 2
+    { t: 16.7, fn: () => $id('c18jV1').classList.add('maior') },    // destaca o "= 2 ou 3"
+  ]),
+  'dialogo1.8L':  () => rodarStory([
+    { t: 1.0,  fn: c18lTrocaExemplo },                  // Ex: H2SO4 some em fade; a fórmula do frame volta ao original
+    { t: 2.0,  fn: () => { c18eTabShow('c18kRot2'); c18eTabShow('c18kForm2'); } },   // Ex2: H3PO4 (com o 2 subscrito)
+  ]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
+// ---- 1.8K: substituições no frame da regra + quiz do exemplo ----
+function c18jSome(id) { const e = $id(id); if (!e) return; e.classList.remove('show'); setTimeout(() => e.classList.add('off'), 620); }   // termo sai em fade e colapsa
+function c18jNum(id) { const e = $id(id); if (!e) return; e.classList.remove('off'); e.classList.add('show'); }                          // número entra no lugar
+// troca de exemplo (1.8L): Ex1 some, destaques desfeitos e o frame VOLTA à fórmula original
+function c18lTrocaExemplo() {
+  ['c18kRot1', 'c18kForm1'].forEach(id => $id(id).classList.remove('show'));
+  ['c18kH2', 'c18kO4'].forEach(id => $id(id).classList.remove('grande'));
+  const v = $id('c18jV1'); if (v) v.classList.remove('maior');
+  ['c18jOxN', 'c18jHN', 'c18jIg', 'c18jRes'].forEach(id => $id(id).classList.remove('show'));   // números somem em fade...
+  setTimeout(() => {
+    ['c18jOxN', 'c18jHN', 'c18jIg', 'c18jRes'].forEach(id => $id(id).classList.add('off'));
+    ['c18jOx', 'c18jH'].forEach(id => { const e = $id(id); e.classList.remove('off'); e.classList.add('show'); });   // ...e os termos originais voltam
+  }, 650);
+}
+const c18kCerta = 'forte';   // H2SO4: 4 − 2 = 2 -> forte
+function c18kResponder(op) {
+  $id('c18kOpcoes').classList.remove('show');
+  if (op === c18kCerta) {   // acertou: aplausos + confetes -> 1.8KR
+    festaConfete();
+    tocar18(qmApplause);
+    setTimeout(() => tocarFaixaSuave('dialogo1.8KR'), 1200);
+  } else {                  // errou: error + lowscore -> 1.8KW
+    tocar18(sndErro18);
+    setTimeout(() => tocar18(sndLow18), 450);
+    setTimeout(() => tocarFaixaSuave('dialogo1.8KW'), 1400);
+  }
+}
+const sndErro18 = new Audio('audios/error.mp3');
+const sndLow18 = new Audio('audios/lowscore.mp3');
+const sndProx18 = new Audio('audios/próximo.mp3');
+[sndErro18, sndLow18, sndProx18].forEach(a => a.preload = 'auto');
 // 5s do 1.8H: câmera de volta à posição 1 (vista padrão do lab); quando o movimento termina, o aparelho
 // (e o béquer escolhido) somem em fade out, a UI de escolha se recolhe e a iluminação volta ao padrão
 function c18hCameraESai() {
@@ -4422,9 +4518,9 @@ function tocarFaixa(i) {
   if (typeof fecharQuiz4 === 'function') fecharQuiz4();   // some a questão 4 (arrastar)
   if (typeof fecharQuizFim === 'function') fecharQuizFim();   // some o card de nota final
   if (typeof limparOverlaysQuiz === 'function') limparOverlaysQuiz();   // garante que nenhum overlay de quiz/cena fique sobreposto
-  if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8J'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
-  if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8J'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
-  if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8J'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
+  if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
+  if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
+  if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
@@ -4518,6 +4614,14 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo1.6A' || FAIXAS[faixaAtual].id === 'dialogo1.7B')) { $id('playBtn').style.display = 'none'; return; }
   // fim do 1.8F: garante o aparelho na cena; o play APARECE (é ele que leva ao 1.8G, onde a interação é guiada)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.8F' && (!aparelho18e || !aparelho18e.visible)) montarAparelho18e();
+  // fim do 1.8K: entram as 3 opções (Forte/Fraco/Moderado) pro usuário responder (sem play)
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.8K') { $id('c18kOpcoes').classList.add('show'); $id('playBtn').style.display = 'none'; return; }
+  // fim do 1.8KR/1.8KW: 1s -> "próximo", +1s -> 1.8L (sem play)
+  if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo1.8KR' || FAIXAS[faixaAtual].id === 'dialogo1.8KW')) {
+    setTimeout(() => tocar18(sndProx18), 1000);
+    setTimeout(() => tocarFaixaSuave('dialogo1.8L'), 2000);
+    $id('playBtn').style.display = 'none'; return;
+  }
   // fim do 1.8 / 1.8A / 1.8C / 1.8G / 1.8G1 / 1.8G2: cena interativa -> esconde o play.
   if (FAIXAS[faixaAtual] && ['dialogo1.8', 'dialogo1.8A', 'dialogo1.8C', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2'].includes(FAIXAS[faixaAtual].id)) {
     const _id18 = FAIXAS[faixaAtual].id;
@@ -4627,6 +4731,9 @@ $id('c18gEscolher').addEventListener('click', () => {
   vib18(15);
   if (c18gLista.classList.contains('show')) c18gFecharLista(); else c18gAbrirLista();
 });
+
+// opções do exemplo do 1.8K (precisa rodar depois da definição do $id)
+$id('c18kOpcoes').querySelectorAll('button').forEach(b => b.addEventListener('click', () => c18kResponder(b.dataset.op)));
 
 function abrirSumario()  { sheet.classList.add('open');    sheetOverlay.hidden = false; }
 function fecharSumario() { sheet.classList.remove('open'); sheetOverlay.hidden = true;  }
@@ -6351,6 +6458,11 @@ function c18LimparTextos() {
   ['nomeHCl', 'nomeHNCO', 'c18bAlfa', 'c18bFraco', 'c18bCorr', 'c18dAlfa', 'c18dForte', 'c18dLabHNCO', 'c18dLabHCl', 'c18dA3', 'c18dA92'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
   const tab = $id('c18eTab'); if (tab) tab.querySelectorAll('span').forEach(s => s.classList.remove('show'));   // tabela do grau de ionização (1.8E)
   ['c18iLista', 'c18jLista'].forEach(id => { const li = $id(id); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); });   // listas dos hidrácidos (1.8I) e oxiácidos (1.8J)
+  ['c18jOxN', 'c18jHN', 'c18jIg', 'c18jRes'].forEach(id => { const e = $id(id); if (e) e.classList.add('off'); });   // frame da regra volta ao original (1.8K)
+  ['c18jOx', 'c18jH'].forEach(id => { const e = $id(id); if (e) e.classList.remove('off'); });
+  ['c18kH2', 'c18kO4'].forEach(id => { const e = $id(id); if (e) e.classList.remove('grande'); });
+  const vv = $id('c18jV1'); if (vv) vv.classList.remove('maior');
+  const ko = $id('c18kOpcoes'); if (ko) ko.classList.remove('show');
   if (typeof tutorHand !== 'undefined' && tutorHand) tutorHand.classList.remove('show', 'tap', 'tapLoop');   // some o dedinho do 1.8C
 }
 function esconderCena18() {
