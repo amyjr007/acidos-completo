@@ -1624,7 +1624,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.84.0</div>
+<div id="versao">v1.85.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2532,7 +2532,7 @@ let cena18gEscura = false;
 function escurecerCena18g(on, dur = 800) {
   if (on === cena18gEscura) return;
   cena18gEscura = on;
-  const alvo = on ? { h: 0.5, k: 0.62, f: 0.22 } : { h: 0.9, k: 1.1, f: 0.4 };
+  const alvo = on ? { h: 0.63, k: 0.77, f: 0.28 } : { h: 0.9, k: 1.1, f: 0.4 };   // -30% durante a interação (70% do normal)
   const de = { h: hemiLight.intensity, k: key.intensity, f: fill.intensity }, t0 = performance.now();
   (function step() {
     const t = Math.min(1, (performance.now() - t0) / dur);
@@ -2577,17 +2577,19 @@ function makeAparelho18e() {
   // lâmpada indicadora: soquete na prateleira + bulbo (APAGADA; acende trocando o emissive)
   const soq = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.36, 0.5, 22), new THREE.MeshPhongMaterial({ color: 0xcfcfcf, shininess: 90 }));
   soq.position.set(AX, 5.79, 0.5); g.add(soq);
-  bulbo18eMat = new THREE.MeshPhongMaterial({ color: 0xc9ccd0, emissive: 0x000000, transparent: true, opacity: 0.6, shininess: 150, specular: 0xffffff });
+  bulbo18eMat = new THREE.MeshPhongMaterial({ color: 0xdfe6ee, emissive: 0x000000, transparent: true, opacity: 0.26, shininess: 170, specular: 0xffffff });   // vidro bem transparente (deixa ver o filamento)
   const bulbo = new THREE.Mesh(new THREE.SphereGeometry(0.52, 22, 16), bulbo18eMat);
   bulbo.position.set(AX, 6.4, 0.5); g.add(bulbo);
-  // filamento de tungstênio no centro do bulbo (bobina helicoidal + 2 fios de sustentação); incandesce quando acende
-  filamento18Mat = new THREE.MeshBasicMaterial({ color: 0x2a2a2a });   // apagado = cinza escuro (auto-iluminado, não depende de luz)
+  // filamento de tungstênio: 2 ferrinhos (postes) de sustentação + a BOBINA entre eles (é ela que incandesce)
+  filamento18Mat = new THREE.MeshBasicMaterial({ color: 0x2a2a2a });   // filamento: muda de cor -> incandesce (auto-iluminado)
+  const posteMat = new THREE.MeshBasicMaterial({ color: 0x40444a });   // ferrinhos: só suporte, não incandescem
   const filGrp = new THREE.Group(); filGrp.position.set(AX, 6.4, 0.5);
-  const helixPts = []; const voltas = 5, hFil = 0.34, rFil = 0.085;
-  for (let i = 0; i <= voltas * 12; i++) { const a = i / 12 * Math.PI * 2, ky = i / (voltas * 12); helixPts.push(new THREE.Vector3(Math.cos(a) * rFil, -hFil / 2 + hFil * ky, Math.sin(a) * rFil)); }
-  const coil = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(helixPts), 90, 0.016, 6, false), filamento18Mat);
-  filGrp.add(coil);
-  [-rFil, rFil].forEach(dx => { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.26, 6), filamento18Mat); w.position.set(dx, -0.3, 0); filGrp.add(w); });   // 2 fios de sustentação até o soquete
+  const postGap = 0.16, topo = 0.05;   // câmera olha ao longo do X -> ferrinhos espalhados no Z (aparecem lado a lado)
+  [-postGap, postGap].forEach(dz => { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.52, 8), posteMat); w.position.set(0, topo - 0.26, dz); filGrp.add(w); });   // 2 ferrinhos (base no soquete, topo no centro)
+  const filPts = []; const voltas = 7, rC = 0.055;   // bobina ligando o topo de um ferrinho ao outro (eixo no Z)
+  for (let i = 0; i <= voltas * 14; i++) { const a = i / 14 * Math.PI * 2, kz = i / (voltas * 14); filPts.push(new THREE.Vector3(Math.cos(a) * rC, topo + Math.sin(a) * rC, -postGap + 2 * postGap * kz)); }
+  const fil = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(filPts), 160, 0.018, 6, false), filamento18Mat);
+  filGrp.add(fil);
   g.add(filGrp);
   luz18e = new THREE.PointLight(0xffcc55, 0, 14);
   luz18e.position.set(AX, 6.4, 0.5); g.add(luz18e);
@@ -2684,7 +2686,7 @@ function atualizarSeta18() {   // em cima -> seta pra baixo; embaixo -> seta pra
 }
 function apagarLampada18e() {   // aparência de lâmpada apagada (circuito aberto OU água, que não conduz)
   if (!bulbo18eMat) return;
-  bulbo18eMat.color.setHex(0xc9ccd0); bulbo18eMat.emissive.setHex(0x000000); bulbo18eMat.opacity = 0.6;
+  bulbo18eMat.color.setHex(0xdfe6ee); bulbo18eMat.emissive.setHex(0x000000); bulbo18eMat.opacity = 0.26;   // vidro transparente
   bulbo18eMat.emissiveIntensity = 1;
   if (luz18e) luz18e.intensity = 0;
   if (filamento18Mat) filamento18Mat.color.setHex(0x2a2a2a);   // filamento frio (cinza escuro)
@@ -2695,10 +2697,10 @@ function aplicarBrilhoLampada18() {   // aplica o brilho conforme lamp18Forca (0
   if (!bulbo18eMat) return;
   const f = lamp18Forca;   // brilho proporcional à força: fortes 1, moderados 0.4, fracos 0.01
   if (f <= 0) { apagarLampada18e(); return; }   // água não conduz -> lâmpada apagada mesmo com o circuito fechado
-  const niv = f >= 0.75 ? { c: 0xfff3b0, e: 0xffcc44, o: 0.98 }
-            : f >= 0.3  ? { c: 0xf3e6b0, e: 0xd9a02e, o: 0.85 }
-            : f >= 0.1  ? { c: 0xe6dfc2, e: 0x8a6a1e, o: 0.75 }
-            :             { c: 0xd6d2c2, e: 0x352a10, o: 0.68 };   // ~1%: um resquício de brilho, quase apagada
+  const niv = f >= 0.75 ? { c: 0xfff3b0, e: 0xffcc44, o: 0.42 }
+            : f >= 0.3  ? { c: 0xf3e6b0, e: 0xd9a02e, o: 0.37 }
+            : f >= 0.1  ? { c: 0xe6dfc2, e: 0x8a6a1e, o: 0.33 }
+            :             { c: 0xdfe6ee, e: 0x352a10, o: 0.3 };   // ~1%: quase só o vidro; o filamento é que dá a brasa
   bulbo18eMat.color.setHex(niv.c); bulbo18eMat.emissive.setHex(niv.e); bulbo18eMat.opacity = niv.o;
   bulbo18eMat.emissiveIntensity = 1 + f * 0.8;   // o bulbo "estoura" mais quando forte
   // filamento incandescente: da brasa vermelho-escura (fraco) até branco-amarelado (forte) — reforça a diferença de intensidade
@@ -4231,7 +4233,7 @@ function c18gIniciar() {
   c18gEsconderEscolha();                                              // UI de escolha zerada
   if (beq18sel) { scene.remove(beq18sel); beq18sel = null; }          // béquer escolhido fora (replay)
   if (beq18e && !beq18e.visible) { if (beaker18d && beaker18d.visible) fade3D(beaker18d, 0, 300); fade3D(beq18e, 1, 300); }   // béquer original de volta (replay pós-troca)
-  escurecerCena18g(false);                                            // iluminação normal (só escurece quando a lâmpada acender)
+  escurecerCena18g(true);                                             // -30% na iluminação durante toda a interação do 1.8G
   irParaCamera({ theta: -1.633, phi: 1.551, dist: 22.06, target: [1.7, 4.2, 0.54] }, true, 1500);
 }
 function c18gEsconderEscolha() {
