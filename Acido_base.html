@@ -1679,7 +1679,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.93.0</div>
+<div id="versao">v1.94.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1859,10 +1859,12 @@
     <div class="c18i-lin"><span class="n" id="c18iN2">Ácido Bromídrico</span><span class="f" id="c18iF2">HBr</span></div>
     <div class="c18i-lin"><span class="n" id="c18iN3">Ácido Iodídrico</span><span class="f" id="c18iF3">HI</span></div>
     <div class="c18i-sub" id="c18iMod">Moderado:</div>
-    <div class="c18i-lin"><span class="f" id="c18iF4">HF</span><span class="n" id="c18iN4">Ácido Fluorídrico</span></div>
+    <div class="c18i-lin"><span class="n" id="c18iN4">Ácido Fluorídrico</span><span class="f" id="c18iF4">HF</span></div>
     <div class="c18i-sub" id="c18iFracos">Fracos</div>
     <div class="c18i-lin"><span class="n" id="c18iN5">Ácido Sulfídrico</span><span class="f" id="c18iF5">H<sub>2</sub>S</span></div>
     <div class="c18i-lin"><span class="n" id="c18iN6">Ácido Cianídrico</span><span class="f" id="c18iF6">HCN</span></div>
+    <div class="c18i-lin"><span class="n" id="c18iN7">Ácido Selenídrico</span><span class="f" id="c18iF7">H<sub>2</sub>Se</span></div>
+    <div class="c18i-lin"><span class="n" id="c18iN8">Ácido Telurídrico</span><span class="f" id="c18iF8">H<sub>2</sub>Te</span></div>
   </div>
   <!-- 1.8J: regra dos oxiácidos (entra no lugar dos hidrácidos) -->
   <div class="c18i-lista" id="c18jLista">
@@ -3865,6 +3867,7 @@ const FAIXAS = [
   { id: 'dialogo1.8G3', arquivo: 'audios/dialogo1.8G3.mp3', titulo: 'Diálogo 1.8G3' },
   { id: 'dialogo1.8H',  arquivo: 'audios/dialogo1.8H.mp3',  titulo: 'Diálogo 1.8H' },
   { id: 'dialogo1.8I',  arquivo: 'audios/dialogo1.8I.mp3',  titulo: 'Diálogo 1.8I' },
+  { id: 'dialogo1.8I1', arquivo: 'audios/dialogo1.8I1.mp3', titulo: 'Diálogo 1.8I1', auto: true },
   { id: 'dialogo1.8J',  arquivo: 'audios/dialogo1.8J.mp3',  titulo: 'Diálogo 1.8J' },
   { id: 'dialogo1.8K',  arquivo: 'audios/dialogo1.8K.mp3',  titulo: 'Diálogo 1.8K' },
   { id: 'dialogo1.8KR', arquivo: 'audios/dialogo1.8KR.mp3', titulo: 'Diálogo 1.8K (acerto)' },
@@ -4287,19 +4290,19 @@ const EVENTOS = {
   ]),
   'dialogo1.8I':  () => rodarStory([
     { t: 0.0,  fn: c18iPreparar },                      // pulo direto pelo sumário (item 19): monta a cena como no fim do 1.8H
-    { t: 1.7,  fn: () => c18eTabShow('c18iTit') },      // "Hidrácidos" (amarelo) embaixo do "c)"
-    { t: 3.5,  fn: () => c18eTabShow('c18iFortes') },   // Fortes:
-    { t: 5.6,  fn: () => c18eTabShow('c18iN1') },       // Ácido Clorídrico (verde da capa)
-    { t: 7.0,  fn: () => c18eTabShow('c18iF1') },       // HCl ao lado
-    { t: 8.5,  fn: () => c18eTabShow('c18iN2') },       // Ácido Bromídrico
-    { t: 9.4,  fn: () => c18eTabShow('c18iF2') },       // HBr
-    { t: 11.2, fn: () => c18eTabShow('c18iN3') },       // Ácido Iodídrico
-    { t: 12.7, fn: () => c18eTabShow('c18iF3') },       // HI
-    { t: 17.4, fn: () => c18eTabShow('c18iMod') },      // Moderado:
-    { t: 19.8, fn: () => c18eTabShow('c18iF4') },       // HF
-    { t: 20.7, fn: () => c18eTabShow('c18iN4') },       // Ácido Fluorídrico ao lado
-    { t: 26.0, fn: () => c18eTabShow('c18iFracos') },   // Fracos
-    { t: 28.3, fn: () => ['c18iN5', 'c18iF5', 'c18iN6', 'c18iF6'].forEach(c18eTabShow) },   // hidrácidos fracos (H2S e HCN)
+    { t: 4.7,  fn: () => c18eTabShow('c18iTit') },      // "Hidrácidos" (amarelo) embaixo do "c)"
+    { t: 6.0,  fn: () => c18eTabShow('c18iFortes') },   // Fortes:
+    { t: 8.0,  fn: () => c18eTabShow('c18iN1') },       // Ácido Clorídrico (verde da capa)
+    { t: 9.3,  fn: () => c18eTabShow('c18iF1') },       // HCl ao lado
+    { t: 11.0, fn: () => c18eTabShow('c18iN2') },       // Ácido Bromídrico
+    { t: 12.4, fn: () => c18eTabShow('c18iF2') },       // HBr
+    { t: 14.0, fn: () => c18eTabShow('c18iN3') },       // Ácido Iodídrico
+    { t: 16.0, fn: () => c18eTabShow('c18iF3') },       // HI
+    { t: 20.0, fn: () => c18eTabShow('c18iMod') },      // Moderado:
+    { t: 26.0, fn: () => c18eTabShow('c18iN4') },       // Ácido Fluorídrico
+    { t: 27.0, fn: () => c18eTabShow('c18iF4') },       // HF ao lado
+    { t: 30.7, fn: () => c18eTabShow('c18iFracos') },   // Fracos
+    { t: 38.0, fn: () => ['c18iN5', 'c18iF5', 'c18iN6', 'c18iF6', 'c18iN7', 'c18iF7', 'c18iN8', 'c18iF8'].forEach(c18eTabShow) },   // hidrácidos fracos (H2S, HCN, H2Se, H2Te)
   ]),
   'dialogo1.8J':  () => rodarStory([
     { t: 0.3,  fn: () => { c18iSome(); c18eTabShow('c18jTit'); } },   // some a lista dos hidrácidos; "Oxiácidos" entra no lugar
@@ -4579,9 +4582,9 @@ function tocarFaixa(i) {
   if (typeof fecharQuiz4 === 'function') fecharQuiz4();   // some a questão 4 (arrastar)
   if (typeof fecharQuizFim === 'function') fecharQuizFim();   // some o card de nota final
   if (typeof limparOverlaysQuiz === 'function') limparOverlaysQuiz();   // garante que nenhum overlay de quiz/cena fique sobreposto
-  if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
-  if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
-  if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
+  if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
+  if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
+  if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
@@ -4706,8 +4709,9 @@ player.addEventListener('ended', () => {
     $id('playBtn').classList.add('jogar');
   }
   // próxima faixa marcada como automática: começa sozinha ~1s após terminar esta
+  // (esconde o play durante essa janela de 1s pra ele não piscar antes da faixa auto — ex.: 1.8I -> 1.8I1)
   const prox = FAIXAS[faixaAtual + 1];
-  if (prox && prox.auto) { const alvo = faixaAtual + 1; setTimeout(() => { if (faixaAtual === alvo - 1) tocarFaixa(alvo); }, 1000); return; }
+  if (prox && prox.auto) { const alvo = faixaAtual + 1; $id('playBtn').style.display = 'none'; setTimeout(() => { if (faixaAtual === alvo - 1) tocarFaixa(alvo); }, 1000); return; }
 });
 
 function setIconePlay(tocando) {
