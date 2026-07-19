@@ -1693,7 +1693,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.100.0</div>
+<div id="versao">v1.101.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -4321,6 +4321,7 @@ const EVENTOS = {
     { t: 38.0, fn: () => ['c18iN5', 'c18iF5', 'c18iN6', 'c18iF6', 'c18iN7', 'c18iF7', 'c18iN8', 'c18iF8'].forEach(c18eTabShow) },   // hidrácidos fracos (H2S, HCN, H2Se, H2Te)
   ]),
   'dialogo1.8J':  () => rodarStory([
+    { t: 0.0,  fn: c18jPreparar },                                    // pulo direto pelo sumário (item 20): monta a cena "c)" limpa; no fluxo normal não faz nada
     { t: 0.3,  fn: () => { c18iSome(); c18eTabShow('c18jTit'); } },   // some a lista dos hidrácidos; "Oxiácidos" entra no lugar
     { t: 5.2,  fn: () => { c18eTabShow('c18jFrame'); c18eTabShow('c18jOx'); } },   // frame de destaque + "Nº de Oxigênio"
     { t: 7.6,  fn: () => c18eTabShow('c18jH') },        // "− Nº H(ionizáveis)" na mesma linha (subtração)
@@ -4392,6 +4393,14 @@ function c18iPreparar() {
   }
   c18LimparTextos();
   irParaCamera(CAM_1, false);   // posição 1 (vista padrão do lab), instantânea — igual ao fim do 1.8H
+}
+// Pulo direto pro 1.8J pelo sumário (item 20): se a lista dos hidrácidos NÃO está na tela, é pulo direto —
+// reconstrói a cena "c)" limpa (igual ao 1.8I). No fluxo normal (vindo do 1.8I1, com a lista visível) não faz
+// nada, pra deixar o cue de 0.3s (c18iSome) fazer a lista sair em fade.
+function c18jPreparar() {
+  const li = $id('c18iLista');
+  const hidVisivel = li && li.querySelector('.show');
+  if (!hidVisivel) c18iPreparar();
 }
 // ---- 1.8K: substituições no frame da regra + quiz do exemplo ----
 function c18jSome(id) { const e = $id(id); if (!e) return; e.classList.remove('show'); setTimeout(() => e.classList.add('off'), 620); }   // termo sai em fade e colapsa
@@ -4772,7 +4781,8 @@ const SUMARIO = [
   { titulo: 'Quiz 3',                       faixa: idxFaixa('dialogo1.7B') },
   { titulo: 'Classificação quanto à força', faixa: idxFaixa('dialogo1.8') },
   { titulo: 'A condutibilidade elétrica dos ácidos', faixa: idxFaixa('dialogo1.8G') },
-  { titulo: 'Força dos ácidos pela fórmula', faixa: idxFaixa('dialogo1.8I') },
+  { titulo: 'Força pela fórmula: Hidrácidos', faixa: idxFaixa('dialogo1.8I') },
+  { titulo: 'Força pela fórmula: Oxiácidos', faixa: idxFaixa('dialogo1.8J') },
 ];
 
 SUMARIO.forEach(item => {
