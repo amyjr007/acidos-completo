@@ -1624,7 +1624,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.81.0</div>
+<div id="versao">v1.82.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2774,10 +2774,11 @@ function c18gTrocarLiquido(ac) {
   addLabel(b, ac.parts, 1.5, 3.2);         // etiqueta com a fórmula do ácido escolhido
   b.traverse(o => { if (o.isMesh) o.castShadow = true; });
   b.scale.setScalar(0.001); scene.add(b);
-  setTimeout(() => escala3D(b, 1, 500), 320);    // o novo aparece crescendo (meio sobreposto à saída do antigo)
   beq18sel = b;
-  lamp18Forca = (typeof ac.f === 'number') ? ac.f : 0;   // brilho proporcional à força (água = 0, não conduz)
-  if (fonte18Ligada && eletrodos18Baixo) aplicarBrilhoLampada18();   // eletrodos mergulhados: só atualiza o brilho (sem resetar)
+  lamp18Forca = (typeof ac.f === 'number') ? ac.f : 0;   // já guarda a força (água = 0); o BRILHO só muda quando o béquer novo terminar de crescer
+  setTimeout(() => escala3D(b, 1, 500, () => {           // o novo aparece crescendo; ao terminar -> atualiza o brilho da lâmpada
+    if (fonte18Ligada && eletrodos18Baixo) aplicarBrilhoLampada18();   // eletrodos mergulhados: troca o brilho SÓ depois do béquer trocar
+  }), 320);
   escurecerCena18g(true);                  // a partir da escolha, a luz da cena fica mais amena
 }
 // água selecionada com os eletrodos mergulhados -> toca dialogo1.8h2o e trava toda a interação até acabar
