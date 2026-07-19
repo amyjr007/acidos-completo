@@ -1107,6 +1107,12 @@
   #cena18 .c18i-lista .n { color: var(--acid); }                         /* nomes no verde da capa */
   #cena18 .c18i-lista .f { font-family: "Cambria Math", Georgia, serif; }
   #cena18 .c18i-lista .f sub { font-size: .62em; }
+  /* 1.8I: lista maior + hierarquia (Hidrácidos / Fortes: / Moderado: / Fracos: maiores que os nomes) e mais respiro antes de Moderado/Fracos */
+  #cena18 #c18iLista { font-size: clamp(17px, 4.9vw, 27px); gap: .16em; }
+  #cena18 #c18iLista .c18i-tit,
+  #cena18 #c18iLista .c18i-sub { font-size: 1.3em; }
+  #cena18 #c18iLista #c18iMod,
+  #cena18 #c18iLista #c18iFracos { margin-top: .78em; }
   #cena18 .c18i-lista .c18i-tit, #cena18 .c18i-lista .c18i-sub, #cena18 .c18i-lista span { opacity: 0; transition: opacity .6s ease; }
   #cena18 .c18i-lista .show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
   #cena18 .c18i-lista .v { color: #ffd21e; }   /* valores da regra dos oxiácidos (1.8J): "= 2 ou 3" etc. */
@@ -1679,7 +1685,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.94.0</div>
+<div id="versao">v1.95.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1860,7 +1866,7 @@
     <div class="c18i-lin"><span class="n" id="c18iN3">Ácido Iodídrico</span><span class="f" id="c18iF3">HI</span></div>
     <div class="c18i-sub" id="c18iMod">Moderado:</div>
     <div class="c18i-lin"><span class="n" id="c18iN4">Ácido Fluorídrico</span><span class="f" id="c18iF4">HF</span></div>
-    <div class="c18i-sub" id="c18iFracos">Fracos</div>
+    <div class="c18i-sub" id="c18iFracos">Fracos:</div>
     <div class="c18i-lin"><span class="n" id="c18iN5">Ácido Sulfídrico</span><span class="f" id="c18iF5">H<sub>2</sub>S</span></div>
     <div class="c18i-lin"><span class="n" id="c18iN6">Ácido Cianídrico</span><span class="f" id="c18iF6">HCN</span></div>
     <div class="c18i-lin"><span class="n" id="c18iN7">Ácido Selenídrico</span><span class="f" id="c18iF7">H<sub>2</sub>Se</span></div>
@@ -3867,7 +3873,7 @@ const FAIXAS = [
   { id: 'dialogo1.8G3', arquivo: 'audios/dialogo1.8G3.mp3', titulo: 'Diálogo 1.8G3' },
   { id: 'dialogo1.8H',  arquivo: 'audios/dialogo1.8H.mp3',  titulo: 'Diálogo 1.8H' },
   { id: 'dialogo1.8I',  arquivo: 'audios/dialogo1.8I.mp3',  titulo: 'Diálogo 1.8I' },
-  { id: 'dialogo1.8I1', arquivo: 'audios/dialogo1.8I1.mp3', titulo: 'Diálogo 1.8I1', auto: true },
+  { id: 'dialogo1.8I1', arquivo: 'audios/dialogo1.8I1.mp3', titulo: 'Diálogo 1.8I1', auto: true, autoDelay: 2000 },
   { id: 'dialogo1.8J',  arquivo: 'audios/dialogo1.8J.mp3',  titulo: 'Diálogo 1.8J' },
   { id: 'dialogo1.8K',  arquivo: 'audios/dialogo1.8K.mp3',  titulo: 'Diálogo 1.8K' },
   { id: 'dialogo1.8KR', arquivo: 'audios/dialogo1.8KR.mp3', titulo: 'Diálogo 1.8K (acerto)' },
@@ -4297,7 +4303,7 @@ const EVENTOS = {
     { t: 11.0, fn: () => c18eTabShow('c18iN2') },       // Ácido Bromídrico
     { t: 12.4, fn: () => c18eTabShow('c18iF2') },       // HBr
     { t: 14.0, fn: () => c18eTabShow('c18iN3') },       // Ácido Iodídrico
-    { t: 16.0, fn: () => c18eTabShow('c18iF3') },       // HI
+    { t: 15.0, fn: () => c18eTabShow('c18iF3') },       // HI
     { t: 20.0, fn: () => c18eTabShow('c18iMod') },      // Moderado:
     { t: 26.0, fn: () => c18eTabShow('c18iN4') },       // Ácido Fluorídrico
     { t: 27.0, fn: () => c18eTabShow('c18iF4') },       // HF ao lado
@@ -4711,7 +4717,7 @@ player.addEventListener('ended', () => {
   // próxima faixa marcada como automática: começa sozinha ~1s após terminar esta
   // (esconde o play durante essa janela de 1s pra ele não piscar antes da faixa auto — ex.: 1.8I -> 1.8I1)
   const prox = FAIXAS[faixaAtual + 1];
-  if (prox && prox.auto) { const alvo = faixaAtual + 1; $id('playBtn').style.display = 'none'; setTimeout(() => { if (faixaAtual === alvo - 1) tocarFaixa(alvo); }, 1000); return; }
+  if (prox && prox.auto) { const alvo = faixaAtual + 1; $id('playBtn').style.display = 'none'; setTimeout(() => { if (faixaAtual === alvo - 1) tocarFaixa(alvo); }, prox.autoDelay || 1000); return; }
 });
 
 function setIconePlay(tocando) {
