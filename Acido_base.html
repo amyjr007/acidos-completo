@@ -1129,7 +1129,10 @@
     opacity: 0; transition: opacity .6s ease;
   }
   #cena18 .c18j-frame.show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
-  #cena18 #c18jFrameb { display: none; }                    /* frame-cópia (1.8K/L/M): fora do layout até aparecer com o exemplo */
+  #cena18 .c18j-frame span { opacity: 0; transition: opacity .6s ease; }   /* termos/números do frame (funciona dentro ou fora da lista) */
+  #cena18 .c18j-frame span.show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
+  /* frame-cópia (1.8K/L/M): a que é modificada — embaixo do exemplo, sobre os quadrados de fundo */
+  #cena18 #c18jFrameb { position: absolute; left: 7%; top: 60%; margin: 0; font-size: clamp(20px, 5.6vw, 32px); display: none; }
   #cena18 #c18jFrameb.show { display: flex; }
   #cena18 .c18j-frame sub { font-size: .56em; }
   #cena18 .c18j-frame .off { display: none; }              /* termo substituído sai do layout */
@@ -1690,7 +1693,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.99.0</div>
+<div id="versao">v1.100.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1881,7 +1884,6 @@
   <div class="c18i-lista" id="c18jLista">
     <div class="c18i-tit" id="c18jTit">Oxiácidos</div>
     <div class="c18j-frame" id="c18jFrame"><span id="c18jOx">N&ordm; de Oxigênio</span><span id="c18jH">&minus; N&ordm; H<sub>ionizáveis</sub></span></div>
-    <div class="c18j-frame" id="c18jFrameb"><span id="c18jOxb">N&ordm; de Oxigênio</span><span id="c18jHb">&minus; N&ordm; H<sub>ionizáveis</sub></span><span class="num off" id="c18jOxNb">4</span><span class="num off" id="c18jHNb">&minus; 2</span><span class="num off" id="c18jIgb">=</span><span class="num off" id="c18jResb">2</span></div>
     <div class="c18i-lin"><span id="c18jForte">Forte</span><span class="v" id="c18jV1">= 2 ou 3</span></div>
     <div class="c18i-lin"><span id="c18jMod">Moderado</span><span class="v" id="c18jV2">= 1</span></div>
     <div class="c18i-lin"><span id="c18jFraco">Fraco</span><span class="v" id="c18jV3">= 0</span></div>
@@ -1899,6 +1901,8 @@
     <span class="rot" id="c18kRot3">Ex<sub>3</sub>:</span>
     <span class="f" id="c18kForm3"><span class="p" id="c18kHm">H</span><span class="p">Cl</span><span class="p" id="c18kOm">O</span></span>
   </div>
+  <!-- 1.8K/L/M: cópia da regra (a que é modificada) — embaixo do exemplo, sobre os quadrados de fundo -->
+  <div class="c18j-frame" id="c18jFrameb"><span id="c18jOxb">N&ordm; de Oxigênio</span><span id="c18jHb">&minus; N&ordm; H<sub>ionizáveis</sub></span><span class="num off" id="c18jOxNb">4</span><span class="num off" id="c18jHNb">&minus; 2</span><span class="num off" id="c18jIgb">=</span><span class="num off" id="c18jResb">2</span></div>
 </div>
 
 <!-- 1.8K: opções de resposta do exemplo -->
