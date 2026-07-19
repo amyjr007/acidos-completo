@@ -1110,6 +1110,17 @@
   #cena18 .c18i-lista .c18i-tit, #cena18 .c18i-lista .c18i-sub, #cena18 .c18i-lista span { opacity: 0; transition: opacity .6s ease; }
   #cena18 .c18i-lista .show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
   #cena18 .c18i-lista .v { color: #ffd21e; }   /* valores da regra dos oxiácidos (1.8J): "= 2 ou 3" etc. */
+  /* frame de destaque da fórmula dos oxiácidos (1.8J) — tudo numa linha, "ionizáveis" como índice */
+  #cena18 .c18j-frame {
+    display: flex; align-items: baseline; gap: .35em; white-space: nowrap;
+    margin: .25em 0 .2em; padding: .4em .85em;
+    font-family: "Cambria Math", Georgia, serif; font-size: 1.06em;
+    background: rgba(166, 229, 52, .1); border: 1.5px solid rgba(166, 229, 52, .55); border-radius: 12px;
+    box-shadow: 0 0 16px rgba(166, 229, 52, .22), 0 2px 10px rgba(0, 0, 0, .35);
+    opacity: 0; transition: opacity .6s ease;
+  }
+  #cena18 .c18j-frame.show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
+  #cena18 .c18j-frame sub { font-size: .56em; }
   /* alerta chamativo (força x corrosão) — mesmo estilo/keyframes do 1.7A */
   #cena18 .c18-alerta {
     position: absolute; top: 29%; left: 0; right: 0; text-align: center; padding: 0 20px;
@@ -1640,7 +1651,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.89.0</div>
+<div id="versao">v1.90.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1828,8 +1839,7 @@
   <!-- 1.8J: regra dos oxiácidos (entra no lugar dos hidrácidos) -->
   <div class="c18i-lista" id="c18jLista">
     <div class="c18i-tit" id="c18jTit">Oxiácidos</div>
-    <div class="c18i-lin"><span id="c18jOx">N&ordm; de Oxigênio</span></div>
-    <div class="c18i-lin"><span id="c18jH">&minus; N&ordm; de Hidrogênios ionizáveis</span></div>
+    <div class="c18j-frame" id="c18jFrame"><span id="c18jOx">N&ordm; de Oxigênio</span><span id="c18jH">&minus; N&ordm; H<sub>ionizáveis</sub></span></div>
     <div class="c18i-lin"><span id="c18jForte">Forte</span><span class="v" id="c18jV1">= 2 ou 3</span></div>
     <div class="c18i-lin"><span id="c18jMod">Moderado</span><span class="v" id="c18jV2">= 1</span></div>
     <div class="c18i-lin"><span id="c18jFraco">Fraco</span><span class="v" id="c18jV3">= 0</span></div>
@@ -4235,8 +4245,8 @@ const EVENTOS = {
   ]),
   'dialogo1.8J':  () => rodarStory([
     { t: 0.3,  fn: () => { c18iSome(); c18eTabShow('c18jTit'); } },   // some a lista dos hidrácidos; "Oxiácidos" entra no lugar
-    { t: 5.2,  fn: () => c18eTabShow('c18jOx') },       // Nº de Oxigênio
-    { t: 7.6,  fn: () => c18eTabShow('c18jH') },        // − Nº de Hidrogênios ionizáveis (subtração)
+    { t: 5.2,  fn: () => { c18eTabShow('c18jFrame'); c18eTabShow('c18jOx'); } },   // frame de destaque + "Nº de Oxigênio"
+    { t: 7.6,  fn: () => c18eTabShow('c18jH') },        // "− Nº H(ionizáveis)" na mesma linha (subtração)
     { t: 14.2, fn: () => c18eTabShow('c18jForte') },    // Forte
     { t: 17.7, fn: () => c18eTabShow('c18jV1') },       // = 2 ou 3
     { t: 19.8, fn: () => c18eTabShow('c18jMod') },      // Moderado
