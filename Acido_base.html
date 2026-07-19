@@ -1113,6 +1113,9 @@
   #cena18 #c18iLista .c18i-sub { font-size: 1.3em; }
   #cena18 #c18iLista #c18iMod,
   #cena18 #c18iLista #c18iFracos { margin-top: .78em; }
+  /* 1.8J (oxiácidos): mesma escala do 1.8I */
+  #cena18 #c18jLista { font-size: clamp(19px, 5.4vw, 30px); gap: .16em; }
+  #cena18 #c18jLista .c18i-tit { font-size: 1.3em; }
   #cena18 .c18i-lista .c18i-tit, #cena18 .c18i-lista .c18i-sub, #cena18 .c18i-lista span { opacity: 0; transition: opacity .6s ease; }
   #cena18 .c18i-lista .show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
   #cena18 .c18i-lista .v { color: #ffd21e; }   /* valores da regra dos oxiácidos (1.8J): "= 2 ou 3" etc. */
@@ -1685,7 +1688,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.96.0</div>
+<div id="versao">v1.97.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3872,7 +3875,7 @@ const FAIXAS = [
   { id: 'dialogo1.8G2', arquivo: 'audios/dialogo1.8G2.mp3', titulo: 'Diálogo 1.8G2' },
   { id: 'dialogo1.8G3', arquivo: 'audios/dialogo1.8G3.mp3', titulo: 'Diálogo 1.8G3' },
   { id: 'dialogo1.8H',  arquivo: 'audios/dialogo1.8H.mp3',  titulo: 'Diálogo 1.8H' },
-  { id: 'dialogo1.8I',  arquivo: 'audios/dialogo1.8I.mp3',  titulo: 'Diálogo 1.8I', semPlay: true },
+  { id: 'dialogo1.8I',  arquivo: 'audios/dialogo1.8I.mp3',  titulo: 'Diálogo 1.8I' },
   { id: 'dialogo1.8I1', arquivo: 'audios/dialogo1.8I1.mp3', titulo: 'Diálogo 1.8I1', auto: true, autoDelay: 2000 },
   { id: 'dialogo1.8J',  arquivo: 'audios/dialogo1.8J.mp3',  titulo: 'Diálogo 1.8J' },
   { id: 'dialogo1.8K',  arquivo: 'audios/dialogo1.8K.mp3',  titulo: 'Diálogo 1.8K' },
