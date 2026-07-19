@@ -1129,6 +1129,8 @@
     opacity: 0; transition: opacity .6s ease;
   }
   #cena18 .c18j-frame.show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
+  #cena18 #c18jFrameb { display: none; }                    /* frame-cópia (1.8K/L/M): fora do layout até aparecer com o exemplo */
+  #cena18 #c18jFrameb.show { display: flex; }
   #cena18 .c18j-frame sub { font-size: .56em; }
   #cena18 .c18j-frame .off { display: none; }              /* termo substituído sai do layout */
   #cena18 .c18j-frame .num { color: #ffd21e; }             /* números da conta (4 − 2 = 2) */
@@ -1688,7 +1690,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.98.0</div>
+<div id="versao">v1.99.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1878,7 +1880,8 @@
   <!-- 1.8J: regra dos oxiácidos (entra no lugar dos hidrácidos) -->
   <div class="c18i-lista" id="c18jLista">
     <div class="c18i-tit" id="c18jTit">Oxiácidos</div>
-    <div class="c18j-frame" id="c18jFrame"><span id="c18jOx">N&ordm; de Oxigênio</span><span id="c18jH">&minus; N&ordm; H<sub>ionizáveis</sub></span><span class="num off" id="c18jOxN">4</span><span class="num off" id="c18jHN">&minus; 2</span><span class="num off" id="c18jIg">=</span><span class="num off" id="c18jRes">2</span></div>
+    <div class="c18j-frame" id="c18jFrame"><span id="c18jOx">N&ordm; de Oxigênio</span><span id="c18jH">&minus; N&ordm; H<sub>ionizáveis</sub></span></div>
+    <div class="c18j-frame" id="c18jFrameb"><span id="c18jOxb">N&ordm; de Oxigênio</span><span id="c18jHb">&minus; N&ordm; H<sub>ionizáveis</sub></span><span class="num off" id="c18jOxNb">4</span><span class="num off" id="c18jHNb">&minus; 2</span><span class="num off" id="c18jIgb">=</span><span class="num off" id="c18jResb">2</span></div>
     <div class="c18i-lin"><span id="c18jForte">Forte</span><span class="v" id="c18jV1">= 2 ou 3</span></div>
     <div class="c18i-lin"><span id="c18jMod">Moderado</span><span class="v" id="c18jV2">= 1</span></div>
     <div class="c18i-lin"><span id="c18jFraco">Fraco</span><span class="v" id="c18jV3">= 0</span></div>
@@ -4326,13 +4329,13 @@ const EVENTOS = {
   ]),
   'dialogo1.8K':  () => rodarStory([
     { t: 1.0,  fn: () => c18eTabShow('c18kRot1') },     // "Ex:" embaixo, à esquerda
-    { t: 2.2,  fn: () => c18eTabShow('c18kForm1') },    // H2SO4 (fórmula grande)
+    { t: 2.2,  fn: () => { c18eTabShow('c18kForm1'); ['c18jFrameb', 'c18jOxb', 'c18jHb'].forEach(c18eTabShow); } },   // H2SO4 (fórmula grande) + cópia da regra embaixo (a original fica intacta)
     { t: 5.7,  fn: () => $id('c18kO4').classList.add('grande') },   // cresce o O4
     { t: 7.2,  fn: () => $id('c18kH2').classList.add('grande') },   // cresce o H2
-    { t: 10.0, fn: () => { c18jSome('c18jOx'); c18jNum('c18jOxN', '4'); } },   // "Nº de Oxigênio" sai e entra o 4
-    { t: 10.8, fn: () => { c18jSome('c18jH'); c18jNum('c18jHN', '&minus; 2'); } },   // "− Nº H" sai e entra o "− 2"
-    { t: 12.7, fn: () => c18jNum('c18jIg', '=') },      // =
-    { t: 13.6, fn: () => c18jNum('c18jRes', '2') },     // 2
+    { t: 10.0, fn: () => { c18jSome('c18jOxb'); c18jNum('c18jOxNb', '4'); } },   // na cópia: "Nº de Oxigênio" sai e entra o 4
+    { t: 10.8, fn: () => { c18jSome('c18jHb'); c18jNum('c18jHNb', '&minus; 2'); } },   // na cópia: "− Nº H" sai e entra o "− 2"
+    { t: 12.7, fn: () => c18jNum('c18jIgb', '=') },     // =
+    { t: 13.6, fn: () => c18jNum('c18jResb', '2') },    // 2
     { t: 14.0, fn: () => ['c18kO4', 'c18kH2'].forEach(id => $id(id).classList.remove('grande')) },   // o que estava aumentado volta ao normal
     { t: 16.7, fn: () => $id('c18jV1').classList.add('maior') },    // destaca o "= 2 ou 3"
   ]),
@@ -4341,20 +4344,20 @@ const EVENTOS = {
     { t: 2.0,  fn: () => { c18eTabShow('c18kRot2'); c18eTabShow('c18kForm2'); } },   // Ex2: H3PO4
     { t: 5.7,  fn: () => $id('c18kO4b').classList.add('grande') },   // cresce o O4
     { t: 7.2,  fn: () => $id('c18kH3').classList.add('grande') },    // cresce o H3
-    { t: 10.8, fn: () => { c18jSome('c18jOx'); c18jNum('c18jOxN', '4'); } },   // Nº de Oxigênio -> 4
-    { t: 11.8, fn: () => { c18jSome('c18jH'); c18jNum('c18jHN', '&minus; 3'); } },   // − 3
-    { t: 14.0, fn: () => c18jNum('c18jIg', '=') },      // =
-    { t: 15.0, fn: () => c18jNum('c18jRes', '1') },     // 1
+    { t: 10.8, fn: () => { c18jSome('c18jOxb'); c18jNum('c18jOxNb', '4'); } },   // na cópia: Nº de Oxigênio -> 4
+    { t: 11.8, fn: () => { c18jSome('c18jHb'); c18jNum('c18jHNb', '&minus; 3'); } },   // − 3
+    { t: 14.0, fn: () => c18jNum('c18jIgb', '=') },     // =
+    { t: 15.0, fn: () => c18jNum('c18jResb', '1') },    // 1
   ]),
   'dialogo1.8M':  () => rodarStory([
     { t: 1.0,  fn: () => c18ExReset('c18kRot2', 'c18kForm2', ['c18kH3', 'c18kO4b']) },   // some tudo da fórmula pra baixo (Ex2 + números; frame volta ao original)
     { t: 2.0,  fn: () => { c18eTabShow('c18kRot3'); c18eTabShow('c18kForm3'); } },   // Ex3: HClO
     { t: 6.0,  fn: () => $id('c18kOm').classList.add('grande') },   // cresce o O
     { t: 8.0,  fn: () => $id('c18kHm').classList.add('grande') },   // cresce o H
-    { t: 11.0, fn: () => { c18jSome('c18jOx'); c18jNum('c18jOxN', '1'); } },   // Nº de Oxigênio -> 1
-    { t: 12.0, fn: () => { c18jSome('c18jH'); c18jNum('c18jHN', '&minus; 1'); } },   // − 1
-    { t: 14.0, fn: () => c18jNum('c18jIg', '=') },      // =
-    { t: 15.0, fn: () => c18jNum('c18jRes', '0') },     // 0
+    { t: 11.0, fn: () => { c18jSome('c18jOxb'); c18jNum('c18jOxNb', '1'); } },   // na cópia: Nº de Oxigênio -> 1
+    { t: 12.0, fn: () => { c18jSome('c18jHb'); c18jNum('c18jHNb', '&minus; 1'); } },   // − 1
+    { t: 14.0, fn: () => c18jNum('c18jIgb', '=') },     // =
+    { t: 15.0, fn: () => c18jNum('c18jResb', '0') },    // 0
   ]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
@@ -4394,10 +4397,10 @@ function c18ExReset(rotId, formId, growIds) {
   [rotId, formId].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
   growIds.forEach(id => { const e = $id(id); if (e) e.classList.remove('grande'); });
   const v = $id('c18jV1'); if (v) v.classList.remove('maior');
-  ['c18jOxN', 'c18jHN', 'c18jIg', 'c18jRes'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });   // números somem em fade...
+  ['c18jOxNb', 'c18jHNb', 'c18jIgb', 'c18jResb'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });   // números da cópia somem em fade...
   setTimeout(() => {
-    ['c18jOxN', 'c18jHN', 'c18jIg', 'c18jRes'].forEach(id => { const e = $id(id); if (e) e.classList.add('off'); });
-    ['c18jOx', 'c18jH'].forEach(id => { const e = $id(id); if (e) { e.classList.remove('off'); e.classList.add('show'); } });   // ...e os termos originais voltam
+    ['c18jOxNb', 'c18jHNb', 'c18jIgb', 'c18jResb'].forEach(id => { const e = $id(id); if (e) e.classList.add('off'); });
+    ['c18jOxb', 'c18jHb'].forEach(id => { const e = $id(id); if (e) { e.classList.remove('off'); e.classList.add('show'); } });   // ...e os termos da cópia voltam (a regra original nunca muda)
   }, 650);
 }
 // quiz dos exemplos (K/L/M): resposta certa por exercício e qual faixa toca depois
@@ -6539,8 +6542,8 @@ function c18LimparTextos() {
   ['nomeHCl', 'nomeHNCO', 'c18bAlfa', 'c18bFraco', 'c18bCorr', 'c18dAlfa', 'c18dForte', 'c18dLabHNCO', 'c18dLabHCl', 'c18dA3', 'c18dA92'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
   const tab = $id('c18eTab'); if (tab) tab.querySelectorAll('span').forEach(s => s.classList.remove('show'));   // tabela do grau de ionização (1.8E)
   ['c18iLista', 'c18jLista'].forEach(id => { const li = $id(id); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); });   // listas dos hidrácidos (1.8I) e oxiácidos (1.8J)
-  ['c18jOxN', 'c18jHN', 'c18jIg', 'c18jRes'].forEach(id => { const e = $id(id); if (e) e.classList.add('off'); });   // frame da regra volta ao original (1.8K/L/M)
-  ['c18jOx', 'c18jH'].forEach(id => { const e = $id(id); if (e) e.classList.remove('off'); });
+  ['c18jOxNb', 'c18jHNb', 'c18jIgb', 'c18jResb'].forEach(id => { const e = $id(id); if (e) e.classList.add('off'); });   // números da cópia (1.8K/L/M) somem
+  ['c18jOxb', 'c18jHb'].forEach(id => { const e = $id(id); if (e) e.classList.remove('off'); });   // termos da cópia voltam
   ['c18kRot1', 'c18kForm1', 'c18kRot2', 'c18kForm2', 'c18kRot3', 'c18kForm3'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });   // exemplos (1.8K/L/M)
   ['c18kH2', 'c18kO4', 'c18kH3', 'c18kO4b', 'c18kHm', 'c18kOm'].forEach(id => { const e = $id(id); if (e) e.classList.remove('grande'); });
   const vv = $id('c18jV1'); if (vv) vv.classList.remove('maior');
