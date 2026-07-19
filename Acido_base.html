@@ -1688,7 +1688,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.97.0</div>
+<div id="versao">v1.98.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -4317,12 +4317,12 @@ const EVENTOS = {
     { t: 0.3,  fn: () => { c18iSome(); c18eTabShow('c18jTit'); } },   // some a lista dos hidrácidos; "Oxiácidos" entra no lugar
     { t: 5.2,  fn: () => { c18eTabShow('c18jFrame'); c18eTabShow('c18jOx'); } },   // frame de destaque + "Nº de Oxigênio"
     { t: 7.6,  fn: () => c18eTabShow('c18jH') },        // "− Nº H(ionizáveis)" na mesma linha (subtração)
-    { t: 14.2, fn: () => c18eTabShow('c18jForte') },    // Forte
-    { t: 17.7, fn: () => c18eTabShow('c18jV1') },       // = 2 ou 3
-    { t: 19.8, fn: () => c18eTabShow('c18jMod') },      // Moderado
-    { t: 22.5, fn: () => c18eTabShow('c18jV2') },       // = 1
-    { t: 25.0, fn: () => c18eTabShow('c18jFraco') },    // Fraco
-    { t: 28.0, fn: () => c18eTabShow('c18jV3') },       // = 0
+    { t: 14.2, fn: () => c18eTabShow('c18jV1') },       // = 2 ou 3
+    { t: 17.7, fn: () => c18eTabShow('c18jForte') },    // Forte
+    { t: 19.8, fn: () => c18eTabShow('c18jV2') },       // = 1
+    { t: 22.5, fn: () => c18eTabShow('c18jMod') },      // Moderado
+    { t: 25.0, fn: () => c18eTabShow('c18jV3') },       // = 0
+    { t: 28.0, fn: () => c18eTabShow('c18jFraco') },    // Fraco
   ]),
   'dialogo1.8K':  () => rodarStory([
     { t: 1.0,  fn: () => c18eTabShow('c18kRot1') },     // "Ex:" embaixo, à esquerda
