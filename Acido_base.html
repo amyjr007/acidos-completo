@@ -1624,7 +1624,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.86.0</div>
+<div id="versao">v1.87.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3767,6 +3767,7 @@ const FAIXAS = [
   { id: 'dialogo1.8G1', arquivo: 'audios/dialogo1.8G1.mp3', titulo: 'Diálogo 1.8G1' },
   { id: 'dialogo1.8G2', arquivo: 'audios/dialogo1.8G2.mp3', titulo: 'Diálogo 1.8G2' },
   { id: 'dialogo1.8G3', arquivo: 'audios/dialogo1.8G3.mp3', titulo: 'Diálogo 1.8G3' },
+  { id: 'dialogo1.8H',  arquivo: 'audios/dialogo1.8H.mp3',  titulo: 'Diálogo 1.8H' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -4173,7 +4174,22 @@ const EVENTOS = {
   'dialogo1.8G2': () => rodarStory([
     { t: 1.0,  fn: () => maoTutIniciar(() => mao18Apontar(1.67, 4.0, 4.8), () => eleUsado) },   // mão -> botão que sobe/baixa os eletrodos
   ]),
+  'dialogo1.8H':  () => rodarStory([
+    { t: 0.0,  fn: maoTutParar },                                      // limpa qualquer mãozinha-tutorial pendente
+    { t: 5.0,  fn: c18hCameraESai },                                   // câmera vira pra posição 1; ao terminar, o aparelho some em fade out
+  ]),
 };
+// 5s do 1.8H: câmera de volta à posição 1 (vista padrão do lab); quando o movimento termina, o aparelho
+// (e o béquer escolhido) somem em fade out, a UI de escolha se recolhe e a iluminação volta ao padrão
+function c18hCameraESai() {
+  c18gEsconderEscolha();
+  irParaCamera(CAM_1, true, 1800);
+  setTimeout(() => {
+    if (aparelho18e && aparelho18e.visible) fade3D(aparelho18e, 0, 700);
+    if (beq18sel && beq18sel.visible) fade3D(beq18sel, 0, 700);
+    escurecerCena18g(false);   // iluminação da cena volta ao padrão
+  }, 1850);
+}
 function c18eTabShow(id) { const el = $id(id); if (el) el.classList.add('show'); }
 function c18fSomeTabela() { const tab = $id('c18eTab'); if (tab) tab.querySelectorAll('span').forEach(s => s.classList.remove('show')); }
 // Ponteiros-tutorial (mãozinha + seta) que ACOMPANHAM o alvo 3D quadro a quadro (a câmera pode estar animando)
@@ -4329,9 +4345,9 @@ function tocarFaixa(i) {
   if (typeof fecharQuiz4 === 'function') fecharQuiz4();   // some a questão 4 (arrastar)
   if (typeof fecharQuizFim === 'function') fecharQuizFim();   // some o card de nota final
   if (typeof limparOverlaysQuiz === 'function') limparOverlaysQuiz();   // garante que nenhum overlay de quiz/cena fique sobreposto
-  if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
-  if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
-  if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
+  if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
+  if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
+  if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
