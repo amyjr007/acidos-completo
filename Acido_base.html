@@ -1624,7 +1624,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.82.0</div>
+<div id="versao">v1.83.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -4241,14 +4241,11 @@ function c18gEsconderEscolha() {
 }
 // carrossel de líquidos do 1.8G1 — f = fator de brilho: fortes 100%, moderados 40%, fracos 1%
 const C18G_ACIDOS = [
-  { html: 'HCl', parts: [{ t: 'HCl' }], f: 1 },
-  { html: 'HNO<sub>3</sub>', parts: [{ t: 'HNO' }, { t: '3', sub: true }], f: 1 },
-  { html: 'H<sub>2</sub>SO<sub>4</sub>', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'SO' }, { t: '4', sub: true }], f: 1 },
-  { html: 'H<sub>3</sub>PO<sub>4</sub>', parts: [{ t: 'H' }, { t: '3', sub: true }, { t: 'PO' }, { t: '4', sub: true }], f: 0.4 },
-  { html: 'HF', parts: [{ t: 'HF' }], f: 0.4 },
-  { html: 'HNCO', parts: [{ t: 'HNCO' }], f: 0.01 },
-  { html: 'H<sub>2</sub>CO<sub>3</sub>', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'CO' }, { t: '3', sub: true }], f: 0.01 },
-  { html: 'H<sub>2</sub>S', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'S' }], f: 0.01 },
+  { html: 'HCl', parts: [{ t: 'HCl' }], f: 1 },                                                                                    // forte
+  { html: 'H<sub>2</sub>SO<sub>4</sub>', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'SO' }, { t: '4', sub: true }], f: 1 },    // forte
+  { html: 'HF', parts: [{ t: 'HF' }], f: 0.4 },                                                                                    // moderado
+  { html: 'HCNO', parts: [{ t: 'HCNO' }], f: 0.01 },                                                                               // fraco
+  { html: 'H<sub>2</sub>S', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'S' }], f: 0.01 },                                     // fraco
   { html: 'H<sub>2</sub>O', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'O' }], f: 0, agua: true },   // H2O: só libera após a 1ª acesa; não conduz (f=0)
 ];
 // (o wiring dos cliques do carrossel fica mais abaixo, depois da definição do $id)
