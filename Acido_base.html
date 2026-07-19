@@ -1108,7 +1108,7 @@
   #cena18 .c18i-lista .f { font-family: "Cambria Math", Georgia, serif; }
   #cena18 .c18i-lista .f sub { font-size: .62em; }
   /* 1.8I: lista maior + hierarquia (Hidrácidos / Fortes: / Moderado: / Fracos: maiores que os nomes) e mais respiro antes de Moderado/Fracos */
-  #cena18 #c18iLista { font-size: clamp(17px, 4.9vw, 27px); gap: .16em; }
+  #cena18 #c18iLista { font-size: clamp(19px, 5.4vw, 30px); gap: .16em; }
   #cena18 #c18iLista .c18i-tit,
   #cena18 #c18iLista .c18i-sub { font-size: 1.3em; }
   #cena18 #c18iLista #c18iMod,
@@ -1685,7 +1685,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.95.0</div>
+<div id="versao">v1.96.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3872,7 +3872,7 @@ const FAIXAS = [
   { id: 'dialogo1.8G2', arquivo: 'audios/dialogo1.8G2.mp3', titulo: 'Diálogo 1.8G2' },
   { id: 'dialogo1.8G3', arquivo: 'audios/dialogo1.8G3.mp3', titulo: 'Diálogo 1.8G3' },
   { id: 'dialogo1.8H',  arquivo: 'audios/dialogo1.8H.mp3',  titulo: 'Diálogo 1.8H' },
-  { id: 'dialogo1.8I',  arquivo: 'audios/dialogo1.8I.mp3',  titulo: 'Diálogo 1.8I' },
+  { id: 'dialogo1.8I',  arquivo: 'audios/dialogo1.8I.mp3',  titulo: 'Diálogo 1.8I', semPlay: true },
   { id: 'dialogo1.8I1', arquivo: 'audios/dialogo1.8I1.mp3', titulo: 'Diálogo 1.8I1', auto: true, autoDelay: 2000 },
   { id: 'dialogo1.8J',  arquivo: 'audios/dialogo1.8J.mp3',  titulo: 'Diálogo 1.8J' },
   { id: 'dialogo1.8K',  arquivo: 'audios/dialogo1.8K.mp3',  titulo: 'Diálogo 1.8K' },
@@ -4593,7 +4593,7 @@ function tocarFaixa(i) {
   if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
-  pb.style.display = f.auto ? 'none' : '';   // faixa automática toca sem o botão de play
+  pb.style.display = (f.auto || f.semPlay) ? 'none' : '';   // faixa automática (ou marcada semPlay, ex.: 1.8I) toca sem o botão de play
   player.src = f.arquivo;              // novo src já começa em 0 (não força currentTime antes de carregar)
   const pr = player.play();
   if (pr && pr.catch) pr.catch(() => {});
