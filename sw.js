@@ -1,6 +1,6 @@
 // Service Worker — Audiobook Ácidos
 // Bump CACHE a cada nova versão para forçar atualização no celular.
-const CACHE = 'acidos-v1.85.0';
+const CACHE = 'acidos-v1.86.0';
 
 // Arquivos essenciais (app shell) — pré-carregados na instalação.
 const CORE = [

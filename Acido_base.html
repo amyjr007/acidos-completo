@@ -1624,7 +1624,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.85.0</div>
+<div id="versao">v1.86.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2697,19 +2697,21 @@ function aplicarBrilhoLampada18() {   // aplica o brilho conforme lamp18Forca (0
   if (!bulbo18eMat) return;
   const f = lamp18Forca;   // brilho proporcional à força: fortes 1, moderados 0.4, fracos 0.01
   if (f <= 0) { apagarLampada18e(); return; }   // água não conduz -> lâmpada apagada mesmo com o circuito fechado
-  const niv = f >= 0.75 ? { c: 0xfff3b0, e: 0xffcc44, o: 0.42 }
-            : f >= 0.3  ? { c: 0xf3e6b0, e: 0xd9a02e, o: 0.37 }
-            : f >= 0.1  ? { c: 0xe6dfc2, e: 0x8a6a1e, o: 0.33 }
-            :             { c: 0xdfe6ee, e: 0x352a10, o: 0.3 };   // ~1%: quase só o vidro; o filamento é que dá a brasa
+  // "força visual" por faixa: o fraco (f=0.01) NÃO vira quase-zero -> fica uma brasa dim porém convincente
+  const fv = f >= 0.75 ? 1 : f >= 0.3 ? 0.42 : f >= 0.1 ? 0.22 : 0.15;
+  const niv = f >= 0.75 ? { c: 0xfff3b0, e: 0xffcc44, o: 0.44 }
+            : f >= 0.3  ? { c: 0xf3e6b0, e: 0xd9a02e, o: 0.38 }
+            : f >= 0.1  ? { c: 0xf0d6a6, e: 0xb0601c, o: 0.35 }
+            :             { c: 0xf0cba0, e: 0x8a3c12, o: 0.36 };   // fraco: vidro com tom quente + brasa (não fica "só vidro")
   bulbo18eMat.color.setHex(niv.c); bulbo18eMat.emissive.setHex(niv.e); bulbo18eMat.opacity = niv.o;
-  bulbo18eMat.emissiveIntensity = 1 + f * 0.8;   // o bulbo "estoura" mais quando forte
-  // filamento incandescente: da brasa vermelho-escura (fraco) até branco-amarelado (forte) — reforça a diferença de intensidade
-  if (filamento18Mat) filamento18Mat.color.setHex(f >= 0.75 ? 0xfff2c8 : f >= 0.3 ? 0xffa348 : f >= 0.1 ? 0xd9661e : 0x8f2e0a);
-  if (luz18e) luz18e.intensity = 2.4 * f;
-  glow18Base = { a: Math.min(1, 0.05 + 0.95 * f), b: 0.7 * f };   // halos proporcionais à força (1% -> quase nada)
+  bulbo18eMat.emissiveIntensity = 1 + fv * 0.8;   // o bulbo "estoura" mais quando forte
+  // filamento incandescente: brasa laranja-avermelhada (fraco) -> branco-amarelado (forte)
+  if (filamento18Mat) filamento18Mat.color.setHex(f >= 0.75 ? 0xfff2c8 : f >= 0.3 ? 0xffb352 : f >= 0.1 ? 0xf07e2c : 0xef5f22);
+  if (luz18e) luz18e.intensity = 2.6 * fv;
+  glow18Base = { a: Math.min(1, 0.13 + 0.9 * fv), b: 0.6 * fv };   // halo com PISO -> o fraco tem um brilho tênue visível (não some)
   if (glow18a) {
     glow18a.material.opacity = glow18Base.a; glow18b.material.opacity = glow18Base.b;
-    glow18b.scale.set(2.6 + 2.4 * f, 2.6 + 2.4 * f, 1);      // auréola maior quanto mais forte
+    glow18b.scale.set(2.4 + 2.4 * fv, 2.4 + 2.4 * fv, 1);      // auréola maior quanto mais forte
   }
 }
 function atualizarLampada18e() {   // circuito fechado (fonte ligada + eletrodos na solução) -> lâmpada acesa
