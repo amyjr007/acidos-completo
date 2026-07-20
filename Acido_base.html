@@ -732,6 +732,51 @@
     text-shadow: 0 4px 24px rgba(0, 0, 0, .6), 0 0 34px rgba(166, 229, 52, .6);
   }
   #quizFParabens.show { opacity: 1; animation: quizPop .6s cubic-bezier(.2, .8, .3, 1.2) both; }
+  /* título "Questão N" (topo, centralizado) */
+  #qfTitulo {
+    position: absolute; top: calc(12px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+    z-index: 3; pointer-events: none; opacity: 0; transition: opacity .4s ease;
+    font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: .07em; text-transform: uppercase;
+    color: #a6e534; font-size: clamp(15px, 4.8vw, 23px); text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
+  }
+  #quizF.show #qfTitulo { opacity: 1; }
+  #quizF.trocando #qfTitulo { opacity: 0; }
+  /* ---- Questão 2: caixas de classificação + fórmula arrastável ---- */
+  #qf2 { position: absolute; inset: 0; z-index: 2; opacity: 0; pointer-events: none; transition: opacity .5s ease; }
+  #quizF.q2 #qf2 { opacity: 1; }
+  #quizF.q2.trocando #qf2 { opacity: 0; }
+  .qf2box {
+    position: absolute; display: flex; align-items: center; justify-content: center; text-align: center;
+    width: clamp(112px, 32vw, 182px); min-height: clamp(72px, 19vw, 104px); padding: 8px 10px; box-sizing: border-box;
+    border-radius: 16px; border: 2.5px solid rgba(166, 229, 52, .5);
+    background: rgba(10, 26, 6, .66); box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+    color: #eaf7d9; font-family: system-ui, sans-serif; font-weight: 800; line-height: 1.15;
+    font-size: clamp(14px, 4.2vw, 20px);
+    opacity: 0; transform: scale(.9); transition: opacity .5s ease, transform .5s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  #quizF.q2-boxes .qf2box { opacity: 1; transform: scale(1); }
+  .qf2box.qf2-top   { top: calc(52px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%) scale(.9); }
+  .qf2box.qf2-bot   { bottom: calc(60px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%) scale(.9); }
+  .qf2box.qf2-left  { left: 4vw; top: 50%; transform: translateY(-50%) scale(.9); }
+  .qf2box.qf2-right { right: 4vw; top: 50%; transform: translateY(-50%) scale(.9); }
+  #quizF.q2-boxes .qf2box.qf2-top   { transform: translateX(-50%) scale(1); }
+  #quizF.q2-boxes .qf2box.qf2-bot   { transform: translateX(-50%) scale(1); }
+  #quizF.q2-boxes .qf2box.qf2-left  { transform: translateY(-50%) scale(1); }
+  #quizF.q2-boxes .qf2box.qf2-right { transform: translateY(-50%) scale(1); }
+  .qf2box.alvo  { background: rgba(166, 229, 52, .22); border-color: #a6e534; box-shadow: 0 0 24px rgba(166, 229, 52, .5); }
+  .qf2box.certo { background: rgba(120, 220, 60, .34); border-color: #a6e534; color: #fff; box-shadow: 0 0 30px rgba(166, 229, 52, .6); }
+  #qf2chip {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4;
+    opacity: 0; pointer-events: none; cursor: grab; user-select: none; touch-action: none;
+    padding: .5em 1em; border-radius: 14px; border: 2.5px solid #a6e534;
+    background: linear-gradient(150deg, #16320f, #0c1f0a); color: #f2fbe4;
+    font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(26px, 8vw, 46px);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, .55), 0 0 22px rgba(166, 229, 52, .3);
+  }
+  #qf2chip sub { font-size: .58em; vertical-align: sub; }
+  #qf2chip sup { font-size: .58em; vertical-align: super; }
+  #quizF.q2-chip #qf2chip { opacity: 1; pointer-events: auto; }
+  #qf2chip.arrastando { cursor: grabbing; box-shadow: 0 14px 32px rgba(0, 0, 0, .6), 0 0 30px rgba(166, 229, 52, .55); }
   #quiz2 .q2opts {
     position: absolute; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%);
     pointer-events: auto; display: flex; gap: clamp(14px, 5vw, 30px);
@@ -1724,7 +1769,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.103.0</div>
+<div id="versao">v1.104.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1763,7 +1808,18 @@
 <button id="quizFBtn">Quiz</button>
 
 <!-- Questão 4: arrastar os frascos pras prateleiras (hidrácidos x oxiácidos) -->
-<div id="quizF"><svg id="qfSvg" viewBox="0 0 600 1000" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg></div>
+<div id="quizF">
+  <div id="qfTitulo"></div>
+  <svg id="qfSvg" viewBox="0 0 600 1000" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
+  <!-- Questão 2: arrastar a fórmula pra caixa da classificação correta -->
+  <div id="qf2">
+    <div class="qf2box qf2-top"><span></span></div>
+    <div class="qf2box qf2-bot"><span></span></div>
+    <div class="qf2box qf2-left"><span></span></div>
+    <div class="qf2box qf2-right"><span></span></div>
+    <div id="qf2chip"></div>
+  </div>
+</div>
 <div id="qfConfetti"></div>
 <div id="quizFParabens">Parabéns!</div>
 
@@ -3836,7 +3892,7 @@ function fecharCamLivre() {
   camDevBox.hidden = true; camBox.hidden = true; holdClear();
 }
 document.getElementById('versao').addEventListener('click', () => { freeCam ? fecharCamLivre() : abrirCamLivre(); });
-// (selo de versão: v1.103.0 — Questão 4: quiz de classificação hidrácidos x oxiácidos)
+// (selo de versão: v1.104.0 — Questão 4: Q1 (frascos) + Q2 (caixas) + títulos "Questão N")
 document.getElementById('camDevClose').addEventListener('click', fecharCamLivre);
 document.getElementById('camDevGo').addEventListener('click', () => {
   const s = document.getElementById('camDevIn').value;
@@ -6080,7 +6136,7 @@ function pararAudiosDasQuestoes() {
 function pausarTodoAudio() {
   try { player.pause(); } catch (e) {}
   [exLavaia1a, quiz1Audio, quiz2Audio, quiz3Audio, dica1Audio, dica2Audio, dica3Audio, proximaAudio, maisumaAudio].forEach(a => { try { a.pause(); } catch (e) {} });
-  try { [quizF41, quizF41A, quizF41B].forEach(a => a.pause()); } catch (e) {}
+  try { [quizF41, quizF41A, quizF41B, qfApplause].forEach(a => a.pause()); } catch (e) {}
   try { Object.values(sfx).forEach(a => a.pause()); } catch (e) {}
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden) pausarTodoAudio(); });
@@ -6406,10 +6462,23 @@ $id('qfContinuar').addEventListener('click', () => { fecharQuizFim(); const i = 
 // =================================================================================
 const quizF41  = new Audio('audios/quiz4-1.mp3');    // enunciado (toca ao entrar no quiz)
 const quizF41A = new Audio('audios/quiz4-1A.mp3');   // pede pra classificar (traz as prateleiras)
-const quizF41B = new Audio('audios/quiz4-1B.mp3');   // enunciado da questão 2 (a montar)
-[quizF41, quizF41A, quizF41B].forEach(a => a.preload = 'auto');
+const quizF41B = new Audio('audios/quiz4-1B.mp3');   // enunciado da questão 2
+const qfApplause = new Audio('audios/applause.mp3'); // aplausos no fim da questão 2
+[quizF41, quizF41A, quizF41B, qfApplause].forEach(a => a.preload = 'auto');
 
 const qfSvg = $id('qfSvg');
+function qfSetTitulo(txt) { $id('qfTitulo').innerHTML = txt; }
+
+// ---- Questão 2: 4 caixas de classificação; arrastar a fórmula pra caixa correta ----
+// (fácil de editar: rótulos por posição + fórmula + qual categoria é a correta)
+const QF2 = {
+  formula: 'HCl',
+  correta: 'hidra',                                                    // categoria correta pra fórmula acima
+  caixas: { top: 'hidra', bot: 'oxi', left: 'di', right: 'tri' },      // posição -> categoria
+  labels: { hidra: 'Hidrácidos', oxi: 'Oxiácidos', di: 'Diácidos', tri: 'Triácidos' },
+};
+let qf2Drag = null;
+const qf2State = { interativo: false };
 // 8 ácidos: cat 0 = hidrácido (sem O), cat 1 = oxiácido (com O). Vidro âmbar (estilo dos ácidos).
 const QF_ACIDS = [
   { cat: 0, cfg: { g: 'rgba(196,132,52,0.40)', c: '#e0a24e', s: '#8a5a25', t: 'liq', l: 0.85, f: 'HCl' } },
@@ -6556,27 +6625,109 @@ function qfConfeteAt(sx, sy) {
 }
 function qfFesta() { const w = innerWidth, y = innerHeight * 0.3; [0.2, 0.35, 0.5, 0.65, 0.8].forEach((fx, k) => setTimeout(() => qfConfeteAt(w * fx, y), k * 130)); }
 
-// terminou de classificar os 8: parabéns + confete + funfare -> "próxima" -> questão 2
-function qfConcluir() {
-  qfState.interativo = false;
+// festa de fim de questão: Parabéns + confete (+ aplausos) + funfare -> "próxima" -> próxima questão
+function qfCelebrar(proxFn, comApplause) {
   const tok = ++qfToken;
   $id('quizFParabens').classList.add('show');
   qfFesta();
   playSfx('funfare');
-  const irQ2 = () => { if (tok === qfToken) qfQuestao2(); };
+  if (comApplause) tocarAudioQuiz(qfApplause);
+  const ir = () => { if (tok === qfToken) proxFn(); };
   const tocarProx = () => {
     if (tok !== qfToken) return;
     tocarAudioQuiz(proximaAudio);
-    const done = () => { proximaAudio.removeEventListener('ended', done); irQ2(); };
+    const done = () => { proximaAudio.removeEventListener('ended', done); ir(); };
     proximaAudio.addEventListener('ended', done);
-    setTimeout(() => { proximaAudio.removeEventListener('ended', done); irQ2(); }, 5000);   // fallback
+    setTimeout(() => { proximaAudio.removeEventListener('ended', done); ir(); }, 5000);   // fallback
   };
   const onFun = () => { sfx.funfare.removeEventListener('ended', onFun); if (tok === qfToken) tocarProx(); };
   sfx.funfare.addEventListener('ended', onFun);
   setTimeout(() => { sfx.funfare.removeEventListener('ended', onFun); if (tok === qfToken) tocarProx(); }, 4000);   // fallback
 }
+// classificou os 8 frascos -> festa -> questão 2
+function qfConcluir() { qfState.interativo = false; qfCelebrar(qfQuestao2, false); }
 
-// transição entre as questões: fade-out do conteúdo, some o "Parabéns", entra a Q2 e toca o quiz4-1B
+// ---------- Questão 2: arrastar a fórmula pra caixa da classificação correta ----------
+function qf2Montar() {
+  qf2State.interativo = false; qf2Drag = null;
+  const qf2 = $id('qf2');
+  const map = { 'qf2-top': QF2.caixas.top, 'qf2-bot': QF2.caixas.bot, 'qf2-left': QF2.caixas.left, 'qf2-right': QF2.caixas.right };
+  Object.keys(map).forEach(cls => {
+    const b = qf2.querySelector('.' + cls), cat = map[cls];
+    b.dataset.cat = cat; b.classList.remove('certo', 'alvo');
+    b.querySelector('span').innerHTML = QF2.labels[cat];
+  });
+  const chip = $id('qf2chip');
+  chip.innerHTML = fmtFormula(QF2.formula);
+  chip.style.transition = ''; chip.style.transform = 'translate(-50%, -50%)';
+}
+function qf2BoxUnder(x, y) {
+  let found = null;
+  $id('qf2').querySelectorAll('.qf2box').forEach(b => {
+    const r = b.getBoundingClientRect();
+    if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) found = b;
+  });
+  return found;
+}
+function qf2Down(e) {
+  if (!qf2State.interativo || qf2Drag) return;
+  const chip = $id('qf2chip');
+  e.preventDefault();
+  try { chip.setPointerCapture(e.pointerId); } catch (_) {}
+  qf2Drag = { id: e.pointerId, sx: e.clientX, sy: e.clientY };
+  chip.classList.add('arrastando');
+  chip.addEventListener('pointermove', qf2Move);
+  chip.addEventListener('pointerup', qf2Up);
+  chip.addEventListener('pointercancel', qf2Up);
+}
+function qf2Move(e) {
+  if (!qf2Drag || e.pointerId !== qf2Drag.id) return;
+  const dx = e.clientX - qf2Drag.sx, dy = e.clientY - qf2Drag.sy;
+  $id('qf2chip').style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px)) scale(1.06)';
+  const b = qf2BoxUnder(e.clientX, e.clientY);
+  $id('qf2').querySelectorAll('.qf2box').forEach(x => x.classList.toggle('alvo', x === b));
+}
+function qf2Up(e) {
+  if (!qf2Drag || e.pointerId !== qf2Drag.id) return;
+  const chip = $id('qf2chip');
+  chip.removeEventListener('pointermove', qf2Move);
+  chip.removeEventListener('pointerup', qf2Up);
+  chip.removeEventListener('pointercancel', qf2Up);
+  chip.classList.remove('arrastando');
+  const box = qf2BoxUnder(e.clientX, e.clientY);
+  $id('qf2').querySelectorAll('.qf2box').forEach(x => x.classList.remove('alvo'));
+  qf2Drag = null;
+  if (!box) { qf2VoltarChip(); return; }                      // soltou fora das caixas: volta, sem punir
+  if (box.dataset.cat === QF2.correta) qf2Acerto(box);
+  else qf2Erro();
+}
+function qf2VoltarChip() {
+  const chip = $id('qf2chip');
+  chip.style.transition = 'transform .3s ease';
+  chip.style.transform = 'translate(-50%, -50%)';
+  setTimeout(() => { chip.style.transition = ''; }, 320);
+}
+function qf2Acerto(box) {
+  qf2State.interativo = false;
+  playSfx('right');
+  box.classList.add('certo');
+  const chip = $id('qf2chip'), cr = chip.getBoundingClientRect(), br = box.getBoundingClientRect();
+  const dx = (br.left + br.width / 2) - (cr.left + cr.width / 2);
+  const dy = (br.top + br.height / 2) - (cr.top + cr.height / 2);
+  chip.style.transition = 'transform .32s ease, opacity .32s ease';
+  chip.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px)) scale(.7)';
+  chip.style.opacity = '0';
+  qfConfeteAt(br.left + br.width / 2, br.top + br.height / 2);
+  setTimeout(() => { chip.style.transition = ''; chip.style.opacity = ''; qfCelebrar(qfQuestao3, true); }, 340);   // Parabéns + applause + funfare -> próxima -> Q3
+}
+function qf2Erro() {
+  playSfx('error');
+  const qf = $id('quizF'); qf.classList.remove('shake'); void qf.getBoundingClientRect(); qf.classList.add('shake');
+  qf2VoltarChip();
+}
+$id('qf2chip').addEventListener('pointerdown', qf2Down);
+
+// transição da Q1 pra Q2: fade-out da Q1, some o "Parabéns", entram as caixas (5s) e a fórmula (9s)
 function qfQuestao2() {
   const tok = ++qfToken;
   const qf = $id('quizF');
@@ -6584,12 +6735,32 @@ function qfQuestao2() {
   qf.classList.add('trocando');
   setTimeout(() => {
     if (tok !== qfToken) return;
-    qfSvg.innerHTML = '';                         // limpa a Q1 (frascos + prateleiras)
+    qfSvg.innerHTML = '';                                      // limpa a Q1 (frascos + prateleiras)
     qf.classList.remove('bottles-on', 'shelves-on');
-    qfState.questao = 2; qfState.interativo = false;
+    qfState.questao = 2;
+    qfSetTitulo('Questão 2');
+    qf2Montar();
     qf.classList.remove('trocando');
-    // TODO Q2: montar a interação da questão 2 (por ora só narra o enunciado)
-    tocarAudioQuiz(quizF41B);
+    qf.classList.add('q2');
+    tocarAudioQuiz(quizF41B);                                  // enunciado da Q2
+    setTimeout(() => { if (tok === qfToken) qf.classList.add('q2-boxes'); }, 5000);   // 5s -> 4 caixas
+    setTimeout(() => { if (tok === qfToken) { qf.classList.add('q2-chip'); qf2State.interativo = true; } }, 9000);   // 9s -> fórmula + libera arraste
+  }, 520);
+}
+
+// transição da Q2 pra Q3 (por ora só o título)
+function qfQuestao3() {
+  const tok = ++qfToken;
+  const qf = $id('quizF');
+  $id('quizFParabens').classList.remove('show');
+  qf.classList.add('trocando');
+  setTimeout(() => {
+    if (tok !== qfToken) return;
+    qf.classList.remove('q2', 'q2-boxes', 'q2-chip', 'trocando');
+    qf2State.interativo = false; qf2Drag = null;
+    qfState.questao = 3;
+    qfSetTitulo('Questão 03');
+    // TODO Q3: montar a interação da questão 3
   }, 520);
 }
 
@@ -6600,8 +6771,10 @@ function abrirQuizF() {
   $id('quizFBtn').classList.remove('show');
   $id('playBtn').style.display = 'none';
   qfState.questao = 1; qfState.interativo = false; qfState.drag = null;
+  qf2State.interativo = false; qf2Drag = null;
   qfMontarQ1();
-  qf.classList.remove('bottles-on', 'shelves-on', 'trocando', 'shake');
+  qfSetTitulo('Questão 1');
+  qf.classList.remove('bottles-on', 'shelves-on', 'trocando', 'shake', 'q2', 'q2-boxes', 'q2-chip');
   $id('quizFParabens').classList.remove('show');
   qf.classList.add('show');
   tocarAudioQuiz(quizF41);                                        // já toca o quiz4-1
@@ -6628,10 +6801,11 @@ function mostrarQuizFBtn() { $id('quizFBtn').classList.add('show'); }
 function fecharQuizF() {
   qfToken++;   // invalida qualquer timer/listener pendente
   qfState.interativo = false; qfState.drag = null;
-  $id('quizF').classList.remove('show', 'bottles-on', 'shelves-on', 'trocando', 'shake');
+  qf2State.interativo = false; qf2Drag = null;
+  $id('quizF').classList.remove('show', 'bottles-on', 'shelves-on', 'trocando', 'shake', 'q2', 'q2-boxes', 'q2-chip');
   $id('quizFParabens').classList.remove('show');
   $id('quizFBtn').classList.remove('show');
-  [quizF41, quizF41A, quizF41B, proximaAudio].forEach(pararAudioQuiz);
+  [quizF41, quizF41A, quizF41B, proximaAudio, qfApplause].forEach(pararAudioQuiz);
 }
 // sumário (item "Quiz 4"): pula direto pro quiz4-1
 function irParaQuizF() {
