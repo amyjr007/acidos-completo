@@ -1960,7 +1960,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.112.0</div>
+<div id="versao">v1.113.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -4724,7 +4724,7 @@ const EVENTOS = {
     { t: 33.8, fn: () => c19Digitar('c19w1', 'Ácido', 33.8, 34.6) },   // digita "Ácido"
     { t: 34.0, fn: () => { $id('c19ExCl').classList.add('grande'); c19Digitar('c19w2', 'cloro', 34.0, 35.6); } },   // aumenta o Cl da fórmula + digita "cloro"
     { t: 35.8, fn: () => c19Digitar('c19w3', 'ídrico', 35.8, 37.0) },   // digita "ídrico"
-    { t: 37.0, fn: () => { const w3 = $id('c19w3'); if (w3) w3.innerHTML = ''; c19Digitar('c19w2', 'Clorídrico', 37.0, 38.0); } },   // apaga "cloro ídrico" e digita "Clorídrico" (tudo em ~1s)
+    { t: 37.0, fn: () => { const w3 = $id('c19w3'); if (w3) { if (w3._raf) cancelAnimationFrame(w3._raf); w3._raf = null; w3.innerHTML = ''; } const cl = $id('c19ExCl'); if (cl) cl.classList.remove('grande'); c19Digitar('c19w2', 'Clorídrico', 37.0, 38.0); } },   // apaga "cloro ídrico" (cancela o typewriter do w3 pra nao sobrar), Cl volta ao normal, e digita "Clorídrico" (tudo em ~1s)
   ]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
@@ -7167,6 +7167,7 @@ function qf4Clique(b) {
   if (qf4Ordem.length === 3) qf4Avaliar();
 }
 function qf4Avaliar() {
+  cortarAudiosQuiz();   // escolheu a resposta (ordem completa) antes do quiz4-4 acabar -> corta o áudio e segue
   qf4Resp = true;
   const hs = qf4Ordem.map(b => +b.dataset.h);
   const certo = hs[0] < hs[1] && hs[1] < hs[2];   // crescente de força: menos H+ -> mais H+
