@@ -783,14 +783,15 @@
   #quizF.q2-chip #qf2chip { opacity: 1; pointer-events: auto; }
   #qf2chip.arrastando { cursor: grabbing; border-color: #b59a63; box-shadow: 0 14px 32px rgba(0, 0, 0, .6); }
   /* ---- Questão 3 (múltipla escolha) e Questão 4 (béqueres) ---- */
-  #qf3, #qf4, #qf5 {
+  #qf3, #qf4, #qf5, #qff {
     position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center;
     padding: 18px; box-sizing: border-box; opacity: 0; pointer-events: none; transition: opacity .5s ease;
   }
   #quizF.q3 #qf3 { opacity: 1; pointer-events: auto; }
   #quizF.q4 #qf4 { opacity: 1; pointer-events: auto; }
   #quizF.q5 #qf5 { opacity: 1; pointer-events: auto; }
-  #quizF.trocando #qf3, #quizF.trocando #qf4, #quizF.trocando #qf5 { opacity: 0; }
+  #quizF.qforca #qff { opacity: 1; pointer-events: auto; }
+  #quizF.trocando #qf3, #quizF.trocando #qf4, #quizF.trocando #qf5, #quizF.trocando #qff { opacity: 0; }
   #qf3 .qf3card { width: 100%; max-width: 640px; text-align: center; }
   #qf3 .qf3tit {
     font-family: system-ui, sans-serif; font-weight: 800; color: #f2fbe4; line-height: 1.3;
@@ -865,6 +866,56 @@
   #qf5 .qf5test:hover { transform: translateY(-3px); background: rgba(166, 229, 52, .1); border-color: rgba(166, 229, 52, .65); }
   #qf5 .qf5test.certo  { border-color: #a6e534; background: rgba(120, 220, 60, .2); box-shadow: 0 0 26px rgba(166, 229, 52, .6); }
   #qf5 .qf5test.errado { border-color: #ff5a5a; background: rgba(230, 50, 50, .18); box-shadow: 0 0 24px rgba(255, 90, 90, .55); }
+  /* Questões 6-8: força (Forte / Moderado / Fraco) */
+  #qff .qffwrap { width: 100%; max-width: 560px; text-align: center; }
+  #qff .qfftipo {
+    font-family: system-ui, sans-serif; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+    color: #a6e534; font-size: clamp(12px, 3.4vw, 16px); margin-bottom: .4em;
+  }
+  #qff .qffprompt {
+    font-family: system-ui, sans-serif; font-weight: 800; color: #f2fbe4; line-height: 1.25;
+    font-size: clamp(17px, 4.6vw, 24px); text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
+  }
+  #qff .qffformula {
+    font-family: system-ui, sans-serif; font-weight: 900; color: #fff; line-height: 1;
+    font-size: clamp(46px, 15vw, 84px); margin: .3em 0 .55em; text-shadow: 0 3px 18px rgba(0, 0, 0, .55), 0 0 26px rgba(166, 229, 52, .25);
+  }
+  #qff .qffformula sub { font-size: .56em; vertical-align: sub; }
+  #qff .qffopts { display: flex; justify-content: center; gap: clamp(8px, 3vw, 16px); flex-wrap: wrap; }
+  #qff .qffopt {
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(15px, 4.4vw, 21px); color: #eaf7d9;
+    padding: .6em 1.3em; border-radius: 999px; cursor: pointer;
+    background: rgba(255, 255, 255, .05); border: 2px solid rgba(166, 229, 52, .45);
+    transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  #qff .qffopt:hover { background: rgba(166, 229, 52, .14); border-color: rgba(166, 229, 52, .7); transform: translateY(-2px); }
+  #qff .qffopt:disabled { cursor: default; }
+  #qff .qffopt.certo  { background: rgba(120, 220, 60, .3); border-color: #a6e534; box-shadow: 0 0 24px rgba(166, 229, 52, .6); color: #fff; }
+  #qff .qffopt.errado { background: rgba(230, 50, 50, .24); border-color: #ff5a5a; box-shadow: 0 0 22px rgba(255, 90, 90, .55); color: #fff; }
+  /* Card final: nota + botão de play */
+  #qfFimCard {
+    position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center;
+    padding: 24px; box-sizing: border-box; opacity: 0; pointer-events: none; transition: opacity .5s ease;
+  }
+  #quizF.fim #qfFimCard { opacity: 1; pointer-events: auto; }
+  #qfFimCard .qffc-inner {
+    width: min(90vw, 380px); text-align: center; color: #eaf7d9;
+    background: linear-gradient(165deg, #10240f, #0a170a); border: 2px solid #a6e534; border-radius: 22px;
+    padding: 30px 26px 28px; box-shadow: 0 18px 48px rgba(0, 0, 0, .6), 0 0 40px rgba(166, 229, 52, .2);
+    animation: quizPop .5s cubic-bezier(.2, .8, .3, 1.2) both;
+  }
+  #qfFimCard .qffc-tit { font-family: system-ui, sans-serif; font-weight: 900; color: #a6e534; font-size: clamp(19px, 5.4vw, 26px); }
+  #qfFimCard .qffc-nota { font-family: system-ui, sans-serif; font-weight: 900; color: #f2fbe4; font-size: clamp(56px, 17vw, 84px); line-height: 1.05; margin-top: .1em; text-shadow: 0 3px 16px rgba(0, 0, 0, .5); }
+  #qfFimCard .qffc-nota small { font-size: .34em; opacity: .55; font-weight: 800; }
+  #qfFimCard .qffc-sub { font-family: system-ui, sans-serif; font-weight: 600; color: #cfe8a8; font-size: clamp(14px, 4vw, 17px); margin-top: .1em; }
+  #qfFimCard .qffc-play {
+    margin-top: 22px; width: 66px; height: 66px; border-radius: 50%; border: none; cursor: pointer;
+    background: linear-gradient(145deg, #c6ff5a, #8fd41f); color: #0a1a06; font-size: 26px;
+    display: inline-flex; align-items: center; justify-content: center; padding-left: 4px;
+    box-shadow: 0 6px 22px rgba(120, 200, 40, .5), inset 0 2px 4px rgba(255, 255, 255, .5);
+    transition: transform .18s ease;
+  }
+  #qfFimCard .qffc-play:active { transform: scale(.92); }
   /* flash vermelho de erro por cima do quiz (o #gameFlash fica abaixo do overlay) */
   #qfFlash { position: fixed; inset: 0; z-index: 63; pointer-events: none; opacity: 0;
     background: radial-gradient(circle at 50% 45%, rgba(255, 40, 40, 0), rgba(220, 20, 20, .5)); }
@@ -1861,7 +1912,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.108.0</div>
+<div id="versao">v1.109.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1934,6 +1985,28 @@
     <div class="qf5wrap">
       <div class="qf5tit">O professor Amauri Jr testou a condutibilidade elétrica de 3 ácidos diferentes e montou a imagem a seguir. Considerando seu conhecimento sobre força dos ácidos, qual deles é o ácido fraco?</div>
       <div class="qf5tests" id="qf5tests"></div>
+    </div>
+  </div>
+  <!-- Questões 6, 7 e 8: força (Forte / Moderado / Fraco) -->
+  <div id="qff">
+    <div class="qffwrap">
+      <div class="qfftipo" id="qfftipo"></div>
+      <div class="qffprompt">Qual é a força desse ácido?</div>
+      <div class="qffformula" id="qffformula"></div>
+      <div class="qffopts">
+        <button class="qffopt" data-c="forte">Forte</button>
+        <button class="qffopt" data-c="moderado">Moderado</button>
+        <button class="qffopt" data-c="fraco">Fraco</button>
+      </div>
+    </div>
+  </div>
+  <!-- Card final: nota + botão de play -->
+  <div id="qfFimCard">
+    <div class="qffc-inner">
+      <div class="qffc-tit">Quiz concluído!</div>
+      <div class="qffc-nota" id="qffcNota"></div>
+      <div class="qffc-sub" id="qffcSub"></div>
+      <button class="qffc-play" id="qffcPlay" aria-label="Continuar"><span>&#9654;</span></button>
     </div>
   </div>
 </div>
@@ -4010,7 +4083,7 @@ function fecharCamLivre() {
   camDevBox.hidden = true; camBox.hidden = true; holdClear();
 }
 document.getElementById('versao').addEventListener('click', () => { freeCam ? fecharCamLivre() : abrirCamLivre(); });
-// (selo de versão: v1.108.0 — áudios quiz4-2..5 por questão; transição revezada próxima/essaagora; Q5 (teste da lâmpada) criada)
+// (selo de versão: v1.109.0 — Q6/7/8 (força: 1 hidrácido + 2 oxiácidos), pontuação e card final com nota + statistics + play)
 document.getElementById('camDevClose').addEventListener('click', fecharCamLivre);
 document.getElementById('camDevGo').addEventListener('click', () => {
   const s = document.getElementById('camDevIn').value;
@@ -6631,6 +6704,7 @@ const QF_OXI_CUT = (QF_POOL_ROWS[1] + QF_ROW_OXI) / 2;   // abaixo disso -> cont
 let qfUid = 0, qfToken = 0, qfBottles = [];
 let qfPoolG = null, qfPlacedG = null;
 const qfState = { placed: [0, 0], interativo: false, drag: null, questao: 1 };
+let qfAcertos = 0, qfTotal = 0;   // pontuação das questões respondíveis (Q3..Q8)
 
 function qfToSvg(cx, cy) { const p = qfSvg.createSVGPoint(); p.x = cx; p.y = cy; return p.matrixTransform(qfSvg.getScreenCTM().inverse()); }
 function qfToScreen(x, y) { const p = qfSvg.createSVGPoint(); p.x = x; p.y = y; return p.matrixTransform(qfSvg.getScreenCTM()); }
@@ -6953,6 +7027,7 @@ function qf3Responder(letra, btn) {
   if (qf3Resp) return; qf3Resp = true;
   pararAudioQuiz(quizF43);
   const certo = (letra === 'c');   // c) Capacidade de liberar H+ em solução
+  qfTotal++; if (certo) qfAcertos++;
   const qf3 = $id('qf3');
   qf3.querySelectorAll('.qf3opt').forEach(b => b.disabled = true);
   btn.classList.add(certo ? 'certo' : 'errado');
@@ -7005,6 +7080,7 @@ function qf4Avaliar() {
   qf4Resp = true;
   const hs = qf4Ordem.map(b => +b.dataset.h);
   const certo = hs[0] < hs[1] && hs[1] < hs[2];   // crescente de força: menos H+ -> mais H+
+  qfTotal++; if (certo) qfAcertos++;
   if (certo) {
     qf4Ordem.forEach(b => b.classList.add('certo'));
     playSfx('right'); playSfx('funfare'); qfFesta(); tocarAudioQuiz(qfApplause);
@@ -7078,26 +7154,91 @@ function qf5Responder(b) {
   if (qf5Resp) return; qf5Resp = true;
   pararAudioQuiz(quizF45);
   const certo = (b.dataset.b === QF5_CORRETA);
+  qfTotal++; if (certo) qfAcertos++;
   $id('qf5tests').querySelectorAll('.qf5test').forEach(x => {
     x.style.pointerEvents = 'none';
     if (x.dataset.b === QF5_CORRETA) x.classList.add('certo');
   });
   if (!certo) b.classList.add('errado');
-  if (certo) { playSfx('right'); playSfx('funfare'); qfFesta(); tocarAudioQuiz(qfApplause); qfAgendarProxima(sfx.funfare, qfFim, null); }
-  else       { playSfx('error'); qfFlashRed(); qfAgendarProxima(null, qfFim, null); }
+  if (certo) { playSfx('right'); playSfx('funfare'); qfFesta(); tocarAudioQuiz(qfApplause); qfAgendarProxima(sfx.funfare, qfQuestao6, proximaAudio); }
+  else       { playSfx('error'); qfFlashRed(); qfAgendarProxima(null, qfQuestao6, proximaAudio); }
 }
 
-// fim do quiz (por ora: celebra a conclusão; próximas questões entram aqui depois)
-function qfFim() {
+// ---------- Questões 6, 7 e 8: força (1 hidrácido + 2 oxiácidos) ----------
+// Hidrácidos: HCl/HBr/HI fortes, HF moderado, resto fracos.
+// Oxiácidos (nº O − nº H ionizáveis): 3 ou 2 = forte, 1 = moderado, 0 = fraco.
+const QF_FORCA = [
+  { f: 'HF',   certa: 'moderado', tipo: 'Hidrácido' },   // Q6
+  { f: 'HNO3', certa: 'forte',    tipo: 'Oxiácido' },    // Q7: 3 − 1 = 2 -> forte
+  { f: 'HClO', certa: 'fraco',    tipo: 'Oxiácido' },    // Q8: 1 − 1 = 0 -> fraco
+];
+let qffIdx = 0, qffResp = false;
+function qffMostrar(idx) {
+  qffIdx = idx; qffResp = false;
+  const it = QF_FORCA[idx];
+  $id('qfftipo').textContent = it.tipo;
+  $id('qffformula').innerHTML = fmtFormula(it.f);
+  $id('qff').querySelectorAll('.qffopt').forEach(b => { b.disabled = false; b.classList.remove('certo', 'errado'); });
+}
+// entra numa questão de força; 'saindo' = classe da questão anterior a remover
+function qffEntrar(idx, titulo, saindo) {
+  const tok = ++qfToken;
   const qf = $id('quizF');
+  $id('quizFParabens').classList.remove('show');
   qf.classList.add('trocando');
   setTimeout(() => {
-    qf.classList.remove('q5', 'trocando');
-    qfSetTitulo('');
-    $id('quizFParabens').classList.add('show');
-    qfFesta();
+    if (tok !== qfToken) return;
+    if (saindo) qf.classList.remove(saindo);
+    qf.classList.remove('trocando');
+    qfState.questao = idx + 6;
+    qfSetTitulo(titulo);
+    qffMostrar(idx);
+    qf.classList.add('qforca');
   }, 520);
 }
+function qfQuestao6() { qffEntrar(0, 'Questão 6', 'q5'); }
+function qfQuestao7() { qffEntrar(1, 'Questão 7', null); }
+function qfQuestao8() { qffEntrar(2, 'Questão 8', null); }
+function qffResponder(op, btn) {
+  if (qffResp) return; qffResp = true;
+  const it = QF_FORCA[qffIdx];
+  const certo = (op === it.certa);
+  qfTotal++; if (certo) qfAcertos++;
+  const qff = $id('qff');
+  qff.querySelectorAll('.qffopt').forEach(b => b.disabled = true);
+  btn.classList.add(certo ? 'certo' : 'errado');
+  qff.querySelector('.qffopt[data-c="' + it.certa + '"]').classList.add('certo');   // sempre destaca a correta
+  const prox = qffIdx === 0 ? qfQuestao7 : (qffIdx === 1 ? qfQuestao8 : qfFim);
+  const trans = qffIdx === 0 ? essaagoraAudio : (qffIdx === 1 ? proximaAudio : null);   // Q6->Q7 essaagora, Q7->Q8 próxima, Q8->fim
+  if (certo) { playSfx('right'); playSfx('funfare'); qfFesta(); tocarAudioQuiz(qfApplause); qfAgendarProxima(sfx.funfare, prox, trans); }
+  else       { playSfx('error'); qfFlashRed(); qfAgendarProxima(null, prox, trans); }
+}
+$id('qff').querySelectorAll('.qffopt').forEach(b => b.addEventListener('click', () => qffResponder(b.dataset.c, b)));
+
+// ---------- Fim do quiz: card de nota + "statistics" + botão de play ----------
+function qfFim() {
+  const tok = ++qfToken;
+  const qf = $id('quizF');
+  $id('quizFParabens').classList.remove('show');
+  qf.classList.add('trocando');
+  setTimeout(() => {
+    if (tok !== qfToken) return;
+    qf.classList.remove('q2', 'q2-boxes', 'q2-chip', 'q3', 'q4', 'q5', 'qforca', 'trocando');
+    qfSetTitulo('');
+    const nota = qfTotal ? (qfAcertos / qfTotal) * 10 : 10;
+    $id('qffcNota').innerHTML = nota.toFixed(1).replace('.', ',') + '<small>/10</small>';
+    $id('qffcSub').textContent = qfAcertos + ' de ' + qfTotal + ' acertos';
+    qf.classList.add('fim');
+    playSfx('statistics');
+    if (nota >= 6) qfFesta();
+  }, 520);
+}
+// botão de play do card final: fecha o quiz e devolve o play da narração
+$id('qffcPlay').addEventListener('click', () => {
+  fecharQuizF();
+  faixaAtual = FAIXAS.length - 1; faixaTerminou = true; marcarSumario();   // fim do conteúdo: play não avança pra faixa de erro
+  $id('playBtn').style.display = '';
+});
 
 // abre a Questão 4 e roda a coreografia dos áudios/entradas
 function abrirQuizF() {
@@ -7107,9 +7248,10 @@ function abrirQuizF() {
   $id('playBtn').style.display = 'none';
   qfState.questao = 1; qfState.interativo = false; qfState.drag = null;
   qf2State.interativo = false; qf2Drag = null;
+  qfAcertos = 0; qfTotal = 0;
   qfMontarQ1();
   qfSetTitulo('Questão 1');
-  qf.classList.remove('bottles-on', 'shelves-on', 'trocando', 'shake', 'q2', 'q2-boxes', 'q2-chip', 'q3', 'q4', 'q5');
+  qf.classList.remove('bottles-on', 'shelves-on', 'trocando', 'shake', 'q2', 'q2-boxes', 'q2-chip', 'q3', 'q4', 'q5', 'qforca', 'fim');
   $id('quizFParabens').classList.remove('show');
   qf.classList.add('show');
   tocarAudioQuiz(quizF41);                                        // já toca o quiz4-1
@@ -7136,7 +7278,7 @@ function fecharQuizF() {
   qfToken++;   // invalida qualquer timer/listener pendente
   qfState.interativo = false; qfState.drag = null;
   qf2State.interativo = false; qf2Drag = null;
-  $id('quizF').classList.remove('show', 'bottles-on', 'shelves-on', 'trocando', 'shake', 'q2', 'q2-boxes', 'q2-chip', 'q3', 'q4', 'q5');
+  $id('quizF').classList.remove('show', 'bottles-on', 'shelves-on', 'trocando', 'shake', 'q2', 'q2-boxes', 'q2-chip', 'q3', 'q4', 'q5', 'qforca', 'fim');
   $id('quizFParabens').classList.remove('show');
   $id('quizFBtn').classList.remove('show');
   [quizF41, quizF41A, quizF42, quizF43, quizF44, quizF45, proximaAudio, essaagoraAudio, qfApplause].forEach(pararAudioQuiz);
