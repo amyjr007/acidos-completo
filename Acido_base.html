@@ -1285,8 +1285,8 @@
   #cena19 .c19-ex.show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
   #cena19 .c19-ex.sai { opacity: 0; transform: scale(0); }   /* ao trocar de exemplo, o anterior some diminuindo até sumir */
   #cena19 .c19-ex sub { font-size: .5em; }
-  #cena19 .c19-ex #c19ExCl { display: inline-block; transition: transform .45s cubic-bezier(.2, .9, .3, 1.5); transform-origin: center bottom; }
-  #cena19 .c19-ex #c19ExCl.grande { transform: scale(1.4); }
+  #cena19 .c19-ex .c19el { display: inline-block; transition: transform .45s cubic-bezier(.2, .9, .3, 1.5); transform-origin: center bottom; }
+  #cena19 .c19-ex .c19el.grande { transform: scale(1.4); }
   #cena19 .c19-nome {
     position: absolute; top: 60%; left: 7%; font-family: system-ui, sans-serif; font-weight: 800;
     font-size: clamp(20px, 5.6vw, 32px); color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, .55); white-space: nowrap;
@@ -1961,7 +1961,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.116.0</div>
+<div id="versao">v1.117.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2184,8 +2184,9 @@
   <div class="c19-sub" id="c19Sub">a) Regra para os Hidrácidos</div>
   <div class="c19-regra" id="c19Regra">Regra</div>
   <div class="c19-formula" id="c19Formula"><span id="c19fAcido">Ácido</span><span id="c19fNome">+ nome do ânion</span><span id="c19fIdrico">+ ÍDRICO</span></div>
-  <div class="c19-ex" id="c19Ex">Ex<sub>01</sub>: <span class="c19-f">H<span id="c19ExCl">Cl</span></span></div>
-  <div class="c19-ex" id="c19Ex2">Ex<sub>02</sub>: <span class="c19-f">H<span id="c19ExBr">Br</span></span></div>
+  <div class="c19-ex" id="c19Ex">Ex<sub>01</sub>: <span class="c19-f">H<span class="c19el" id="c19ExCl">Cl</span></span></div>
+  <div class="c19-ex" id="c19Ex2">Ex<sub>02</sub>: <span class="c19-f">H<span class="c19el" id="c19ExBr">Br</span></span></div>
+  <div class="c19-ex" id="c19Ex3">Ex<sub>03</sub>: <span class="c19-f">H<span class="c19el" id="c19ExCN">CN</span></span></div>
   <div class="c19-nome" id="c19Nome"><span id="c19w1"></span> <span id="c19w2"></span> <span id="c19w3"></span></div>
 </div>
 
@@ -4245,6 +4246,7 @@ const FAIXAS = [
   { id: 'dialogo1.8MW', arquivo: 'audios/dialogo1.8MW.mp3', titulo: 'Diálogo 1.8M (erro)' },
   { id: 'dialogo1.9',   arquivo: 'audios/dialogo1.9.mp3',   titulo: 'Diálogo 1.9 — Nomenclatura' },
   { id: 'dialogo1.9B',  arquivo: 'audios/dialogo1.9B.mp3',  titulo: 'Diálogo 1.9B — Ex. 2 (HBr)' },
+  { id: 'dialogo1.9C',  arquivo: 'audios/dialogo1.9C.mp3',  titulo: 'Diálogo 1.9C — Ex. 3 (HCN)' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -4738,6 +4740,16 @@ const EVENTOS = {
     { t: 12.8, fn: () => { c19Limpar('c19w2'); c19Limpar('c19w3'); } }, // apaga "Bromo Ídrico"
     { t: 13.0, fn: () => c19Digitar('c19w2', 'Bromídrico', 13.0, 13.8) },  // digita rápido "Bromídrico" -> "Ácido Bromídrico"
   ]),
+  'dialogo1.9C':  () => rodarStory([
+    { t: 0.0,  fn: () => { irParaCamera(CAM_2, false); ['c19w1', 'c19w2', 'c19w3'].forEach(c19Limpar); const e2 = $id('c19Ex2'); if (e2) { e2.classList.remove('show'); e2.classList.add('sai'); } cena19El.querySelectorAll('.c19el').forEach(e => e.classList.remove('grande')); } },   // mantém título/regra; o Ex02 some diminuindo + limpa o nome
+    { t: 1.2,  fn: () => c18eTabShow('c19Ex3') },        // Ex03: HCN
+    { t: 6.8,  fn: () => c19Digitar('c19w1', 'Ácido', 6.8, 7.8) },      // digita "Ácido"
+    { t: 8.2,  fn: () => $id('c19ExCN').classList.add('grande') },      // aumenta o CN da fórmula
+    { t: 9.0,  fn: () => c19Digitar('c19w2', 'ciano', 9.0, 10.4) },     // digita "ciano"
+    { t: 11.0, fn: () => c19Digitar('c19w3', 'Ídrico', 11.0, 12.2) },   // digita "Ídrico"
+    { t: 12.4, fn: () => { c19Limpar('c19w2'); c19Limpar('c19w3'); } }, // apaga "Ciano Ídrico"
+    { t: 12.5, fn: () => { const cn = $id('c19ExCN'); if (cn) cn.classList.remove('grande'); c19Digitar('c19w2', 'Cianídrico', 12.5, 13.5); } },   // CN volta ao normal + digita "Cianídrico" -> "Ácido Cianídrico"
+  ]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
 // Pulo direto pro 1.8I pelo sumário (item 19): reconstrói a cena como no fim do 1.8H — título + "c)" na tela,
@@ -4987,7 +4999,7 @@ function tocarFaixa(i) {
   if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
   if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
   if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
-  if (f.id !== 'dialogo1.9' && f.id !== 'dialogo1.9B' && typeof esconderCena19 === 'function') esconderCena19();   // cena da nomenclatura (1.9 / 1.9B) — mantém entre os dois exemplos
+  if (f.id !== 'dialogo1.9' && f.id !== 'dialogo1.9B' && f.id !== 'dialogo1.9C' && typeof esconderCena19 === 'function') esconderCena19();   // cena da nomenclatura (1.9 / 1.9B / 1.9C) — mantém entre os exemplos
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = (f.auto || f.semPlay) ? 'none' : '';   // faixa automática (ou marcada semPlay, ex.: 1.8I) toca sem o botão de play
@@ -7414,8 +7426,8 @@ function esconderCena19() {
   cena19El.setAttribute('aria-hidden', 'true');
   cena19El.querySelectorAll('.show').forEach(s => s.classList.remove('show'));
   cena19El.querySelectorAll('.c19-ex').forEach(e => e.classList.remove('sai'));   // reseta o "some diminuindo" dos exemplos
+  cena19El.querySelectorAll('.c19el').forEach(e => e.classList.remove('grande'));   // reseta os elementos aumentados (Cl/Br/CN)
   ['c19w1', 'c19w2', 'c19w3'].forEach(c19Limpar);   // cancela typewriters + limpa
-  const cl = $id('c19ExCl'); if (cl) cl.classList.remove('grande');
 }
 // máquina de escrever guiada pelo tempo do áudio (t0 -> t1), escreve `alvo` no elemento id
 function c19Digitar(id, alvo, t0, t1) {
