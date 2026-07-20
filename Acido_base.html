@@ -782,6 +782,76 @@
   #qf2chip sup { font-size: .58em; vertical-align: super; }
   #quizF.q2-chip #qf2chip { opacity: 1; pointer-events: auto; }
   #qf2chip.arrastando { cursor: grabbing; border-color: #b59a63; box-shadow: 0 14px 32px rgba(0, 0, 0, .6); }
+  /* ---- Questão 3 (múltipla escolha) e Questão 4 (béqueres) ---- */
+  #qf3, #qf4 {
+    position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center;
+    padding: 18px; box-sizing: border-box; opacity: 0; pointer-events: none; transition: opacity .5s ease;
+  }
+  #quizF.q3 #qf3 { opacity: 1; pointer-events: auto; }
+  #quizF.q4 #qf4 { opacity: 1; pointer-events: auto; }
+  #quizF.trocando #qf3, #quizF.trocando #qf4 { opacity: 0; }
+  #qf3 .qf3card { width: 100%; max-width: 640px; text-align: center; }
+  #qf3 .qf3tit {
+    font-family: system-ui, sans-serif; font-weight: 800; color: #f2fbe4; line-height: 1.3;
+    font-size: clamp(18px, 5vw, 26px); margin-bottom: 1.2em; text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
+  }
+  #qf3 .qf3num { color: #a6e534; }
+  #qf3 .qf3opts { display: flex; flex-direction: column; gap: 12px; max-width: 470px; margin: 0 auto; }
+  #qf3 .qf3opt {
+    font-family: system-ui, sans-serif; font-weight: 700; font-size: clamp(15px, 4.2vw, 20px); color: #eaf7d9;
+    padding: .75em 1.1em; border-radius: 14px; cursor: pointer; text-align: left;
+    background: rgba(255, 255, 255, .05); border: 2px solid rgba(166, 229, 52, .4);
+    transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  #qf3 .qf3opt:hover { background: rgba(166, 229, 52, .12); border-color: rgba(166, 229, 52, .6); transform: translateY(-2px); }
+  #qf3 .qf3opt:disabled { cursor: default; }
+  #qf3 .qf3opt.certo  { background: rgba(120, 220, 60, .24); border-color: #a6e534; box-shadow: 0 0 24px rgba(166, 229, 52, .55); color: #fff; }
+  #qf3 .qf3opt.errado { background: rgba(230, 50, 50, .22); border-color: #ff5a5a; box-shadow: 0 0 22px rgba(255, 90, 90, .5); color: #fff; }
+  #qf3 .qf3opt sup { font-size: .62em; vertical-align: super; }
+  #qf4 .qf4wrap { width: 100%; max-width: 680px; text-align: center; }
+  #qf4 .qf4tit {
+    font-family: system-ui, sans-serif; font-weight: 800; color: #f2fbe4; line-height: 1.3;
+    font-size: clamp(16px, 4.5vw, 24px); margin-bottom: 1.1em; text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
+  }
+  #qf4 .qf4num { color: #a6e534; }
+  #qf4 .qf4beakers { display: flex; justify-content: center; align-items: flex-end; gap: clamp(10px, 4vw, 30px); }
+  #qf4 .qf4beaker {
+    position: relative; overflow: hidden; cursor: pointer; flex: 0 0 auto; padding: 0;
+    width: clamp(84px, 24vw, 140px); height: clamp(112px, 30vw, 176px);
+    border: 3px solid rgba(210, 240, 255, .55); border-top: none;
+    border-radius: 6px 6px 18px 18px / 6px 6px 26px 26px;
+    background: linear-gradient(180deg, rgba(150, 220, 255, .05) 0%, rgba(120, 200, 255, .1) 22%, rgba(90, 180, 240, .18) 100%);
+    box-shadow: inset 0 -14px 26px rgba(80, 170, 230, .25), inset 0 0 12px rgba(200, 240, 255, .15);
+    transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  #qf4 .qf4beaker::before {
+    content: ''; position: absolute; top: -3px; left: -6px; right: -6px; height: 6px;
+    border: 3px solid rgba(210, 240, 255, .55); border-bottom: none; border-radius: 4px 4px 0 0;
+  }
+  #qf4 .qf4beaker:hover { transform: translateY(-3px); }
+  #qf4 .qf4beaker.sel    { border-color: #a6e534; box-shadow: inset 0 -14px 26px rgba(120, 200, 60, .3), 0 0 22px rgba(166, 229, 52, .55); }
+  #qf4 .qf4beaker.certo  { border-color: #a6e534; box-shadow: 0 0 26px rgba(166, 229, 52, .7); }
+  #qf4 .qf4beaker.errado { border-color: #ff5a5a; box-shadow: 0 0 24px rgba(255, 90, 90, .6); }
+  #qf4 .qf4liq { position: absolute; inset: 0; }
+  #qf4 .ion {
+    position: absolute; font-family: system-ui, sans-serif; font-weight: 800; white-space: nowrap;
+    font-size: clamp(10px, 2.6vw, 15px); color: #c6ff5a; transform: translate(-50%, -50%);
+    text-shadow: 0 0 8px rgba(166, 229, 52, .95), 0 0 3px rgba(198, 255, 90, .9);
+    animation: ionBob 3.2s ease-in-out infinite;
+  }
+  #qf4 .ion sup { font-size: .66em; }
+  #qf4 .qf4ord {
+    position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 3;
+    font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(15px, 4.6vw, 22px); color: #0a1a06;
+    background: linear-gradient(145deg, #c6ff5a, #8fd41f); border-radius: 999px;
+    min-width: 1.7em; height: 1.7em; line-height: 1.7em; padding: 0 .3em;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, .5); opacity: 0; transition: opacity .2s ease;
+  }
+  #qf4 .qf4beaker.sel .qf4ord { opacity: 1; }
+  /* flash vermelho de erro por cima do quiz (o #gameFlash fica abaixo do overlay) */
+  #qfFlash { position: fixed; inset: 0; z-index: 63; pointer-events: none; opacity: 0;
+    background: radial-gradient(circle at 50% 45%, rgba(255, 40, 40, 0), rgba(220, 20, 20, .5)); }
+  #qfFlash.red { animation: flashRed .5s ease; }
   #quiz2 .q2opts {
     position: absolute; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%);
     pointer-events: auto; display: flex; gap: clamp(14px, 5vw, 30px);
@@ -1774,7 +1844,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.106.0</div>
+<div id="versao">v1.107.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1824,8 +1894,27 @@
     <div class="qf2box qf2-right"><span></span></div>
     <div id="qf2chip"></div>
   </div>
+  <!-- Questão 3: múltipla escolha (a força está relacionada a...) -->
+  <div id="qf3">
+    <div class="qf3card">
+      <div class="qf3tit"><span class="qf3num">1.</span> Considerando o que você aprendeu sobre a força dos ácidos, essa grandeza está relacionada a:</div>
+      <div class="qf3opts">
+        <button class="qf3opt" data-c="a">Poder de corrosão.</button>
+        <button class="qf3opt" data-c="b">Ponto de fusão e ebulição.</button>
+        <button class="qf3opt" data-c="c">Capacidade de liberar H<sup>+</sup> em solução.</button>
+      </div>
+    </div>
+  </div>
+  <!-- Questão 4: ordenar 3 béqueres por força (crescente) -->
+  <div id="qf4">
+    <div class="qf4wrap">
+      <div class="qf4tit"><span class="qf4num">2.</span> Analisando os béqueres a seguir com 3 ácidos diferentes, toque neles organizando em ordem crescente de força.</div>
+      <div class="qf4beakers" id="qf4beakers"></div>
+    </div>
+  </div>
 </div>
 <div id="qfConfetti"></div>
+<div id="qfFlash"></div>
 <div id="quizFParabens">Parabéns!</div>
 
 <!-- Questão 1 do quiz: qual frasco é um ácido de Arrhenius -->
@@ -3897,7 +3986,7 @@ function fecharCamLivre() {
   camDevBox.hidden = true; camBox.hidden = true; holdClear();
 }
 document.getElementById('versao').addEventListener('click', () => { freeCam ? fecharCamLivre() : abrirCamLivre(); });
-// (selo de versão: v1.106.0 — Q2: caixas 2 em cima / 2 embaixo + fórmula com cara de etiqueta)
+// (selo de versão: v1.107.0 — Q1 libera arraste ao aparecer + corta áudio ao encaixar; Q3 (múltipla escolha) e Q4 (béqueres) criadas)
 document.getElementById('camDevClose').addEventListener('click', fecharCamLivre);
 document.getElementById('camDevGo').addEventListener('click', () => {
   const s = document.getElementById('camDevIn').value;
@@ -6141,7 +6230,7 @@ function pararAudiosDasQuestoes() {
 function pausarTodoAudio() {
   try { player.pause(); } catch (e) {}
   [exLavaia1a, quiz1Audio, quiz2Audio, quiz3Audio, dica1Audio, dica2Audio, dica3Audio, proximaAudio, maisumaAudio].forEach(a => { try { a.pause(); } catch (e) {} });
-  try { [quizF41, quizF41A, quizF41B, qfApplause].forEach(a => a.pause()); } catch (e) {}
+  try { [quizF41, quizF41A, quizF41B, quizF43, qfApplause].forEach(a => a.pause()); } catch (e) {}
   try { Object.values(sfx).forEach(a => a.pause()); } catch (e) {}
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden) pausarTodoAudio(); });
@@ -6468,8 +6557,9 @@ $id('qfContinuar').addEventListener('click', () => { fecharQuizFim(); const i = 
 const quizF41  = new Audio('audios/quiz4-1.mp3');    // enunciado (toca ao entrar no quiz)
 const quizF41A = new Audio('audios/quiz4-1A.mp3');   // pede pra classificar (traz as prateleiras)
 const quizF41B = new Audio('audios/quiz4-1B.mp3');   // enunciado da questão 2
-const qfApplause = new Audio('audios/applause.mp3'); // aplausos no fim da questão 2
-[quizF41, quizF41A, quizF41B, qfApplause].forEach(a => a.preload = 'auto');
+const quizF43 = new Audio('audios/quiz4-3.mp3');     // enunciado da questão 3
+const qfApplause = new Audio('audios/applause.mp3'); // aplausos no fim das questões
+[quizF41, quizF41A, quizF41B, quizF43, qfApplause].forEach(a => a.preload = 'auto');
 
 const qfSvg = $id('qfSvg');
 function qfSetTitulo(txt) { $id('qfTitulo').innerHTML = txt; }
@@ -6596,6 +6686,7 @@ qfSvg.addEventListener('pointerup', qfUp);
 qfSvg.addEventListener('pointercancel', qfUp);
 function qfAvaliar(i) {
   const b = qfBottles[i], y = b.el._y;
+  if (!$id('quizF').classList.contains('shelves-on')) { qfVoltar(i); return; }   // prateleiras ainda não entraram: só volta
   let zona = -1;
   if (y < QF_HID_CUT) zona = 0;
   else if (y > QF_OXI_CUT) zona = 1;
@@ -6605,6 +6696,7 @@ function qfAvaliar(i) {
 }
 function qfVoltar(i) { qfTween(i, qfBottles[i].hx, qfBottles[i].hy, 340); }
 function qfAcerto(i, cat) {
+  pararAudioQuiz(quizF41); pararAudioQuiz(quizF41A);   // encaixou um frasco -> corta a narração
   playSfx('right');
   const slot = Math.min(qfState.placed[cat], 3);
   const tx = QF_COLS[slot], ty = (cat === 0 ? QF_ROW_HID : QF_ROW_OXI);
@@ -6781,7 +6873,33 @@ function qfQuestao2() {
   }, 520);
 }
 
-// transição da Q2 pra Q3 (por ora só o título)
+// pisca a tela em vermelho + treme (feedback de erro por cima do overlay do quiz)
+function qfFlashRed() {
+  const f = $id('qfFlash'); if (f) { f.classList.remove('red'); void f.getBoundingClientRect(); f.classList.add('red'); }
+  const qf = $id('quizF'); qf.classList.remove('shake'); void qf.getBoundingClientRect(); qf.classList.add('shake');
+}
+// espera o feedback acabar -> toca "próxima" -> vai pra próxima questão (com token do quizF)
+function qfAgendarProxima(feedbackAudio, proxFn) {
+  const tok = ++qfToken;
+  const ir = () => { if (tok === qfToken) proxFn(); };
+  const tocarProx = () => {
+    if (tok !== qfToken) return;
+    tocarAudioQuiz(proximaAudio);
+    const d = () => { proximaAudio.removeEventListener('ended', d); ir(); };
+    proximaAudio.addEventListener('ended', d);
+    setTimeout(() => { proximaAudio.removeEventListener('ended', d); ir(); }, 5000);   // fallback
+  };
+  if (feedbackAudio) {
+    const onEnd = () => { feedbackAudio.removeEventListener('ended', onEnd); if (tok === qfToken) tocarProx(); };
+    feedbackAudio.addEventListener('ended', onEnd);
+    setTimeout(() => { feedbackAudio.removeEventListener('ended', onEnd); if (tok === qfToken) tocarProx(); }, 4500);   // fallback
+  } else {
+    setTimeout(tocarProx, 900);
+  }
+}
+
+// ---------- Questão 3: múltipla escolha (a força está relacionada a...) ----------
+let qf3Resp = false;
 function qfQuestao3() {
   const tok = ++qfToken;
   const qf = $id('quizF');
@@ -6792,8 +6910,90 @@ function qfQuestao3() {
     qf.classList.remove('q2', 'q2-boxes', 'q2-chip', 'trocando');
     qf2State.interativo = false; qf2Drag = null;
     qfState.questao = 3;
-    qfSetTitulo('Questão 03');
-    // TODO Q3: montar a interação da questão 3
+    qfSetTitulo('Questão 3');
+    qf3Montar();
+    qf.classList.add('q3');
+    tocarAudioQuiz(quizF43);
+  }, 520);
+}
+function qf3Montar() {
+  qf3Resp = false;
+  $id('qf3').querySelectorAll('.qf3opt').forEach(b => { b.disabled = false; b.classList.remove('certo', 'errado'); });
+}
+function qf3Responder(letra, btn) {
+  if (qf3Resp) return; qf3Resp = true;
+  pararAudioQuiz(quizF43);
+  const certo = (letra === 'c');   // c) Capacidade de liberar H+ em solução
+  const qf3 = $id('qf3');
+  qf3.querySelectorAll('.qf3opt').forEach(b => b.disabled = true);
+  btn.classList.add(certo ? 'certo' : 'errado');
+  qf3.querySelector('.qf3opt[data-c="c"]').classList.add('certo');   // sempre destaca a correta
+  if (certo) { playSfx('right'); playSfx('funfare'); qfFesta(); tocarAudioQuiz(qfApplause); qfAgendarProxima(sfx.funfare, qfQuestao4); }
+  else       { playSfx('error'); qfFlashRed(); qfAgendarProxima(null, qfQuestao4); }
+}
+$id('qf3').querySelectorAll('.qf3opt').forEach(b => b.addEventListener('click', () => qf3Responder(b.dataset.c, b)));
+
+// ---------- Questão 4: ordenar 3 béqueres por força (crescente) ----------
+const QF4_H = [3, 7, 20];   // nº de H+ em cada béquer (mais H+ = ácido mais forte)
+let qf4Ordem = [], qf4Resp = false;
+function qfQuestao4() {
+  const tok = ++qfToken;
+  const qf = $id('quizF');
+  $id('quizFParabens').classList.remove('show');
+  qf.classList.add('trocando');
+  setTimeout(() => {
+    if (tok !== qfToken) return;
+    qf.classList.remove('q3', 'trocando');
+    qfState.questao = 4;
+    qfSetTitulo('Questão 4');
+    qf4Montar();
+    qf.classList.add('q4');
+  }, 520);
+}
+function qf4Montar() {
+  qf4Resp = false; qf4Ordem = [];
+  const cont = $id('qf4beakers'); cont.innerHTML = '';
+  embaralhar(QF4_H.slice()).forEach(n => {
+    const b = document.createElement('button');
+    b.className = 'qf4beaker'; b.dataset.h = String(n);
+    const liq = document.createElement('div'); liq.className = 'qf4liq';
+    const ord = document.createElement('span'); ord.className = 'qf4ord';
+    b.appendChild(liq); b.appendChild(ord);
+    montarBequer(liq, [{ t: 'H', c: '+', n }]);   // n íons H+ flutuando (sem identificação)
+    b.addEventListener('click', () => qf4Clique(b));
+    cont.appendChild(b);
+  });
+}
+function qf4Clique(b) {
+  if (qf4Resp || b.classList.contains('sel')) return;
+  qf4Ordem.push(b);
+  b.classList.add('sel');
+  b.querySelector('.qf4ord').textContent = qf4Ordem.length + 'º';
+  if (qf4Ordem.length === 3) qf4Avaliar();
+}
+function qf4Avaliar() {
+  qf4Resp = true;
+  const hs = qf4Ordem.map(b => +b.dataset.h);
+  const certo = hs[0] < hs[1] && hs[1] < hs[2];   // crescente de força: menos H+ -> mais H+
+  if (certo) {
+    qf4Ordem.forEach(b => b.classList.add('certo'));
+    playSfx('right'); playSfx('funfare'); qfFesta(); tocarAudioQuiz(qfApplause);
+    qfAgendarProxima(sfx.funfare, qfFim);
+  } else {
+    qf4Ordem.forEach(b => b.classList.add('errado'));
+    playSfx('error'); qfFlashRed();
+    qfAgendarProxima(null, qfFim);
+  }
+}
+// fim do quiz (por ora: celebra a conclusão; próximas questões entram aqui depois)
+function qfFim() {
+  const qf = $id('quizF');
+  qf.classList.add('trocando');
+  setTimeout(() => {
+    qf.classList.remove('q4', 'trocando');
+    qfSetTitulo('');
+    $id('quizFParabens').classList.add('show');
+    qfFesta();
   }, 520);
 }
 
@@ -6807,11 +7007,11 @@ function abrirQuizF() {
   qf2State.interativo = false; qf2Drag = null;
   qfMontarQ1();
   qfSetTitulo('Questão 1');
-  qf.classList.remove('bottles-on', 'shelves-on', 'trocando', 'shake', 'q2', 'q2-boxes', 'q2-chip');
+  qf.classList.remove('bottles-on', 'shelves-on', 'trocando', 'shake', 'q2', 'q2-boxes', 'q2-chip', 'q3', 'q4');
   $id('quizFParabens').classList.remove('show');
   qf.classList.add('show');
   tocarAudioQuiz(quizF41);                                        // já toca o quiz4-1
-  setTimeout(() => { if (tok === qfToken) qf.classList.add('bottles-on'); }, 3000);   // 3s -> 8 frascos em fade
+  setTimeout(() => { if (tok === qfToken) { qf.classList.add('bottles-on'); qfState.interativo = true; } }, 3000);   // 3s -> 8 frascos + já libera arrastar
   const onEnd41 = () => {
     quizF41.removeEventListener('ended', onEnd41);
     if (tok !== qfToken) return;
@@ -6826,7 +7026,6 @@ function abrirQuizF() {
     quizF41A.removeEventListener('ended', onEnd41A);
     if (tok !== qfToken) return;
     qf.classList.add('shelves-on');                              // garante as prateleiras
-    qfState.interativo = true;                                   // libera o arraste
   };
   quizF41A.addEventListener('ended', onEnd41A);
 }
@@ -6835,10 +7034,10 @@ function fecharQuizF() {
   qfToken++;   // invalida qualquer timer/listener pendente
   qfState.interativo = false; qfState.drag = null;
   qf2State.interativo = false; qf2Drag = null;
-  $id('quizF').classList.remove('show', 'bottles-on', 'shelves-on', 'trocando', 'shake', 'q2', 'q2-boxes', 'q2-chip');
+  $id('quizF').classList.remove('show', 'bottles-on', 'shelves-on', 'trocando', 'shake', 'q2', 'q2-boxes', 'q2-chip', 'q3', 'q4');
   $id('quizFParabens').classList.remove('show');
   $id('quizFBtn').classList.remove('show');
-  [quizF41, quizF41A, quizF41B, proximaAudio, qfApplause].forEach(pararAudioQuiz);
+  [quizF41, quizF41A, quizF41B, quizF43, proximaAudio, qfApplause].forEach(pararAudioQuiz);
 }
 // sumário (item "Quiz 4"): pula direto pro quiz4-1
 function irParaQuizF() {
