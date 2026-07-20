@@ -783,13 +783,14 @@
   #quizF.q2-chip #qf2chip { opacity: 1; pointer-events: auto; }
   #qf2chip.arrastando { cursor: grabbing; border-color: #b59a63; box-shadow: 0 14px 32px rgba(0, 0, 0, .6); }
   /* ---- Questão 3 (múltipla escolha) e Questão 4 (béqueres) ---- */
-  #qf3, #qf4 {
+  #qf3, #qf4, #qf5 {
     position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center;
     padding: 18px; box-sizing: border-box; opacity: 0; pointer-events: none; transition: opacity .5s ease;
   }
   #quizF.q3 #qf3 { opacity: 1; pointer-events: auto; }
   #quizF.q4 #qf4 { opacity: 1; pointer-events: auto; }
-  #quizF.trocando #qf3, #quizF.trocando #qf4 { opacity: 0; }
+  #quizF.q5 #qf5 { opacity: 1; pointer-events: auto; }
+  #quizF.trocando #qf3, #quizF.trocando #qf4, #quizF.trocando #qf5 { opacity: 0; }
   #qf3 .qf3card { width: 100%; max-width: 640px; text-align: center; }
   #qf3 .qf3tit {
     font-family: system-ui, sans-serif; font-weight: 800; color: #f2fbe4; line-height: 1.3;
@@ -848,6 +849,22 @@
     box-shadow: 0 3px 10px rgba(0, 0, 0, .5); opacity: 0; transition: opacity .2s ease;
   }
   #qf4 .qf4beaker.sel .qf4ord { opacity: 1; }
+  /* Questão 5: testes de condutibilidade (lâmpada) */
+  #qf5 .qf5wrap { width: 100%; max-width: 720px; text-align: center; }
+  #qf5 .qf5tit {
+    font-family: system-ui, sans-serif; font-weight: 800; color: #f2fbe4; line-height: 1.3;
+    font-size: clamp(15px, 4.2vw, 22px); margin-bottom: 1em; text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
+  }
+  #qf5 .qf5tests { display: flex; justify-content: center; align-items: flex-end; gap: clamp(6px, 3vw, 22px); }
+  #qf5 .qf5test {
+    flex: 0 0 auto; width: clamp(92px, 28vw, 155px); padding: 6px; cursor: pointer;
+    background: rgba(255, 255, 255, .04); border: 2.5px solid rgba(166, 229, 52, .4); border-radius: 16px;
+    transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  #qf5 .qf5test svg { width: 100%; height: auto; display: block; }
+  #qf5 .qf5test:hover { transform: translateY(-3px); background: rgba(166, 229, 52, .1); border-color: rgba(166, 229, 52, .65); }
+  #qf5 .qf5test.certo  { border-color: #a6e534; background: rgba(120, 220, 60, .2); box-shadow: 0 0 26px rgba(166, 229, 52, .6); }
+  #qf5 .qf5test.errado { border-color: #ff5a5a; background: rgba(230, 50, 50, .18); box-shadow: 0 0 24px rgba(255, 90, 90, .55); }
   /* flash vermelho de erro por cima do quiz (o #gameFlash fica abaixo do overlay) */
   #qfFlash { position: fixed; inset: 0; z-index: 63; pointer-events: none; opacity: 0;
     background: radial-gradient(circle at 50% 45%, rgba(255, 40, 40, 0), rgba(220, 20, 20, .5)); }
@@ -1844,7 +1861,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.107.0</div>
+<div id="versao">v1.108.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1897,7 +1914,7 @@
   <!-- Questão 3: múltipla escolha (a força está relacionada a...) -->
   <div id="qf3">
     <div class="qf3card">
-      <div class="qf3tit"><span class="qf3num">1.</span> Considerando o que você aprendeu sobre a força dos ácidos, essa grandeza está relacionada a:</div>
+      <div class="qf3tit">Considerando o que você aprendeu sobre a força dos ácidos, essa grandeza está relacionada a:</div>
       <div class="qf3opts">
         <button class="qf3opt" data-c="a">Poder de corrosão.</button>
         <button class="qf3opt" data-c="b">Ponto de fusão e ebulição.</button>
@@ -1908,8 +1925,15 @@
   <!-- Questão 4: ordenar 3 béqueres por força (crescente) -->
   <div id="qf4">
     <div class="qf4wrap">
-      <div class="qf4tit"><span class="qf4num">2.</span> Analisando os béqueres a seguir com 3 ácidos diferentes, toque neles organizando em ordem crescente de força.</div>
+      <div class="qf4tit">Analisando os béqueres a seguir com 3 ácidos diferentes, toque neles organizando em ordem crescente de força.</div>
       <div class="qf4beakers" id="qf4beakers"></div>
+    </div>
+  </div>
+  <!-- Questão 5: condutibilidade elétrica (teste da lâmpada) -->
+  <div id="qf5">
+    <div class="qf5wrap">
+      <div class="qf5tit">O professor Amauri Jr testou a condutibilidade elétrica de 3 ácidos diferentes e montou a imagem a seguir. Considerando seu conhecimento sobre força dos ácidos, qual deles é o ácido fraco?</div>
+      <div class="qf5tests" id="qf5tests"></div>
     </div>
   </div>
 </div>
@@ -3986,7 +4010,7 @@ function fecharCamLivre() {
   camDevBox.hidden = true; camBox.hidden = true; holdClear();
 }
 document.getElementById('versao').addEventListener('click', () => { freeCam ? fecharCamLivre() : abrirCamLivre(); });
-// (selo de versão: v1.107.0 — Q1 libera arraste ao aparecer + corta áudio ao encaixar; Q3 (múltipla escolha) e Q4 (béqueres) criadas)
+// (selo de versão: v1.108.0 — áudios quiz4-2..5 por questão; transição revezada próxima/essaagora; Q5 (teste da lâmpada) criada)
 document.getElementById('camDevClose').addEventListener('click', fecharCamLivre);
 document.getElementById('camDevGo').addEventListener('click', () => {
   const s = document.getElementById('camDevIn').value;
@@ -6230,7 +6254,7 @@ function pararAudiosDasQuestoes() {
 function pausarTodoAudio() {
   try { player.pause(); } catch (e) {}
   [exLavaia1a, quiz1Audio, quiz2Audio, quiz3Audio, dica1Audio, dica2Audio, dica3Audio, proximaAudio, maisumaAudio].forEach(a => { try { a.pause(); } catch (e) {} });
-  try { [quizF41, quizF41A, quizF41B, quizF43, qfApplause].forEach(a => a.pause()); } catch (e) {}
+  try { [quizF41, quizF41A, quizF42, quizF43, quizF44, quizF45, essaagoraAudio, qfApplause].forEach(a => a.pause()); } catch (e) {}
   try { Object.values(sfx).forEach(a => a.pause()); } catch (e) {}
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden) pausarTodoAudio(); });
@@ -6556,10 +6580,13 @@ $id('qfContinuar').addEventListener('click', () => { fecharQuizFim(); const i = 
 // =================================================================================
 const quizF41  = new Audio('audios/quiz4-1.mp3');    // enunciado (toca ao entrar no quiz)
 const quizF41A = new Audio('audios/quiz4-1A.mp3');   // pede pra classificar (traz as prateleiras)
-const quizF41B = new Audio('audios/quiz4-1B.mp3');   // enunciado da questão 2
+const quizF42 = new Audio('audios/quiz4-2.mp3');     // enunciado da questão 2
 const quizF43 = new Audio('audios/quiz4-3.mp3');     // enunciado da questão 3
+const quizF44 = new Audio('audios/quiz4-4.mp3');     // enunciado da questão 4
+const quizF45 = new Audio('audios/quiz4-5.mp3');     // enunciado da questão 5
+const essaagoraAudio = new Audio('audios/essaagora.mp3');   // transição (revezada com "próxima")
 const qfApplause = new Audio('audios/applause.mp3'); // aplausos no fim das questões
-[quizF41, quizF41A, quizF41B, quizF43, qfApplause].forEach(a => a.preload = 'auto');
+[quizF41, quizF41A, quizF42, quizF43, quizF44, quizF45, essaagoraAudio, qfApplause].forEach(a => a.preload = 'auto');
 
 const qfSvg = $id('qfSvg');
 function qfSetTitulo(txt) { $id('qfTitulo').innerHTML = txt; }
@@ -6731,27 +6758,28 @@ function qfConfeteAt(sx, sy) {
 }
 function qfFesta() { const w = innerWidth, y = innerHeight * 0.3; [0.2, 0.35, 0.5, 0.65, 0.8].forEach((fx, k) => setTimeout(() => qfConfeteAt(w * fx, y), k * 130)); }
 
-// festa de fim de questão: Parabéns + confete (+ aplausos) + funfare -> "próxima" -> próxima questão
-function qfCelebrar(proxFn, comApplause) {
+// festa de fim de questão: Parabéns + confete (+ aplausos) + funfare -> transição -> próxima questão
+function qfCelebrar(proxFn, comApplause, transAudio) {
   const tok = ++qfToken;
   $id('quizFParabens').classList.add('show');
   qfFesta();
   playSfx('funfare');
   if (comApplause) tocarAudioQuiz(qfApplause);
   const ir = () => { if (tok === qfToken) proxFn(); };
-  const tocarProx = () => {
+  const tocarTrans = () => {
     if (tok !== qfToken) return;
-    tocarAudioQuiz(proximaAudio);
-    const done = () => { proximaAudio.removeEventListener('ended', done); ir(); };
-    proximaAudio.addEventListener('ended', done);
-    setTimeout(() => { proximaAudio.removeEventListener('ended', done); ir(); }, 5000);   // fallback
+    if (!transAudio) { ir(); return; }
+    tocarAudioQuiz(transAudio);
+    const done = () => { transAudio.removeEventListener('ended', done); ir(); };
+    transAudio.addEventListener('ended', done);
+    setTimeout(() => { transAudio.removeEventListener('ended', done); ir(); }, 5000);   // fallback
   };
-  const onFun = () => { sfx.funfare.removeEventListener('ended', onFun); if (tok === qfToken) tocarProx(); };
+  const onFun = () => { sfx.funfare.removeEventListener('ended', onFun); if (tok === qfToken) tocarTrans(); };
   sfx.funfare.addEventListener('ended', onFun);
-  setTimeout(() => { sfx.funfare.removeEventListener('ended', onFun); if (tok === qfToken) tocarProx(); }, 4000);   // fallback
+  setTimeout(() => { sfx.funfare.removeEventListener('ended', onFun); if (tok === qfToken) tocarTrans(); }, 4000);   // fallback
 }
-// classificou os 8 frascos -> festa -> questão 2
-function qfConcluir() { qfState.interativo = false; qfCelebrar(qfQuestao2, false); }
+// classificou os 8 frascos -> festa -> questão 2 ("próxima")
+function qfConcluir() { qfState.interativo = false; qfCelebrar(qfQuestao2, false, proximaAudio); }
 
 // ---------- Questão 2: arrastar cada fórmula pra caixa da classificação correta ----------
 function qf2Montar() {
@@ -6836,7 +6864,7 @@ function qf2Acerto(box) {
   const tok = qfToken;
   setTimeout(() => {
     if (tok !== qfToken) return;
-    if (qf2State.feitos >= qf2State.total) { qfCelebrar(qfQuestao3, true); return; }   // classificou todas -> festa -> Q3
+    if (qf2State.feitos >= qf2State.total) { qfCelebrar(qfQuestao3, true, essaagoraAudio); return; }   // classificou todas -> festa -> Q3 ("essa agora")
     qf2SetFormula(qf2State.fila[qf2State.feitos]);             // entra a próxima fórmula
     const chip2 = $id('qf2chip');
     chip2.style.opacity = '0'; void chip2.getBoundingClientRect();
@@ -6867,7 +6895,7 @@ function qfQuestao2() {
     qf2Montar();
     qf.classList.remove('trocando');
     qf.classList.add('q2');
-    tocarAudioQuiz(quizF41B);                                  // enunciado da Q2
+    tocarAudioQuiz(quizF42);                                   // enunciado da Q2
     setTimeout(() => { if (tok === qfToken) qf.classList.add('q2-boxes'); }, 5000);   // 5s -> 4 caixas
     setTimeout(() => { if (tok === qfToken) { qf.classList.add('q2-chip'); qf2State.interativo = true; } }, 9000);   // 9s -> fórmula + libera arraste
   }, 520);
@@ -6878,23 +6906,24 @@ function qfFlashRed() {
   const f = $id('qfFlash'); if (f) { f.classList.remove('red'); void f.getBoundingClientRect(); f.classList.add('red'); }
   const qf = $id('quizF'); qf.classList.remove('shake'); void qf.getBoundingClientRect(); qf.classList.add('shake');
 }
-// espera o feedback acabar -> toca "próxima" -> vai pra próxima questão (com token do quizF)
-function qfAgendarProxima(feedbackAudio, proxFn) {
+// espera o feedback acabar -> toca a transição (transAudio) -> vai pra próxima questão (com token do quizF)
+function qfAgendarProxima(feedbackAudio, proxFn, transAudio) {
   const tok = ++qfToken;
   const ir = () => { if (tok === qfToken) proxFn(); };
-  const tocarProx = () => {
+  const depois = () => {
     if (tok !== qfToken) return;
-    tocarAudioQuiz(proximaAudio);
-    const d = () => { proximaAudio.removeEventListener('ended', d); ir(); };
-    proximaAudio.addEventListener('ended', d);
-    setTimeout(() => { proximaAudio.removeEventListener('ended', d); ir(); }, 5000);   // fallback
+    if (!transAudio) { ir(); return; }
+    tocarAudioQuiz(transAudio);
+    const d = () => { transAudio.removeEventListener('ended', d); ir(); };
+    transAudio.addEventListener('ended', d);
+    setTimeout(() => { transAudio.removeEventListener('ended', d); ir(); }, 5000);   // fallback
   };
   if (feedbackAudio) {
-    const onEnd = () => { feedbackAudio.removeEventListener('ended', onEnd); if (tok === qfToken) tocarProx(); };
+    const onEnd = () => { feedbackAudio.removeEventListener('ended', onEnd); if (tok === qfToken) depois(); };
     feedbackAudio.addEventListener('ended', onEnd);
-    setTimeout(() => { feedbackAudio.removeEventListener('ended', onEnd); if (tok === qfToken) tocarProx(); }, 4500);   // fallback
+    setTimeout(() => { feedbackAudio.removeEventListener('ended', onEnd); if (tok === qfToken) depois(); }, 4500);   // fallback
   } else {
-    setTimeout(tocarProx, 900);
+    setTimeout(depois, 900);
   }
 }
 
@@ -6928,8 +6957,8 @@ function qf3Responder(letra, btn) {
   qf3.querySelectorAll('.qf3opt').forEach(b => b.disabled = true);
   btn.classList.add(certo ? 'certo' : 'errado');
   qf3.querySelector('.qf3opt[data-c="c"]').classList.add('certo');   // sempre destaca a correta
-  if (certo) { playSfx('right'); playSfx('funfare'); qfFesta(); tocarAudioQuiz(qfApplause); qfAgendarProxima(sfx.funfare, qfQuestao4); }
-  else       { playSfx('error'); qfFlashRed(); qfAgendarProxima(null, qfQuestao4); }
+  if (certo) { playSfx('right'); playSfx('funfare'); qfFesta(); tocarAudioQuiz(qfApplause); qfAgendarProxima(sfx.funfare, qfQuestao4, proximaAudio); }
+  else       { playSfx('error'); qfFlashRed(); qfAgendarProxima(null, qfQuestao4, proximaAudio); }
 }
 $id('qf3').querySelectorAll('.qf3opt').forEach(b => b.addEventListener('click', () => qf3Responder(b.dataset.c, b)));
 
@@ -6948,6 +6977,7 @@ function qfQuestao4() {
     qfSetTitulo('Questão 4');
     qf4Montar();
     qf.classList.add('q4');
+    tocarAudioQuiz(quizF44);
   }, 520);
 }
 function qf4Montar() {
@@ -6978,19 +7008,91 @@ function qf4Avaliar() {
   if (certo) {
     qf4Ordem.forEach(b => b.classList.add('certo'));
     playSfx('right'); playSfx('funfare'); qfFesta(); tocarAudioQuiz(qfApplause);
-    qfAgendarProxima(sfx.funfare, qfFim);
+    qfAgendarProxima(sfx.funfare, qfQuestao5, essaagoraAudio);
   } else {
     qf4Ordem.forEach(b => b.classList.add('errado'));
     playSfx('error'); qfFlashRed();
-    qfAgendarProxima(null, qfFim);
+    qfAgendarProxima(null, qfQuestao5, essaagoraAudio);
   }
 }
+// ---------- Questão 5: condutibilidade elétrica (teste da lâmpada) ----------
+// desenho 2D do teste: pilha -> lâmpada -> eletrodos no béquer. brilho = 'alta' | 'media' | 'baixa'
+function qf5Teste(brilho) {
+  const P = { alta: { r: 34, o: .92, fill: '#fff7c8', fil: 1, rays: .95 },
+              media: { r: 23, o: .5, fill: '#ffeea0', fil: .75, rays: .5 },
+              baixa: { r: 13, o: .26, fill: '#e6dc9f', fil: .38, rays: .2 } }[brilho];
+  const bx = 80, by = 40;
+  let raios = '';
+  for (let k = 0; k < 8; k++) {
+    const a = k * Math.PI / 4, r1 = 21, r2 = 31;
+    raios += '<line x1="' + (bx + Math.cos(a) * r1).toFixed(1) + '" y1="' + (by + Math.sin(a) * r1).toFixed(1) +
+      '" x2="' + (bx + Math.cos(a) * r2).toFixed(1) + '" y2="' + (by + Math.sin(a) * r2).toFixed(1) +
+      '" stroke="#ffe680" stroke-width="2.4" stroke-linecap="round" opacity="' + P.rays + '"/>';
+  }
+  return '<svg viewBox="0 0 160 210" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">' +
+    '<defs><radialGradient id="qf5g' + brilho + '"><stop offset="0" stop-color="#fff2a0" stop-opacity="0.95"/><stop offset="1" stop-color="#fff2a0" stop-opacity="0"/></radialGradient></defs>' +
+    '<circle cx="' + bx + '" cy="' + by + '" r="' + P.r + '" fill="url(#qf5g' + brilho + ')" opacity="' + P.o + '"/>' + raios +
+    '<circle cx="' + bx + '" cy="' + by + '" r="15" fill="' + P.fill + '" stroke="#b7a24a" stroke-width="1.6"/>' +
+    '<path d="M' + (bx - 6) + ' ' + (by + 3) + ' Q' + bx + ' ' + (by - 9) + ' ' + (bx + 6) + ' ' + (by + 3) + '" fill="none" stroke="#c8892a" stroke-width="2" opacity="' + P.fil + '"/>' +
+    '<rect x="' + (bx - 6) + '" y="' + (by + 13) + '" width="12" height="9" rx="1.5" fill="#9a9aa0"/>' +
+    '<path d="M' + (bx - 4) + ' ' + (by + 22) + ' L' + (bx - 4) + ' 66 L56 66 L56 100" fill="none" stroke="#3a3a3a" stroke-width="2.6"/>' +
+    '<path d="M' + (bx + 4) + ' ' + (by + 22) + ' L' + (bx + 4) + ' 78 L104 78 L104 100" fill="none" stroke="#3a3a3a" stroke-width="2.6"/>' +
+    '<line x1="66" y1="60" x2="66" y2="72" stroke="#222" stroke-width="3"/><line x1="72" y1="63" x2="72" y2="69" stroke="#222" stroke-width="5.5"/>' +   // pilha
+    '<rect x="53" y="100" width="6" height="52" rx="2" fill="#c9ccd2"/><rect x="101" y="100" width="6" height="52" rx="2" fill="#c9ccd2"/>' +   // eletrodos
+    '<path d="M40 120 L40 188 Q40 196 48 196 L112 196 Q120 196 120 188 L120 120" fill="rgba(120,200,255,.12)" stroke="rgba(210,240,255,.6)" stroke-width="3"/>' +
+    '<path d="M43 150 L43 187 Q43 193 49 193 L111 193 Q117 193 117 187 L117 150 Z" fill="rgba(120,200,255,.24)"/>' +
+    '<line x1="40" y1="120" x2="33" y2="114" stroke="rgba(210,240,255,.6)" stroke-width="3" stroke-linecap="round"/>' +
+    '<line x1="120" y1="120" x2="127" y2="114" stroke="rgba(210,240,255,.6)" stroke-width="3" stroke-linecap="round"/>' +
+    '</svg>';
+}
+const QF5_CORRETA = 'baixa';   // ácido fraco -> conduz menos -> lâmpada fraquinha
+let qf5Resp = false;
+function qfQuestao5() {
+  const tok = ++qfToken;
+  const qf = $id('quizF');
+  $id('quizFParabens').classList.remove('show');
+  qf.classList.add('trocando');
+  setTimeout(() => {
+    if (tok !== qfToken) return;
+    qf.classList.remove('q4', 'trocando');
+    qfState.questao = 5;
+    qfSetTitulo('Questão 5');
+    qf5Montar();
+    qf.classList.add('q5');
+    tocarAudioQuiz(quizF45);
+  }, 520);
+}
+function qf5Montar() {
+  qf5Resp = false;
+  const cont = $id('qf5tests'); cont.innerHTML = '';
+  embaralhar(['alta', 'media', 'baixa']).forEach(brilho => {
+    const b = document.createElement('button');
+    b.className = 'qf5test'; b.dataset.b = brilho;
+    b.innerHTML = qf5Teste(brilho);
+    b.style.pointerEvents = '';
+    b.addEventListener('click', () => qf5Responder(b));
+    cont.appendChild(b);
+  });
+}
+function qf5Responder(b) {
+  if (qf5Resp) return; qf5Resp = true;
+  pararAudioQuiz(quizF45);
+  const certo = (b.dataset.b === QF5_CORRETA);
+  $id('qf5tests').querySelectorAll('.qf5test').forEach(x => {
+    x.style.pointerEvents = 'none';
+    if (x.dataset.b === QF5_CORRETA) x.classList.add('certo');
+  });
+  if (!certo) b.classList.add('errado');
+  if (certo) { playSfx('right'); playSfx('funfare'); qfFesta(); tocarAudioQuiz(qfApplause); qfAgendarProxima(sfx.funfare, qfFim, null); }
+  else       { playSfx('error'); qfFlashRed(); qfAgendarProxima(null, qfFim, null); }
+}
+
 // fim do quiz (por ora: celebra a conclusão; próximas questões entram aqui depois)
 function qfFim() {
   const qf = $id('quizF');
   qf.classList.add('trocando');
   setTimeout(() => {
-    qf.classList.remove('q4', 'trocando');
+    qf.classList.remove('q5', 'trocando');
     qfSetTitulo('');
     $id('quizFParabens').classList.add('show');
     qfFesta();
@@ -7007,7 +7109,7 @@ function abrirQuizF() {
   qf2State.interativo = false; qf2Drag = null;
   qfMontarQ1();
   qfSetTitulo('Questão 1');
-  qf.classList.remove('bottles-on', 'shelves-on', 'trocando', 'shake', 'q2', 'q2-boxes', 'q2-chip', 'q3', 'q4');
+  qf.classList.remove('bottles-on', 'shelves-on', 'trocando', 'shake', 'q2', 'q2-boxes', 'q2-chip', 'q3', 'q4', 'q5');
   $id('quizFParabens').classList.remove('show');
   qf.classList.add('show');
   tocarAudioQuiz(quizF41);                                        // já toca o quiz4-1
@@ -7034,10 +7136,10 @@ function fecharQuizF() {
   qfToken++;   // invalida qualquer timer/listener pendente
   qfState.interativo = false; qfState.drag = null;
   qf2State.interativo = false; qf2Drag = null;
-  $id('quizF').classList.remove('show', 'bottles-on', 'shelves-on', 'trocando', 'shake', 'q2', 'q2-boxes', 'q2-chip', 'q3', 'q4');
+  $id('quizF').classList.remove('show', 'bottles-on', 'shelves-on', 'trocando', 'shake', 'q2', 'q2-boxes', 'q2-chip', 'q3', 'q4', 'q5');
   $id('quizFParabens').classList.remove('show');
   $id('quizFBtn').classList.remove('show');
-  [quizF41, quizF41A, quizF41B, quizF43, proximaAudio, qfApplause].forEach(pararAudioQuiz);
+  [quizF41, quizF41A, quizF42, quizF43, quizF44, quizF45, proximaAudio, essaagoraAudio, qfApplause].forEach(pararAudioQuiz);
 }
 // sumário (item "Quiz 4"): pula direto pro quiz4-1
 function irParaQuizF() {
