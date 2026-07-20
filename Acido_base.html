@@ -765,9 +765,15 @@
   #quizF.q2-boxes .qf2box.qf2-right { transform: translateY(-50%) scale(1); }
   .qf2box.alvo  { background: rgba(166, 229, 52, .22); border-color: #a6e534; box-shadow: 0 0 24px rgba(166, 229, 52, .5); }
   .qf2box.certo { background: rgba(120, 220, 60, .34); border-color: #a6e534; color: #fff; box-shadow: 0 0 30px rgba(166, 229, 52, .6); }
+  .qf2box.pulse { animation: qf2Pulse .5s ease; }
+  @keyframes qf2Pulse {
+    0%, 100% { box-shadow: 0 6px 18px rgba(0, 0, 0, .45); }
+    40% { background: rgba(120, 220, 60, .3); border-color: #a6e534; box-shadow: 0 0 30px rgba(166, 229, 52, .75); }
+  }
   #qf2chip {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4;
     opacity: 0; pointer-events: none; cursor: grab; user-select: none; touch-action: none;
+    transition: opacity .3s ease;
     padding: .5em 1em; border-radius: 14px; border: 2.5px solid #a6e534;
     background: linear-gradient(150deg, #16320f, #0c1f0a); color: #f2fbe4;
     font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(26px, 8vw, 46px);
@@ -1769,7 +1775,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.104.0</div>
+<div id="versao">v1.105.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3892,7 +3898,7 @@ function fecharCamLivre() {
   camDevBox.hidden = true; camBox.hidden = true; holdClear();
 }
 document.getElementById('versao').addEventListener('click', () => { freeCam ? fecharCamLivre() : abrirCamLivre(); });
-// (selo de versão: v1.104.0 — Questão 4: Q1 (frascos) + Q2 (caixas) + títulos "Questão N")
+// (selo de versão: v1.105.0 — Q2 vira sequência: classificar 10 fórmulas por H ionizáveis, c/ exceções)
 document.getElementById('camDevClose').addEventListener('click', fecharCamLivre);
 document.getElementById('camDevGo').addEventListener('click', () => {
   const s = document.getElementById('camDevIn').value;
@@ -6469,16 +6475,24 @@ const qfApplause = new Audio('audios/applause.mp3'); // aplausos no fim da quest
 const qfSvg = $id('qfSvg');
 function qfSetTitulo(txt) { $id('qfTitulo').innerHTML = txt; }
 
-// ---- Questão 2: 4 caixas de classificação; arrastar a fórmula pra caixa correta ----
-// (fácil de editar: rótulos por posição + fórmula + qual categoria é a correta)
-const QF2 = {
-  formula: 'HCl',
-  correta: 'hidra',                                                    // categoria correta pra fórmula acima
-  caixas: { top: 'hidra', bot: 'oxi', left: 'di', right: 'tri' },      // posição -> categoria
-  labels: { hidra: 'Hidrácidos', oxi: 'Oxiácidos', di: 'Diácidos', tri: 'Triácidos' },
-};
-let qf2Drag = null;
-const qf2State = { interativo: false };
+// ---- Questão 2: classificação pelo nº de H ionizáveis; arrastar cada fórmula pra caixa correta ----
+// (fácil de editar: rótulos das caixas, posições e a lista de fórmulas com sua categoria)
+const QF2_CATS = { mono: 'Monoácidos', di: 'Diácidos', tri: 'Triácidos', tetra: 'Tetrácidos' };
+const QF2_BOXES = { top: 'mono', left: 'di', right: 'tri', bot: 'tetra' };   // posição -> categoria
+const QF2_ITENS = [
+  { f: 'HCl',    cat: 'mono' },
+  { f: 'H3PO2',  cat: 'mono' },   // exceção: hipofosforoso -> só 1 H ionizável
+  { f: 'H3BO3',  cat: 'mono' },   // exceção: bórico -> monoácido
+  { f: 'H2SO4',  cat: 'di' },
+  { f: 'H2CO3',  cat: 'di' },
+  { f: 'H3PO3',  cat: 'di' },     // exceção: fosforoso -> 2 H ionizáveis
+  { f: 'H3PO4',  cat: 'tri' },
+  { f: 'H3AsO4', cat: 'tri' },
+  { f: 'H4P2O7', cat: 'tetra' },
+  { f: 'H4SiO4', cat: 'tetra' },
+];
+let qf2Drag = null, qf2Atual = null;
+const qf2State = { interativo: false, fila: [], total: 0, feitos: 0 };
 // 8 ácidos: cat 0 = hidrácido (sem O), cat 1 = oxiácido (com O). Vidro âmbar (estilo dos ácidos).
 const QF_ACIDS = [
   { cat: 0, cfg: { g: 'rgba(196,132,52,0.40)', c: '#e0a24e', s: '#8a5a25', t: 'liq', l: 0.85, f: 'HCl' } },
@@ -6647,19 +6661,27 @@ function qfCelebrar(proxFn, comApplause) {
 // classificou os 8 frascos -> festa -> questão 2
 function qfConcluir() { qfState.interativo = false; qfCelebrar(qfQuestao2, false); }
 
-// ---------- Questão 2: arrastar a fórmula pra caixa da classificação correta ----------
+// ---------- Questão 2: arrastar cada fórmula pra caixa da classificação correta ----------
 function qf2Montar() {
   qf2State.interativo = false; qf2Drag = null;
+  qf2State.fila = embaralhar(QF2_ITENS.slice());
+  qf2State.total = qf2State.fila.length; qf2State.feitos = 0;
   const qf2 = $id('qf2');
-  const map = { 'qf2-top': QF2.caixas.top, 'qf2-bot': QF2.caixas.bot, 'qf2-left': QF2.caixas.left, 'qf2-right': QF2.caixas.right };
+  const map = { 'qf2-top': QF2_BOXES.top, 'qf2-bot': QF2_BOXES.bot, 'qf2-left': QF2_BOXES.left, 'qf2-right': QF2_BOXES.right };
   Object.keys(map).forEach(cls => {
     const b = qf2.querySelector('.' + cls), cat = map[cls];
-    b.dataset.cat = cat; b.classList.remove('certo', 'alvo');
-    b.querySelector('span').innerHTML = QF2.labels[cat];
+    b.dataset.cat = cat; b.classList.remove('certo', 'alvo', 'pulse');
+    b.querySelector('span').innerHTML = QF2_CATS[cat];
   });
+  qf2SetFormula(qf2State.fila[0]);                              // prepara a 1ª (só aparece com .q2-chip)
+}
+// coloca a fórmula da vez no chip (centralizado)
+function qf2SetFormula(item) {
+  qf2Atual = item;
   const chip = $id('qf2chip');
-  chip.innerHTML = fmtFormula(QF2.formula);
-  chip.style.transition = ''; chip.style.transform = 'translate(-50%, -50%)';
+  chip.innerHTML = fmtFormula(item.f); chip.dataset.cat = item.cat;
+  chip.style.transition = 'none'; chip.style.transform = 'translate(-50%, -50%)'; chip.style.opacity = '';
+  void chip.getBoundingClientRect(); chip.style.transition = '';
 }
 function qf2BoxUnder(x, y) {
   let found = null;
@@ -6698,7 +6720,7 @@ function qf2Up(e) {
   $id('qf2').querySelectorAll('.qf2box').forEach(x => x.classList.remove('alvo'));
   qf2Drag = null;
   if (!box) { qf2VoltarChip(); return; }                      // soltou fora das caixas: volta, sem punir
-  if (box.dataset.cat === QF2.correta) qf2Acerto(box);
+  if (qf2Atual && box.dataset.cat === qf2Atual.cat) qf2Acerto(box);
   else qf2Erro();
 }
 function qf2VoltarChip() {
@@ -6710,15 +6732,26 @@ function qf2VoltarChip() {
 function qf2Acerto(box) {
   qf2State.interativo = false;
   playSfx('right');
-  box.classList.add('certo');
+  box.classList.remove('pulse'); void box.getBoundingClientRect(); box.classList.add('pulse');
   const chip = $id('qf2chip'), cr = chip.getBoundingClientRect(), br = box.getBoundingClientRect();
   const dx = (br.left + br.width / 2) - (cr.left + cr.width / 2);
   const dy = (br.top + br.height / 2) - (cr.top + cr.height / 2);
-  chip.style.transition = 'transform .32s ease, opacity .32s ease';
-  chip.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px)) scale(.7)';
+  chip.style.transition = 'transform .3s ease, opacity .3s ease';
+  chip.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px)) scale(.5)';
   chip.style.opacity = '0';
   qfConfeteAt(br.left + br.width / 2, br.top + br.height / 2);
-  setTimeout(() => { chip.style.transition = ''; chip.style.opacity = ''; qfCelebrar(qfQuestao3, true); }, 340);   // Parabéns + applause + funfare -> próxima -> Q3
+  qf2State.feitos++;
+  const tok = qfToken;
+  setTimeout(() => {
+    if (tok !== qfToken) return;
+    if (qf2State.feitos >= qf2State.total) { qfCelebrar(qfQuestao3, true); return; }   // classificou todas -> festa -> Q3
+    qf2SetFormula(qf2State.fila[qf2State.feitos]);             // entra a próxima fórmula
+    const chip2 = $id('qf2chip');
+    chip2.style.opacity = '0'; void chip2.getBoundingClientRect();
+    chip2.style.transition = 'opacity .35s ease'; chip2.style.opacity = '';
+    setTimeout(() => { chip2.style.transition = ''; }, 360);
+    qf2State.interativo = true;
+  }, 340);
 }
 function qf2Erro() {
   playSfx('error');
