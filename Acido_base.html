@@ -1960,7 +1960,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.113.0</div>
+<div id="versao">v1.114.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2184,6 +2184,7 @@
   <div class="c19-regra" id="c19Regra">Regra</div>
   <div class="c19-formula" id="c19Formula"><span id="c19fAcido">ácido</span><span id="c19fNome">+ nome do outro elemento</span><span id="c19fIdrico">+ ÍDRICO</span></div>
   <div class="c19-ex" id="c19Ex">Ex<sub>01</sub>: <span class="c19-f">H<span id="c19ExCl">Cl</span></span></div>
+  <div class="c19-ex" id="c19Ex2">Ex<sub>02</sub>: <span class="c19-f">H<span id="c19ExBr">Br</span></span></div>
   <div class="c19-nome" id="c19Nome"><span id="c19w1"></span> <span id="c19w2"></span> <span id="c19w3"></span></div>
 </div>
 
@@ -4242,6 +4243,7 @@ const FAIXAS = [
   { id: 'dialogo1.8MR', arquivo: 'audios/dialogo1.8MR.mp3', titulo: 'Diálogo 1.8M (acerto)' },
   { id: 'dialogo1.8MW', arquivo: 'audios/dialogo1.8MW.mp3', titulo: 'Diálogo 1.8M (erro)' },
   { id: 'dialogo1.9',   arquivo: 'audios/dialogo1.9.mp3',   titulo: 'Diálogo 1.9 — Nomenclatura' },
+  { id: 'dialogo1.9B',  arquivo: 'audios/dialogo1.9B.mp3',  titulo: 'Diálogo 1.9B — Ex. 2 (HBr)' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -4724,7 +4726,16 @@ const EVENTOS = {
     { t: 33.8, fn: () => c19Digitar('c19w1', 'Ácido', 33.8, 34.6) },   // digita "Ácido"
     { t: 34.0, fn: () => { $id('c19ExCl').classList.add('grande'); c19Digitar('c19w2', 'cloro', 34.0, 35.6); } },   // aumenta o Cl da fórmula + digita "cloro"
     { t: 35.8, fn: () => c19Digitar('c19w3', 'ídrico', 35.8, 37.0) },   // digita "ídrico"
-    { t: 37.0, fn: () => { const w3 = $id('c19w3'); if (w3) { if (w3._raf) cancelAnimationFrame(w3._raf); w3._raf = null; w3.innerHTML = ''; } const cl = $id('c19ExCl'); if (cl) cl.classList.remove('grande'); c19Digitar('c19w2', 'Clorídrico', 37.0, 38.0); } },   // apaga "cloro ídrico" (cancela o typewriter do w3 pra nao sobrar), Cl volta ao normal, e digita "Clorídrico" (tudo em ~1s)
+    { t: 37.0, fn: () => { c19Limpar('c19w3'); const cl = $id('c19ExCl'); if (cl) cl.classList.remove('grande'); c19Digitar('c19w2', 'Clorídrico', 37.0, 38.0); } },   // apaga "cloro ídrico" (cancela o typewriter do w3), Cl volta ao normal, e digita "Clorídrico" (~1s)
+  ]),
+  'dialogo1.9B':  () => rodarStory([
+    { t: 0.0,  fn: () => { irParaCamera(CAM_2, false); ['c19w1', 'c19w2', 'c19w3'].forEach(c19Limpar); const e1 = $id('c19Ex'); if (e1) e1.classList.remove('show'); const cl = $id('c19ExCl'); if (cl) cl.classList.remove('grande'); } },   // mantém título/regra; some o Ex01 e o nome antigo (o resto fica)
+    { t: 2.0,  fn: () => c18eTabShow('c19Ex2') },        // Ex02: HBr
+    { t: 8.0,  fn: () => c19Digitar('c19w1', 'Ácido', 8.0, 9.0) },      // digita "Ácido"
+    { t: 9.5,  fn: () => c19Digitar('c19w2', 'Bromo', 9.5, 10.8) },     // digita "Bromo"
+    { t: 11.0, fn: () => c19Digitar('c19w3', 'Ídrico', 11.0, 12.0) },   // digita "Ídrico"
+    { t: 12.0, fn: () => { c19Limpar('c19w2'); c19Limpar('c19w3'); } }, // apaga "Bromo Ídrico"
+    { t: 13.0, fn: () => c19Digitar('c19w2', 'Bromídrico', 13.0, 13.8) },  // digita rápido "Bromídrico" -> "Ácido Bromídrico"
   ]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
@@ -4975,7 +4986,7 @@ function tocarFaixa(i) {
   if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
   if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
   if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
-  if (f.id !== 'dialogo1.9' && typeof esconderCena19 === 'function') esconderCena19();   // cena da nomenclatura (1.9) só na própria faixa
+  if (f.id !== 'dialogo1.9' && f.id !== 'dialogo1.9B' && typeof esconderCena19 === 'function') esconderCena19();   // cena da nomenclatura (1.9 / 1.9B) — mantém entre os dois exemplos
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = (f.auto || f.semPlay) ? 'none' : '';   // faixa automática (ou marcada semPlay, ex.: 1.8I) toca sem o botão de play
@@ -7416,6 +7427,7 @@ function c19Digitar(id, alvo, t0, t1) {
   };
   tick();
 }
+function c19Limpar(id) { const e = $id(id); if (!e) return; if (e._raf) cancelAnimationFrame(e._raf); e._raf = null; e.innerHTML = ''; }   // cancela o typewriter e apaga (não deixa sobra)
 const C16_HIDRA = [   // 6 hidrácidos mais comuns (sem oxigênio)
   { f: 'HF', n: 'Fluorídrico' }, { f: 'HCl', n: 'Clorídrico' }, { f: 'HBr', n: 'Bromídrico' },
   { f: 'HI', n: 'Iodídrico' }, { f: 'H2S', n: 'Sulfídrico' }, { f: 'HCN', n: 'Cianídrico' },
