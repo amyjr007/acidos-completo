@@ -450,7 +450,7 @@
   #quizCarga .opt.errado { background: rgba(230, 50, 50, .32); border-color: #ff5a5a; color: #fff; }
   #quizCarga .opt sup { font-size: .62em; }
   /* ---- Botão "Quiz" (fim do dialogo1.5D) ---- */
-  #quizBtn {
+  #quizBtn, #quizFBtn {
     position: fixed; right: 16px; bottom: calc(12px + env(safe-area-inset-bottom)); transform: scale(.9);
     z-index: 60; display: none; opacity: 0; pointer-events: none;
     font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: .04em;
@@ -460,8 +460,8 @@
     box-shadow: 0 6px 22px rgba(120, 200, 40, .45), inset 0 2px 4px rgba(255, 255, 255, .5);
     transition: opacity .4s ease, transform .25s ease;
   }
-  #quizBtn.show { display: inline-block; opacity: 1; pointer-events: auto; transform: scale(1); animation: quizBtnPulse 1.8s ease-in-out infinite; }
-  #quizBtn:active { transform: scale(.94); }
+  #quizBtn.show, #quizFBtn.show { display: inline-block; opacity: 1; pointer-events: auto; transform: scale(1); animation: quizBtnPulse 1.8s ease-in-out infinite; }
+  #quizBtn:active, #quizFBtn:active { transform: scale(.94); }
   @keyframes quizBtnPulse {
     0%, 100% { box-shadow: 0 6px 22px rgba(120, 200, 40, .45), inset 0 2px 4px rgba(255, 255, 255, .5); }
     50%      { box-shadow: 0 6px 30px rgba(166, 229, 52, .8),  inset 0 2px 4px rgba(255, 255, 255, .5); }
@@ -704,6 +704,34 @@
   #quizFim .qfPrim { color: #0a1a06; border: none; background: linear-gradient(145deg, #b4f04a, #7fc400); box-shadow: 0 6px 18px rgba(120, 200, 40, .45); }
   #quizFim .qfSec { color: #a6e534; background: transparent; border-color: rgba(166, 229, 52, .55); }
   #quizFim .qfSec:hover { background: rgba(166, 229, 52, .12); }
+  /* ===== Questão 4: classificar hidrácidos x oxiácidos (arrastar frascos) ===== */
+  #quizF {
+    position: fixed; inset: 0; z-index: 62; opacity: 0; pointer-events: none;
+    transition: opacity .5s ease;
+    background: radial-gradient(circle at 50% 38%, rgba(10, 26, 8, .95), rgba(3, 9, 3, .99));
+  }
+  #quizF.show { opacity: 1; pointer-events: auto; touch-action: none; }
+  #qfSvg { width: 100%; height: 100%; display: block;
+    filter: drop-shadow(0 12px 30px rgba(0, 0, 0, .5));
+    transition: opacity .45s ease, transform .45s ease; }
+  #quizF.trocando #qfSvg { opacity: 0; transform: scale(.94); }
+  #qfSvg #qfPool { opacity: 0; transition: opacity .85s ease; }
+  #quizF.bottles-on #qfSvg #qfPool { opacity: 1; }
+  #qfSvg #qfShelves { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+  #quizF.shelves-on #qfSvg #qfShelves { opacity: 1; transform: translateY(0); }
+  .qf-bottle { cursor: grab; }
+  .qf-bottle.drag { cursor: grabbing; }
+  .qf-bottle.snap { animation: gmSnap .5s ease; }
+  #quizF.shake { animation: gameShake .5s ease; }
+  #qfConfetti { position: fixed; inset: 0; z-index: 63; pointer-events: none; overflow: hidden; }
+  #quizFParabens {
+    position: fixed; inset: 0; z-index: 64; display: flex; align-items: center; justify-content: center;
+    pointer-events: none; opacity: 0; transition: opacity .4s ease; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 900; color: #bfff6a;
+    font-size: clamp(38px, 13vw, 88px); letter-spacing: .01em;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, .6), 0 0 34px rgba(166, 229, 52, .6);
+  }
+  #quizFParabens.show { opacity: 1; animation: quizPop .6s cubic-bezier(.2, .8, .3, 1.2) both; }
   #quiz2 .q2opts {
     position: absolute; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%);
     pointer-events: auto; display: flex; gap: clamp(14px, 5vw, 30px);
@@ -1696,7 +1724,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.102.0</div>
+<div id="versao">v1.103.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -1730,6 +1758,14 @@
 
 <!-- Botão "Quiz" (aparece no fim do dialogo1.5D) -->
 <button id="quizBtn">Quiz</button>
+
+<!-- Botão "Quiz" da Questão 4 (aparece no fim do dialogo1.8MR/1.8MW) -->
+<button id="quizFBtn">Quiz</button>
+
+<!-- Questão 4: arrastar os frascos pras prateleiras (hidrácidos x oxiácidos) -->
+<div id="quizF"><svg id="qfSvg" viewBox="0 0 600 1000" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg></div>
+<div id="qfConfetti"></div>
+<div id="quizFParabens">Parabéns!</div>
 
 <!-- Questão 1 do quiz: qual frasco é um ácido de Arrhenius -->
 <div id="quiz1">
@@ -3800,6 +3836,7 @@ function fecharCamLivre() {
   camDevBox.hidden = true; camBox.hidden = true; holdClear();
 }
 document.getElementById('versao').addEventListener('click', () => { freeCam ? fecharCamLivre() : abrirCamLivre(); });
+// (selo de versão: v1.103.0 — Questão 4: quiz de classificação hidrácidos x oxiácidos)
 document.getElementById('camDevClose').addEventListener('click', fecharCamLivre);
 document.getElementById('camDevGo').addEventListener('click', () => {
   const s = document.getElementById('camDevIn').value;
@@ -4610,6 +4647,7 @@ function tocarFaixa(i) {
   if (typeof fecharQuiz2 === 'function') fecharQuiz2();   // some a questão 2, limpa rótulos A/B/C, para os áudios e o tornassol
   if (typeof fecharQuiz3 === 'function') fecharQuiz3();   // some a questão 3 e para os áudios
   if (typeof fecharQuiz4 === 'function') fecharQuiz4();   // some a questão 4 (arrastar)
+  if (f.id !== 'dialogo1.8MR' && f.id !== 'dialogo1.8MW' && typeof fecharQuizF === 'function') fecharQuizF();   // some a Questão 4 de classificação (frascos) e para seus áudios
   if (typeof fecharQuizFim === 'function') fecharQuizFim();   // some o card de nota final
   if (typeof limparOverlaysQuiz === 'function') limparOverlaysQuiz();   // garante que nenhum overlay de quiz/cena fique sobreposto
   if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
@@ -4722,6 +4760,10 @@ player.addEventListener('ended', () => {
     setTimeout(() => tocarFaixaSuave(prox), 2000);
     $id('playBtn').style.display = 'none'; return;
   }
+  // fim do 1.8MR/1.8MW: no lugar do play aparece o botão "Quiz" (abre a Questão 4)
+  if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo1.8MR' || FAIXAS[faixaAtual].id === 'dialogo1.8MW')) {
+    $id('playBtn').style.display = 'none'; mostrarQuizFBtn(); return;
+  }
   // fim do 1.8 / 1.8A / 1.8C / 1.8G / 1.8G1 / 1.8G2: cena interativa -> esconde o play.
   if (FAIXAS[faixaAtual] && ['dialogo1.8', 'dialogo1.8A', 'dialogo1.8C', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2'].includes(FAIXAS[faixaAtual].id)) {
     const _id18 = FAIXAS[faixaAtual].id;
@@ -4788,6 +4830,7 @@ const SUMARIO = [
   { titulo: 'A condutibilidade elétrica dos ácidos', faixa: idxFaixa('dialogo1.8G') },
   { titulo: 'Força pela fórmula: Hidrácidos', faixa: idxFaixa('dialogo1.8I') },
   { titulo: 'Força pela fórmula: Oxiácidos', faixa: idxFaixa('dialogo1.8J') },
+  { titulo: 'Quiz 4',                        faixa: idxFaixa('dialogo1.8M'), acao: irParaQuizF },
 ];
 
 SUMARIO.forEach(item => {
@@ -6037,6 +6080,7 @@ function pararAudiosDasQuestoes() {
 function pausarTodoAudio() {
   try { player.pause(); } catch (e) {}
   [exLavaia1a, quiz1Audio, quiz2Audio, quiz3Audio, dica1Audio, dica2Audio, dica3Audio, proximaAudio, maisumaAudio].forEach(a => { try { a.pause(); } catch (e) {} });
+  try { [quizF41, quizF41A, quizF41B].forEach(a => a.pause()); } catch (e) {}
   try { Object.values(sfx).forEach(a => a.pause()); } catch (e) {}
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden) pausarTodoAudio(); });
@@ -6353,6 +6397,256 @@ function fecharQuizFim() { $id('quizFim').classList.remove('show'); }
 // Refazer: reinicia o quiz na questão 1. Continuar: segue pro dialogo1.6
 $id('qfRefazer').addEventListener('click', () => { fecharQuizFim(); abrirQuiz1(); });
 $id('qfContinuar').addEventListener('click', () => { fecharQuizFim(); const i = idxFaixa('dialogo1.6'); if (i >= 0) tocarFaixa(i); });
+
+// =================================================================================
+// ================ Questão 4 (classificação: hidrácidos x oxiácidos) ==============
+// Botão "Quiz" no fim do 1.8MR/1.8MW -> overlay com 8 frascos que o usuário arrasta
+// pras 2 prateleiras (Hidrácidos em cima, Oxiácidos embaixo). Mesma pegada do
+// minigame do 1.1E (arraste + sons de acerto/erro), mas SEM card de nota.
+// =================================================================================
+const quizF41  = new Audio('audios/quiz4-1.mp3');    // enunciado (toca ao entrar no quiz)
+const quizF41A = new Audio('audios/quiz4-1A.mp3');   // pede pra classificar (traz as prateleiras)
+const quizF41B = new Audio('audios/quiz4-1B.mp3');   // enunciado da questão 2 (a montar)
+[quizF41, quizF41A, quizF41B].forEach(a => a.preload = 'auto');
+
+const qfSvg = $id('qfSvg');
+// 8 ácidos: cat 0 = hidrácido (sem O), cat 1 = oxiácido (com O). Vidro âmbar (estilo dos ácidos).
+const QF_ACIDS = [
+  { cat: 0, cfg: { g: 'rgba(196,132,52,0.40)', c: '#e0a24e', s: '#8a5a25', t: 'liq', l: 0.85, f: 'HCl' } },
+  { cat: 0, cfg: { g: 'rgba(150,92,34,0.46)',  c: '#b9772e', s: '#6f4519', t: 'liq', l: 0.82, f: 'H2S' } },
+  { cat: 0, cfg: { g: 'rgba(170,96,36,0.44)',  c: '#b5621f', s: '#7a4718', t: 'liq', l: 0.86, f: 'HF' } },
+  { cat: 0, cfg: { g: 'rgba(196,140,58,0.40)', c: '#d99f45', s: '#8a5a25', t: 'liq', l: 0.84, f: 'HBr' } },
+  { cat: 1, cfg: { g: 'rgba(150,92,34,0.46)',  c: '#b9772e', s: '#6f4519', t: 'liq', l: 0.84, f: 'H2SO4' } },
+  { cat: 1, cfg: { g: 'rgba(96,52,22,0.55)',   c: '#5e3210', s: '#4a2c12', t: 'liq', l: 0.87, f: 'HNO3' } },
+  { cat: 1, cfg: { g: 'rgba(196,140,58,0.40)', c: '#d99f45', s: '#8a5a25', t: 'liq', l: 0.85, f: 'H3PO4' } },
+  { cat: 1, cfg: { g: 'rgba(170,96,36,0.44)',  c: '#b5621f', s: '#7a4718', t: 'liq', l: 0.82, f: 'H2CO3' } },
+];
+const QF_COLS = [96, 232, 368, 504];   // 4 slots por prateleira
+const QF_ROW_HID = 250;                // prateleira Hidrácidos (topo)
+const QF_ROW_OXI = 950;                // prateleira Oxiácidos (base)
+const QF_POOL_ROWS = [470, 650];       // monte central: 4 frascos em cima, 4 embaixo
+const QF_HID_CUT = (QF_ROW_HID + QF_POOL_ROWS[0]) / 2;   // acima disso -> conta como Hidrácidos
+const QF_OXI_CUT = (QF_POOL_ROWS[1] + QF_ROW_OXI) / 2;   // abaixo disso -> conta como Oxiácidos
+
+let qfUid = 0, qfToken = 0, qfBottles = [];
+let qfPoolG = null, qfPlacedG = null;
+const qfState = { placed: [0, 0], interativo: false, drag: null, questao: 1 };
+
+function qfToSvg(cx, cy) { const p = qfSvg.createSVGPoint(); p.x = cx; p.y = cy; return p.matrixTransform(qfSvg.getScreenCTM().inverse()); }
+function qfToScreen(x, y) { const p = qfSvg.createSVGPoint(); p.x = x; p.y = y; return p.matrixTransform(qfSvg.getScreenCTM()); }
+
+// frasco com base-centro na origem (0,0), fórmula maior e SEM nome (igual ao minigame)
+function qfBottleMarkup(cfg, defsArr) {
+  const rc = Object.assign({}, cfg, { hs: 0.62, ff: 18, n: '' });
+  return fnFrasco(0, 0, rc, 'qf' + (qfUid++), defsArr);
+}
+// placa da prateleira (mais larga que a etiqueta padrão pra caber "HIDRÁCIDOS"/"OXIÁCIDOS")
+function qfShelfLabel(base, texto) {
+  const bw = 236, bh = 48, bx = 300 - bw / 2, by = base - 232, cx = 300, cy = by + bh / 2;
+  return '<g>' +
+    '<rect x="' + bx + '" y="' + (by + 4) + '" width="' + bw + '" height="' + bh + '" rx="9" fill="rgba(0,0,0,.35)"/>' +
+    '<rect x="' + bx + '" y="' + by + '" width="' + bw + '" height="' + bh + '" rx="9" fill="url(#gTag)" stroke="#34332c" stroke-width="3"/>' +
+    '<rect x="' + (bx + 5) + '" y="' + (by + 5) + '" width="' + (bw - 10) + '" height="9" rx="4" fill="rgba(255,255,255,.45)"/>' +
+    '<text x="' + cx + '" y="' + (cy + 9) + '" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="26" font-weight="800" letter-spacing="1" fill="#33322b">' + texto + '</text>' +
+    '</g>';
+}
+function qfMontarQ1() {
+  qfUid = 0;
+  qfBottles = [];
+  const defs = [];
+  const order = embaralhar(QF_ACIDS.slice());   // embaralha qual ácido cai em cada posição
+  let pool = '';
+  order.forEach((a, i) => {
+    const x = QF_COLS[i % 4], y = QF_POOL_ROWS[Math.floor(i / 4)];
+    pool += '<g class="qf-bottle" data-i="' + i + '" transform="translate(' + x + ',' + y + ')">' + qfBottleMarkup(a.cfg, defs) + '</g>';
+    qfBottles.push({ cat: a.cat, cfg: a.cfg, hx: x, hy: y, placed: false, el: null });
+  });
+  const shelves = '<g id="qfShelves">' +
+    boardSVG(QF_ROW_HID) + qfShelfLabel(QF_ROW_HID, 'HIDRÁCIDOS') +
+    boardSVG(QF_ROW_OXI) + qfShelfLabel(QF_ROW_OXI, 'OXIÁCIDOS') + '</g>';
+  qfSvg.innerHTML =
+    '<defs>' + SHELF_GRADS + defs.join('') + '</defs>' +
+    shelves + '<g id="qfPlaced"></g><g id="qfPool">' + pool + '</g>';
+  qfPoolG = $id('qfPool'); qfPlacedG = $id('qfPlaced');
+  qfPoolG.querySelectorAll('.qf-bottle').forEach(g => {
+    const i = +g.dataset.i, b = qfBottles[i];
+    b.el = g; g._x = b.hx; g._y = b.hy;
+    g.addEventListener('pointerdown', e => qfDown(e, i));
+  });
+  qfState.placed = [0, 0];
+}
+function qfSetPos(i, x, y) { const g = qfBottles[i].el; g.setAttribute('transform', 'translate(' + x + ',' + y + ')'); g._x = x; g._y = y; }
+function qfTween(i, x, y, ms, done) {
+  const g = qfBottles[i].el, sx = g._x, sy = g._y, t0 = performance.now(); g._tw = t0;
+  requestAnimationFrame(function step(t) {
+    if (g._tw !== t0) return;
+    const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+    qfSetPos(i, sx + (x - sx) * e, sy + (y - sy) * e);
+    if (k < 1) requestAnimationFrame(step);
+    else { qfSetPos(i, x, y); g._tw = 0; if (done) done(); }
+  });
+}
+function qfDown(e, i) {
+  if (!qfState.interativo || qfState.drag || qfBottles[i].placed) return;
+  const g = qfBottles[i].el, p = qfToSvg(e.clientX, e.clientY);
+  qfState.drag = { i, id: e.pointerId, gx: p.x - g._x, gy: p.y - g._y };
+  qfPoolG.appendChild(g);   // traz o frasco pra frente
+  g.classList.add('drag');
+  if (qfSvg.setPointerCapture) { try { qfSvg.setPointerCapture(e.pointerId); } catch (_) {} }
+  e.preventDefault();
+}
+function qfMove(e) {
+  if (!qfState.drag) return;
+  const p = qfToSvg(e.clientX, e.clientY);
+  qfSetPos(qfState.drag.i, p.x - qfState.drag.gx, p.y - qfState.drag.gy);
+  e.preventDefault();
+}
+function qfUp(e) {
+  if (!qfState.drag) return;
+  const i = qfState.drag.i; qfState.drag = null;
+  qfBottles[i].el.classList.remove('drag');
+  qfAvaliar(i);
+  e.preventDefault();
+}
+qfSvg.addEventListener('pointermove', qfMove);
+qfSvg.addEventListener('pointerup', qfUp);
+qfSvg.addEventListener('pointercancel', qfUp);
+function qfAvaliar(i) {
+  const b = qfBottles[i], y = b.el._y;
+  let zona = -1;
+  if (y < QF_HID_CUT) zona = 0;
+  else if (y > QF_OXI_CUT) zona = 1;
+  if (zona === -1) { qfVoltar(i); return; }                 // soltou no meio: volta sem punir
+  if (zona === b.cat && qfState.placed[zona] < 4) qfAcerto(i, zona);
+  else qfErro(i);
+}
+function qfVoltar(i) { qfTween(i, qfBottles[i].hx, qfBottles[i].hy, 340); }
+function qfAcerto(i, cat) {
+  playSfx('right');
+  const slot = Math.min(qfState.placed[cat], 3);
+  const tx = QF_COLS[slot], ty = (cat === 0 ? QF_ROW_HID : QF_ROW_OXI);
+  qfBottles[i].placed = true;
+  const g = qfBottles[i].el; g.classList.remove('snap'); void g.getBoundingClientRect(); g.classList.add('snap');
+  const sc = qfToScreen(tx, ty - 60); qfConfeteAt(sc.x, sc.y);
+  qfTween(i, tx, ty, 300, () => {
+    qfPlacedG.appendChild(g);
+    qfState.placed[cat]++;
+    if (qfBottles.every(b => b.placed)) qfConcluir();
+  });
+}
+function qfErro(i) {
+  playSfx('error');
+  const qf = $id('quizF'); qf.classList.remove('shake'); void qf.getBoundingClientRect(); qf.classList.add('shake');
+  qfVoltar(i);
+}
+// confetes num container próprio (acima do overlay do quiz)
+function qfConfeteAt(sx, sy) {
+  const cont = $id('qfConfetti'); if (!cont) return;
+  const cores = ['#a6e534', '#baf34f', '#6dbf1d', '#eaffcf', '#d6f5a0'];
+  for (let n = 0; n < 26; n++) {
+    const c = document.createElement('div'); c.className = 'confete';
+    c.style.left = sx + 'px'; c.style.top = sy + 'px'; c.style.background = cores[n % cores.length];
+    const ang = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.2, dist = 70 + Math.random() * 130;
+    c.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+    c.style.setProperty('--dy', (Math.sin(ang) * dist + 190) + 'px');
+    c.style.setProperty('--rot', (Math.random() * 900 - 450) + 'deg');
+    c.style.setProperty('--dur', (1 + Math.random() * 0.8) + 's');
+    cont.appendChild(c); setTimeout(() => c.remove(), 2100);
+  }
+}
+function qfFesta() { const w = innerWidth, y = innerHeight * 0.3; [0.2, 0.35, 0.5, 0.65, 0.8].forEach((fx, k) => setTimeout(() => qfConfeteAt(w * fx, y), k * 130)); }
+
+// terminou de classificar os 8: parabéns + confete + funfare -> "próxima" -> questão 2
+function qfConcluir() {
+  qfState.interativo = false;
+  const tok = ++qfToken;
+  $id('quizFParabens').classList.add('show');
+  qfFesta();
+  playSfx('funfare');
+  const irQ2 = () => { if (tok === qfToken) qfQuestao2(); };
+  const tocarProx = () => {
+    if (tok !== qfToken) return;
+    tocarAudioQuiz(proximaAudio);
+    const done = () => { proximaAudio.removeEventListener('ended', done); irQ2(); };
+    proximaAudio.addEventListener('ended', done);
+    setTimeout(() => { proximaAudio.removeEventListener('ended', done); irQ2(); }, 5000);   // fallback
+  };
+  const onFun = () => { sfx.funfare.removeEventListener('ended', onFun); if (tok === qfToken) tocarProx(); };
+  sfx.funfare.addEventListener('ended', onFun);
+  setTimeout(() => { sfx.funfare.removeEventListener('ended', onFun); if (tok === qfToken) tocarProx(); }, 4000);   // fallback
+}
+
+// transição entre as questões: fade-out do conteúdo, some o "Parabéns", entra a Q2 e toca o quiz4-1B
+function qfQuestao2() {
+  const tok = ++qfToken;
+  const qf = $id('quizF');
+  $id('quizFParabens').classList.remove('show');
+  qf.classList.add('trocando');
+  setTimeout(() => {
+    if (tok !== qfToken) return;
+    qfSvg.innerHTML = '';                         // limpa a Q1 (frascos + prateleiras)
+    qf.classList.remove('bottles-on', 'shelves-on');
+    qfState.questao = 2; qfState.interativo = false;
+    qf.classList.remove('trocando');
+    // TODO Q2: montar a interação da questão 2 (por ora só narra o enunciado)
+    tocarAudioQuiz(quizF41B);
+  }, 520);
+}
+
+// abre a Questão 4 e roda a coreografia dos áudios/entradas
+function abrirQuizF() {
+  const tok = ++qfToken;
+  const qf = $id('quizF');
+  $id('quizFBtn').classList.remove('show');
+  $id('playBtn').style.display = 'none';
+  qfState.questao = 1; qfState.interativo = false; qfState.drag = null;
+  qfMontarQ1();
+  qf.classList.remove('bottles-on', 'shelves-on', 'trocando', 'shake');
+  $id('quizFParabens').classList.remove('show');
+  qf.classList.add('show');
+  tocarAudioQuiz(quizF41);                                        // já toca o quiz4-1
+  setTimeout(() => { if (tok === qfToken) qf.classList.add('bottles-on'); }, 3000);   // 3s -> 8 frascos em fade
+  const onEnd41 = () => {
+    quizF41.removeEventListener('ended', onEnd41);
+    if (tok !== qfToken) return;
+    setTimeout(() => {                                            // 1s de delay -> quiz4-1A
+      if (tok !== qfToken) return;
+      tocarAudioQuiz(quizF41A);
+      setTimeout(() => { if (tok === qfToken) qf.classList.add('shelves-on'); }, 1800);   // 1.8s -> prateleiras
+    }, 1000);
+  };
+  quizF41.addEventListener('ended', onEnd41);
+  const onEnd41A = () => {
+    quizF41A.removeEventListener('ended', onEnd41A);
+    if (tok !== qfToken) return;
+    qf.classList.add('shelves-on');                              // garante as prateleiras
+    qfState.interativo = true;                                   // libera o arraste
+  };
+  quizF41A.addEventListener('ended', onEnd41A);
+}
+function mostrarQuizFBtn() { $id('quizFBtn').classList.add('show'); }
+function fecharQuizF() {
+  qfToken++;   // invalida qualquer timer/listener pendente
+  qfState.interativo = false; qfState.drag = null;
+  $id('quizF').classList.remove('show', 'bottles-on', 'shelves-on', 'trocando', 'shake');
+  $id('quizFParabens').classList.remove('show');
+  $id('quizFBtn').classList.remove('show');
+  [quizF41, quizF41A, quizF41B, proximaAudio].forEach(pararAudioQuiz);
+}
+// sumário (item "Quiz 4"): pula direto pro quiz4-1
+function irParaQuizF() {
+  player.pause();
+  limparStory();
+  if (typeof esconderCena16 === 'function') esconderCena16();
+  if (typeof esconderCena17 === 'function') esconderCena17();
+  if (typeof esconderCena18 === 'function') esconderCena18();
+  const c18k = $id('c18kOpcoes'); if (c18k) c18k.classList.remove('show');
+  const i = idxFaixa('dialogo1.8M');
+  if (i >= 0) { faixaAtual = i; faixaTerminou = true; }
+  marcarSumario();
+  abrirQuizF();
+}
+$id('quizFBtn').addEventListener('click', abrirQuizF);
 
 // ---- Cena do dialogo1.6: classificação dos ácidos (hidrácidos x oxiácidos) ----
 const cena16El = $id('cena16');
