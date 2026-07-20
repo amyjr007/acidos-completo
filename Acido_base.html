@@ -1246,6 +1246,51 @@
     transition: opacity .6s ease, transform .6s cubic-bezier(.2, .9, .25, 1.3);
   }
   #cena16 .c16-sub.show { opacity: 1; transform: none; }
+  /* ---- Cena do dialogo1.9: nomenclatura dos ácidos (na parede, câmera na posição 2) ---- */
+  #cena19 { position: fixed; inset: 0; z-index: 42; pointer-events: none; }
+  #cena19 .c19-titulo {   /* mesmo estilo dramático de "Classificação dos ácidos" */
+    position: absolute; top: calc(5.5% + 0.55em); left: 0; right: 0; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: .5px;
+    font-size: clamp(24px, 6.6vw, 40px); line-height: 1.15; color: #0f4d18; text-shadow: 0 1px 2px rgba(0, 0, 0, .18);
+    opacity: 0; transform: translateY(22px) scale(.94);
+    transition: opacity .6s ease, transform .6s cubic-bezier(.2, .9, .25, 1.35);
+  }
+  #cena19 .c19-titulo.show { opacity: 1; transform: none; }
+  #cena19 .c19-sub {
+    position: absolute; top: 18%; left: 0; right: 0; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(15px, 4.4vw, 25px);
+    color: #ffffff; text-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+    opacity: 0; transform: translateY(20px); transition: opacity .6s ease, transform .6s cubic-bezier(.2, .9, .25, 1.3);
+  }
+  #cena19 .c19-sub.show { opacity: 1; transform: none; }
+  #cena19 .c19-regra {
+    position: absolute; top: 26%; left: 0; right: 0; text-align: center;
+    font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(22px, 6vw, 36px);
+    color: #ffffff; text-shadow: 0 1px 3px rgba(0, 0, 0, .5); opacity: 0; transition: opacity .5s ease;
+  }
+  #cena19 .c19-regra.show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
+  #cena19 .c19-formula {
+    position: absolute; top: 33%; left: 0; right: 0; padding: 0 16px;
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: .4em;
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(16px, 4.6vw, 26px);
+    color: #ffffff; text-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+  }
+  #cena19 .c19-formula span { opacity: 0; transition: opacity .5s ease; }
+  #cena19 .c19-formula span.show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
+  #cena19 .c19-ex {
+    position: absolute; top: 48%; left: 7%; font-family: "Cambria Math", Georgia, serif; font-weight: 800;
+    font-size: clamp(26px, 7.5vw, 44px); color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, .55);
+    opacity: 0; transition: opacity .5s ease; white-space: nowrap;
+  }
+  #cena19 .c19-ex.show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
+  #cena19 .c19-ex sub { font-size: .5em; }
+  #cena19 .c19-ex #c19ExCl { display: inline-block; transition: transform .45s cubic-bezier(.2, .9, .3, 1.5); transform-origin: center bottom; }
+  #cena19 .c19-ex #c19ExCl.grande { transform: scale(1.4); }
+  #cena19 .c19-nome {
+    position: absolute; top: 60%; left: 7%; font-family: system-ui, sans-serif; font-weight: 800;
+    font-size: clamp(20px, 5.6vw, 32px); color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, .55); white-space: nowrap;
+  }
+  #cena19 .c19-nome .caret { color: #ffffff; font-weight: 400; animation: caretBlink .8s steps(1) infinite; }
   /* estantes fixas na "parede" (posição absoluta) — o zoom é um scale a partir da coluna direita */
   #cena16 .c16-estantes {
     position: absolute; left: 0; right: 0; top: 27%;
@@ -1915,7 +1960,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.110.0</div>
+<div id="versao">v1.111.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2130,6 +2175,16 @@
       <div class="c16-frascos" id="c16fDir"></div>
     </div>
   </div>
+</div>
+
+<!-- Cena do dialogo1.9: nomenclatura dos ácidos (na parede, câmera na posição 2) -->
+<div id="cena19" aria-hidden="true">
+  <div class="c19-titulo" id="c19Tit">Nomenclatura dos ácidos</div>
+  <div class="c19-sub" id="c19Sub">a) Regra para os Hidrácidos</div>
+  <div class="c19-regra" id="c19Regra">Regra</div>
+  <div class="c19-formula" id="c19Formula"><span id="c19fAcido">ácido</span><span id="c19fNome">+ nome do outro elemento</span><span id="c19fIdrico">+ ÍDRICO</span></div>
+  <div class="c19-ex" id="c19Ex">Ex<sub>01</sub>: <span class="c19-f">H<span id="c19ExCl">Cl</span></span></div>
+  <div class="c19-nome" id="c19Nome"><span id="c19w1"></span> <span id="c19w2"></span> <span id="c19w3"></span></div>
 </div>
 
 <!-- Cena do dialogo1.7: classificação quanto aos H ionizáveis (mono/di/tri/tetrácidos) -->
@@ -4186,6 +4241,7 @@ const FAIXAS = [
   { id: 'dialogo1.8M',  arquivo: 'audios/dialogo1.8M.mp3',  titulo: 'Diálogo 1.8M' },
   { id: 'dialogo1.8MR', arquivo: 'audios/dialogo1.8MR.mp3', titulo: 'Diálogo 1.8M (acerto)' },
   { id: 'dialogo1.8MW', arquivo: 'audios/dialogo1.8MW.mp3', titulo: 'Diálogo 1.8M (erro)' },
+  { id: 'dialogo1.9',   arquivo: 'audios/dialogo1.9.mp3',   titulo: 'Diálogo 1.9 — Nomenclatura' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -4656,6 +4712,20 @@ const EVENTOS = {
     { t: 14.0, fn: () => c18jNum('c18jIgb', '=') },     // =
     { t: 15.0, fn: () => c18jNum('c18jResb', '0') },    // 0
   ]),
+  'dialogo1.9':   () => rodarStory([
+    { t: 0.0,  fn: () => { esconderCena19(); mostrarCena19(); irParaCamera(CAM_2, true, 2000); } },   // câmera pra posição 2 (quadro); todo texto some (esconderCena16/17/18 no tocarFaixa)
+    { t: 4.7,  fn: () => c18eTabShow('c19Tit') },       // "Nomenclatura dos ácidos" (efeito dramático, estilo "Classificação dos ácidos")
+    { t: 13.0, fn: () => c18eTabShow('c19Sub') },       // a) Regra para os Hidrácidos
+    { t: 19.3, fn: () => c18eTabShow('c19Regra') },     // "Regra" grande
+    { t: 21.0, fn: () => c18eTabShow('c19fAcido') },    // ácido
+    { t: 22.0, fn: () => c18eTabShow('c19fNome') },     // + nome do outro elemento
+    { t: 24.0, fn: () => c18eTabShow('c19fIdrico') },   // + ÍDRICO
+    { t: 30.0, fn: () => c18eTabShow('c19Ex') },        // Ex01: HCl
+    { t: 33.8, fn: () => c19Digitar('c19w1', 'Ácido', 33.8, 34.6) },   // digita "Ácido"
+    { t: 34.0, fn: () => { $id('c19ExCl').classList.add('grande'); c19Digitar('c19w2', 'cloro', 34.0, 35.6); } },   // aumenta o Cl da fórmula + digita "cloro"
+    { t: 35.8, fn: () => c19Digitar('c19w3', 'ídrico', 35.8, 37.0) },   // digita "ídrico"
+    { t: 37.0, fn: () => { const w3 = $id('c19w3'); if (w3) w3.innerHTML = ''; c19Digitar('c19w2', 'Clorídrico', 37.0, 38.0); } },   // apaga "cloro ídrico" e digita "Clorídrico" (tudo em ~1s)
+  ]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
 // Pulo direto pro 1.8I pelo sumário (item 19): reconstrói a cena como no fim do 1.8H — título + "c)" na tela,
@@ -4905,6 +4975,7 @@ function tocarFaixa(i) {
   if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
   if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
   if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
+  if (f.id !== 'dialogo1.9' && typeof esconderCena19 === 'function') esconderCena19();   // cena da nomenclatura (1.9) só na própria faixa
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = (f.auto || f.semPlay) ? 'none' : '';   // faixa automática (ou marcada semPlay, ex.: 1.8I) toca sem o botão de play
@@ -7256,8 +7327,9 @@ function qfFim() {
 // botão de play do card final: fecha o quiz e devolve o play da narração
 $id('qffcPlay').addEventListener('click', () => {
   fecharQuizF();
-  faixaAtual = FAIXAS.length - 1; faixaTerminou = true; marcarSumario();   // fim do conteúdo: play não avança pra faixa de erro
-  $id('playBtn').style.display = '';
+  const i = idxFaixa('dialogo1.9');   // ao tocar play, segue pra Nomenclatura (1.9)
+  if (i >= 0) tocarFaixa(i);
+  else { faixaAtual = FAIXAS.length - 1; faixaTerminou = true; marcarSumario(); $id('playBtn').style.display = ''; }
 });
 
 // abre a Questão 4 e roda a coreografia dos áudios/entradas
@@ -7320,6 +7392,28 @@ $id('quizFBtn').addEventListener('click', abrirQuizF);
 
 // ---- Cena do dialogo1.6: classificação dos ácidos (hidrácidos x oxiácidos) ----
 const cena16El = $id('cena16');
+// ---- Cena do dialogo1.9: nomenclatura dos ácidos ----
+const cena19El = $id('cena19');
+function mostrarCena19() { if (cena19El) cena19El.setAttribute('aria-hidden', 'false'); }
+function esconderCena19() {
+  if (!cena19El) return;
+  cena19El.setAttribute('aria-hidden', 'true');
+  cena19El.querySelectorAll('.show').forEach(s => s.classList.remove('show'));
+  ['c19w1', 'c19w2', 'c19w3'].forEach(id => { const e = $id(id); if (e) e.innerHTML = ''; });
+  const cl = $id('c19ExCl'); if (cl) cl.classList.remove('grande');
+}
+// máquina de escrever guiada pelo tempo do áudio (t0 -> t1), escreve `alvo` no elemento id
+function c19Digitar(id, alvo, t0, t1) {
+  const el = $id(id); if (!el) return;
+  const n = alvo.length;
+  if (el._raf) cancelAnimationFrame(el._raf);
+  const tick = () => {
+    const p = Math.max(0, Math.min(1, (player.currentTime - t0) / (t1 - t0)));
+    el.innerHTML = alvo.slice(0, Math.round(p * n)) + (p < 1 ? '<span class="caret">▏</span>' : '');
+    el._raf = p < 1 ? requestAnimationFrame(tick) : null;
+  };
+  tick();
+}
 const C16_HIDRA = [   // 6 hidrácidos mais comuns (sem oxigênio)
   { f: 'HF', n: 'Fluorídrico' }, { f: 'HCl', n: 'Clorídrico' }, { f: 'HBr', n: 'Bromídrico' },
   { f: 'HI', n: 'Iodídrico' }, { f: 'H2S', n: 'Sulfídrico' }, { f: 'HCN', n: 'Cianídrico' },
