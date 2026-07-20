@@ -1961,7 +1961,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.117.0</div>
+<div id="versao">v1.118.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2187,6 +2187,7 @@
   <div class="c19-ex" id="c19Ex">Ex<sub>01</sub>: <span class="c19-f">H<span class="c19el" id="c19ExCl">Cl</span></span></div>
   <div class="c19-ex" id="c19Ex2">Ex<sub>02</sub>: <span class="c19-f">H<span class="c19el" id="c19ExBr">Br</span></span></div>
   <div class="c19-ex" id="c19Ex3">Ex<sub>03</sub>: <span class="c19-f">H<span class="c19el" id="c19ExCN">CN</span></span></div>
+  <div class="c19-ex" id="c19Ex4">Ex<sub>04</sub>: <span class="c19-f">H<sub>2</sub><span class="c19el" id="c19ExS">S</span></span></div>
   <div class="c19-nome" id="c19Nome"><span id="c19w1"></span> <span id="c19w2"></span> <span id="c19w3"></span></div>
 </div>
 
@@ -4247,6 +4248,7 @@ const FAIXAS = [
   { id: 'dialogo1.9',   arquivo: 'audios/dialogo1.9.mp3',   titulo: 'Diálogo 1.9 — Nomenclatura' },
   { id: 'dialogo1.9B',  arquivo: 'audios/dialogo1.9B.mp3',  titulo: 'Diálogo 1.9B — Ex. 2 (HBr)' },
   { id: 'dialogo1.9C',  arquivo: 'audios/dialogo1.9C.mp3',  titulo: 'Diálogo 1.9C — Ex. 3 (HCN)' },
+  { id: 'dialogo1.9D',  arquivo: 'audios/dialogo1.9D.mp3',  titulo: 'Diálogo 1.9D — Ex. 4 (H2S)' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -4750,6 +4752,18 @@ const EVENTOS = {
     { t: 12.4, fn: () => { c19Limpar('c19w2'); c19Limpar('c19w3'); } }, // apaga "Ciano Ídrico"
     { t: 12.5, fn: () => { const cn = $id('c19ExCN'); if (cn) cn.classList.remove('grande'); c19Digitar('c19w2', 'Cianídrico', 12.5, 13.5); } },   // CN volta ao normal + digita "Cianídrico" -> "Ácido Cianídrico"
   ]),
+  'dialogo1.9D':  () => rodarStory([
+    { t: 0.0,  fn: () => { irParaCamera(CAM_2, false); ['c19w1', 'c19w2', 'c19w3'].forEach(c19Limpar); cena19El.querySelectorAll('.c19el').forEach(e => e.classList.remove('grande')); } },   // mantém título/regra; limpa o nome antigo
+    { t: 1.0,  fn: () => { const e3 = $id('c19Ex3'); if (e3) { e3.classList.remove('show'); e3.classList.add('sai'); } } },   // Ex03 some diminuindo
+    { t: 3.0,  fn: () => c18eTabShow('c19Ex4') },        // Ex04: H2S
+    { t: 8.0,  fn: () => c19Digitar('c19w1', 'Ácido', 8.0, 9.0) },      // digita "Ácido"
+    { t: 9.0,  fn: () => $id('c19ExS').classList.add('grande') },       // aumenta o S da fórmula
+    { t: 10.0, fn: () => c19Digitar('c19w2', 'enxofre', 10.0, 11.5) },  // digita "enxofre"
+    { t: 12.0, fn: () => c19Limpar('c19w2') },           // apaga "enxofre"
+    { t: 14.4, fn: () => c19Digitar('c19w2', 'sulfur', 14.4, 15.6) },   // escreve "sulfur"
+    { t: 18.2, fn: () => c19Digitar('c19w3', 'Ídrico', 18.2, 19.2) },   // digita "Ídrico"
+    { t: 19.2, fn: () => { c19Limpar('c19w3'); const s = $id('c19ExS'); if (s) s.classList.remove('grande'); c19Digitar('c19w2', 'Sulfídrico', 19.2, 20.2); } },   // apaga "sulfur ídrico", S volta ao normal + digita "Sulfídrico" -> "Ácido Sulfídrico"
+  ]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
 // Pulo direto pro 1.8I pelo sumário (item 19): reconstrói a cena como no fim do 1.8H — título + "c)" na tela,
@@ -4999,7 +5013,7 @@ function tocarFaixa(i) {
   if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
   if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
   if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
-  if (f.id !== 'dialogo1.9' && f.id !== 'dialogo1.9B' && f.id !== 'dialogo1.9C' && typeof esconderCena19 === 'function') esconderCena19();   // cena da nomenclatura (1.9 / 1.9B / 1.9C) — mantém entre os exemplos
+  if (!['dialogo1.9', 'dialogo1.9B', 'dialogo1.9C', 'dialogo1.9D'].includes(f.id) && typeof esconderCena19 === 'function') esconderCena19();   // cena da nomenclatura — mantém entre os exemplos (1.9/B/C/D)
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = (f.auto || f.semPlay) ? 'none' : '';   // faixa automática (ou marcada semPlay, ex.: 1.8I) toca sem o botão de play
