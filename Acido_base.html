@@ -755,14 +755,11 @@
     opacity: 0; transform: scale(.9); transition: opacity .5s ease, transform .5s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
   }
   #quizF.q2-boxes .qf2box { opacity: 1; transform: scale(1); }
-  .qf2box.qf2-top   { top: calc(52px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%) scale(.9); }
-  .qf2box.qf2-bot   { bottom: calc(60px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%) scale(.9); }
-  .qf2box.qf2-left  { left: 4vw; top: 50%; transform: translateY(-50%) scale(.9); }
-  .qf2box.qf2-right { right: 4vw; top: 50%; transform: translateY(-50%) scale(.9); }
-  #quizF.q2-boxes .qf2box.qf2-top   { transform: translateX(-50%) scale(1); }
-  #quizF.q2-boxes .qf2box.qf2-bot   { transform: translateX(-50%) scale(1); }
-  #quizF.q2-boxes .qf2box.qf2-left  { transform: translateY(-50%) scale(1); }
-  #quizF.q2-boxes .qf2box.qf2-right { transform: translateY(-50%) scale(1); }
+  /* 2 caixas em cima, 2 embaixo; a fórmula (etiqueta) fica na faixa central */
+  .qf2box.qf2-top   { top: calc(58px + env(safe-area-inset-top)); left: 5vw; }
+  .qf2box.qf2-right { top: calc(58px + env(safe-area-inset-top)); right: 5vw; }
+  .qf2box.qf2-left  { bottom: calc(58px + env(safe-area-inset-bottom)); left: 5vw; }
+  .qf2box.qf2-bot   { bottom: calc(58px + env(safe-area-inset-bottom)); right: 5vw; }
   .qf2box.alvo  { background: rgba(166, 229, 52, .22); border-color: #a6e534; box-shadow: 0 0 24px rgba(166, 229, 52, .5); }
   .qf2box.certo { background: rgba(120, 220, 60, .34); border-color: #a6e534; color: #fff; box-shadow: 0 0 30px rgba(166, 229, 52, .6); }
   .qf2box.pulse { animation: qf2Pulse .5s ease; }
@@ -770,19 +767,21 @@
     0%, 100% { box-shadow: 0 6px 18px rgba(0, 0, 0, .45); }
     40% { background: rgba(120, 220, 60, .3); border-color: #a6e534; box-shadow: 0 0 30px rgba(166, 229, 52, .75); }
   }
+  /* fórmula arrastável com cara de etiqueta de frasco (papel creme, texto marrom) */
   #qf2chip {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4;
     opacity: 0; pointer-events: none; cursor: grab; user-select: none; touch-action: none;
     transition: opacity .3s ease;
-    padding: .5em 1em; border-radius: 14px; border: 2.5px solid #a6e534;
-    background: linear-gradient(150deg, #16320f, #0c1f0a); color: #f2fbe4;
-    font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(26px, 8vw, 46px);
-    box-shadow: 0 10px 26px rgba(0, 0, 0, .55), 0 0 22px rgba(166, 229, 52, .3);
+    padding: .42em 1.05em; border-radius: 7px; border: 2px solid #c9b587;
+    background: linear-gradient(180deg, rgba(255, 255, 255, .5), rgba(255, 255, 255, 0) 52%, rgba(90, 70, 40, .18)), #efe4c6;
+    color: #2c2013; font-family: system-ui, sans-serif; font-weight: 800; letter-spacing: .01em;
+    font-size: clamp(26px, 8vw, 44px);
+    box-shadow: 0 9px 24px rgba(0, 0, 0, .5);
   }
   #qf2chip sub { font-size: .58em; vertical-align: sub; }
   #qf2chip sup { font-size: .58em; vertical-align: super; }
   #quizF.q2-chip #qf2chip { opacity: 1; pointer-events: auto; }
-  #qf2chip.arrastando { cursor: grabbing; box-shadow: 0 14px 32px rgba(0, 0, 0, .6), 0 0 30px rgba(166, 229, 52, .55); }
+  #qf2chip.arrastando { cursor: grabbing; border-color: #b59a63; box-shadow: 0 14px 32px rgba(0, 0, 0, .6); }
   #quiz2 .q2opts {
     position: absolute; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%);
     pointer-events: auto; display: flex; gap: clamp(14px, 5vw, 30px);
@@ -1775,7 +1774,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.105.0</div>
+<div id="versao">v1.106.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3898,7 +3897,7 @@ function fecharCamLivre() {
   camDevBox.hidden = true; camBox.hidden = true; holdClear();
 }
 document.getElementById('versao').addEventListener('click', () => { freeCam ? fecharCamLivre() : abrirCamLivre(); });
-// (selo de versão: v1.105.0 — Q2 vira sequência: classificar 10 fórmulas por H ionizáveis, c/ exceções)
+// (selo de versão: v1.106.0 — Q2: caixas 2 em cima / 2 embaixo + fórmula com cara de etiqueta)
 document.getElementById('camDevClose').addEventListener('click', fecharCamLivre);
 document.getElementById('camDevGo').addEventListener('click', () => {
   const s = document.getElementById('camDevIn').value;
@@ -6478,7 +6477,8 @@ function qfSetTitulo(txt) { $id('qfTitulo').innerHTML = txt; }
 // ---- Questão 2: classificação pelo nº de H ionizáveis; arrastar cada fórmula pra caixa correta ----
 // (fácil de editar: rótulos das caixas, posições e a lista de fórmulas com sua categoria)
 const QF2_CATS = { mono: 'Monoácidos', di: 'Diácidos', tri: 'Triácidos', tetra: 'Tetrácidos' };
-const QF2_BOXES = { top: 'mono', left: 'di', right: 'tri', bot: 'tetra' };   // posição -> categoria
+// posição -> categoria (2 em cima: esq/dir; 2 embaixo: esq/dir)
+const QF2_BOXES = { top: 'mono', right: 'di', left: 'tri', bot: 'tetra' };
 const QF2_ITENS = [
   { f: 'HCl',    cat: 'mono' },
   { f: 'H3PO2',  cat: 'mono' },   // exceção: hipofosforoso -> só 1 H ionizável
