@@ -1280,9 +1280,10 @@
   #cena19 .c19-ex {
     position: absolute; top: 48%; left: 7%; font-family: "Cambria Math", Georgia, serif; font-weight: 800;
     font-size: clamp(26px, 7.5vw, 44px); color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, .55);
-    opacity: 0; transition: opacity .5s ease; white-space: nowrap;
+    opacity: 0; transition: opacity .5s ease, transform .5s ease; white-space: nowrap; transform-origin: left center;
   }
   #cena19 .c19-ex.show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
+  #cena19 .c19-ex.sai { opacity: 0; transform: scale(0); }   /* ao trocar de exemplo, o anterior some diminuindo até sumir */
   #cena19 .c19-ex sub { font-size: .5em; }
   #cena19 .c19-ex #c19ExCl { display: inline-block; transition: transform .45s cubic-bezier(.2, .9, .3, 1.5); transform-origin: center bottom; }
   #cena19 .c19-ex #c19ExCl.grande { transform: scale(1.4); }
@@ -1960,7 +1961,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.115.0</div>
+<div id="versao">v1.116.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2182,7 +2183,7 @@
   <div class="c19-titulo" id="c19Tit">Nomenclatura dos ácidos</div>
   <div class="c19-sub" id="c19Sub">a) Regra para os Hidrácidos</div>
   <div class="c19-regra" id="c19Regra">Regra</div>
-  <div class="c19-formula" id="c19Formula"><span id="c19fAcido">ácido</span><span id="c19fNome">+ nome do ânion</span><span id="c19fIdrico">+ ÍDRICO</span></div>
+  <div class="c19-formula" id="c19Formula"><span id="c19fAcido">Ácido</span><span id="c19fNome">+ nome do ânion</span><span id="c19fIdrico">+ ÍDRICO</span></div>
   <div class="c19-ex" id="c19Ex">Ex<sub>01</sub>: <span class="c19-f">H<span id="c19ExCl">Cl</span></span></div>
   <div class="c19-ex" id="c19Ex2">Ex<sub>02</sub>: <span class="c19-f">H<span id="c19ExBr">Br</span></span></div>
   <div class="c19-nome" id="c19Nome"><span id="c19w1"></span> <span id="c19w2"></span> <span id="c19w3"></span></div>
@@ -4729,12 +4730,12 @@ const EVENTOS = {
     { t: 37.0, fn: () => { c19Limpar('c19w3'); const cl = $id('c19ExCl'); if (cl) cl.classList.remove('grande'); c19Digitar('c19w2', 'Clorídrico', 37.0, 38.0); } },   // apaga "cloro ídrico" (cancela o typewriter do w3), Cl volta ao normal, e digita "Clorídrico" (~1s)
   ]),
   'dialogo1.9B':  () => rodarStory([
-    { t: 0.0,  fn: () => { irParaCamera(CAM_2, false); ['c19w1', 'c19w2', 'c19w3'].forEach(c19Limpar); const e1 = $id('c19Ex'); if (e1) e1.classList.remove('show'); const cl = $id('c19ExCl'); if (cl) cl.classList.remove('grande'); } },   // mantém título/regra; some o Ex01 e o nome antigo (o resto fica)
+    { t: 0.0,  fn: () => { irParaCamera(CAM_2, false); ['c19w1', 'c19w2', 'c19w3'].forEach(c19Limpar); const e1 = $id('c19Ex'); if (e1) { e1.classList.remove('show'); e1.classList.add('sai'); } const cl = $id('c19ExCl'); if (cl) cl.classList.remove('grande'); } },   // mantém título/regra; o Ex01 some diminuindo + limpa o nome antigo (o resto fica)
     { t: 2.0,  fn: () => c18eTabShow('c19Ex2') },        // Ex02: HBr
     { t: 8.0,  fn: () => c19Digitar('c19w1', 'Ácido', 8.0, 9.0) },      // digita "Ácido"
     { t: 9.5,  fn: () => c19Digitar('c19w2', 'Bromo', 9.5, 10.8) },     // digita "Bromo"
     { t: 11.0, fn: () => c19Digitar('c19w3', 'Ídrico', 11.0, 12.0) },   // digita "Ídrico"
-    { t: 12.0, fn: () => { c19Limpar('c19w2'); c19Limpar('c19w3'); } }, // apaga "Bromo Ídrico"
+    { t: 12.8, fn: () => { c19Limpar('c19w2'); c19Limpar('c19w3'); } }, // apaga "Bromo Ídrico"
     { t: 13.0, fn: () => c19Digitar('c19w2', 'Bromídrico', 13.0, 13.8) },  // digita rápido "Bromídrico" -> "Ácido Bromídrico"
   ]),
 };
@@ -7412,7 +7413,8 @@ function esconderCena19() {
   if (!cena19El) return;
   cena19El.setAttribute('aria-hidden', 'true');
   cena19El.querySelectorAll('.show').forEach(s => s.classList.remove('show'));
-  ['c19w1', 'c19w2', 'c19w3'].forEach(id => { const e = $id(id); if (e) e.innerHTML = ''; });
+  cena19El.querySelectorAll('.c19-ex').forEach(e => e.classList.remove('sai'));   // reseta o "some diminuindo" dos exemplos
+  ['c19w1', 'c19w2', 'c19w3'].forEach(c19Limpar);   // cancela typewriters + limpa
   const cl = $id('c19ExCl'); if (cl) cl.classList.remove('grande');
 }
 // máquina de escrever guiada pelo tempo do áudio (t0 -> t1), escreve `alvo` no elemento id
