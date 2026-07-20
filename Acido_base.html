@@ -1333,7 +1333,7 @@
   #cena18 #c18jLista { font-size: clamp(19px, 5.4vw, 30px); gap: .16em; }
   #cena18 #c18jLista .c18i-tit { font-size: 1.3em; }
   /* 1.8J: Forte/Moderado/Fraco em 2 colunas — palavras alinhadas à esquerda e os "= …" na mesma coluna */
-  #cena18 #c18jLista .c18j-forcas { display: grid; grid-template-columns: auto auto; justify-content: center; align-items: baseline; column-gap: .5em; row-gap: .16em; }
+  #cena18 #c18jLista .c18j-forcas { display: grid; grid-template-columns: auto auto; justify-content: center; align-items: baseline; column-gap: .5em; row-gap: .16em; text-align: left; }
   #cena18 #c18jLista .c18j-forcas span { white-space: nowrap; }
   #cena18 .c18i-lista .c18i-tit, #cena18 .c18i-lista .c18i-sub, #cena18 .c18i-lista span { opacity: 0; transition: opacity .6s ease; }
   #cena18 .c18i-lista .show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
@@ -1351,8 +1351,11 @@
   #cena18 .c18j-frame span { opacity: 0; transition: opacity .6s ease; }   /* termos/números do frame (funciona dentro ou fora da lista) */
   #cena18 .c18j-frame span.show { opacity: 1; animation: c18FwIn .5s cubic-bezier(.18, .9, .24, 1.35) both; }
   /* frame-cópia (1.8K/L/M): a que é modificada — embaixo do exemplo, sobre os quadrados de fundo */
-  #cena18 #c18jFrameb { position: absolute; left: 7%; top: 60%; margin: 0; font-size: clamp(20px, 5.6vw, 32px); display: none; }
+  #cena18 #c18jFrameb { position: absolute; left: 0; right: 0; top: 60%; margin-block: 0; margin-inline: auto; width: fit-content; color: #f2fbe4; font-size: clamp(20px, 5.6vw, 32px); display: none; }   /* centralizada, fonte branca */
   #cena18 #c18jFrameb.show { display: flex; }
+  /* cada termo tem seu número por cima (mesma posição): a largura do slot é a do termo, então o número não empurra nada */
+  #cena18 #c18jFrameb .c18j-slot { position: relative; display: inline-flex; align-items: baseline; }
+  #cena18 #c18jFrameb .c18j-slot .num { position: absolute; left: 0; right: 0; top: 0; text-align: center; }
   #cena18 .c18j-frame sub { font-size: .56em; }
   #cena18 .c18j-frame .off { display: none; }              /* termo substituído sai do layout */
   #cena18 .c18j-frame .num { color: #ffd21e; }             /* números da conta (4 − 2 = 2) */
@@ -1912,7 +1915,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.109.0</div>
+<div id="versao">v1.110.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2190,7 +2193,7 @@
     <span class="f" id="c18kForm3"><span class="p" id="c18kHm">H</span><span class="p">Cl</span><span class="p" id="c18kOm">O</span></span>
   </div>
   <!-- 1.8K/L/M: cópia da regra (a que é modificada) — embaixo do exemplo, sobre os quadrados de fundo -->
-  <div class="c18j-frame" id="c18jFrameb"><span id="c18jOxb">N&ordm; de Oxigênio</span><span id="c18jHb">&minus; N&ordm; H<sub>ionizáveis</sub></span><span class="num off" id="c18jOxNb">4</span><span class="num off" id="c18jHNb">&minus; 2</span><span class="num off" id="c18jIgb">=</span><span class="num off" id="c18jResb">2</span></div>
+  <div class="c18j-frame" id="c18jFrameb"><span class="c18j-slot"><span id="c18jOxb">N&ordm; de Oxigênio</span><span class="num" id="c18jOxNb">4</span></span><span class="c18j-slot"><span id="c18jHb">&minus; N&ordm; H<sub>ionizáveis</sub></span><span class="num" id="c18jHNb">&minus; 2</span></span><span class="num off" id="c18jIgb">=</span><span class="num off" id="c18jResb">2</span></div>
 </div>
 
 <!-- 1.8K: opções de resposta do exemplo -->
@@ -4626,8 +4629,8 @@ const EVENTOS = {
     { t: 2.2,  fn: () => { c18eTabShow('c18kForm1'); ['c18jFrameb', 'c18jOxb', 'c18jHb'].forEach(c18eTabShow); } },   // H2SO4 (fórmula grande) + cópia da regra embaixo (a original fica intacta)
     { t: 5.7,  fn: () => $id('c18kO4').classList.add('grande') },   // cresce o O4
     { t: 7.2,  fn: () => $id('c18kH2').classList.add('grande') },   // cresce o H2
-    { t: 10.0, fn: () => { c18jSome('c18jOxb'); c18jNum('c18jOxNb', '4'); } },   // na cópia: "Nº de Oxigênio" sai e entra o 4
-    { t: 10.8, fn: () => { c18jSome('c18jHb'); c18jNum('c18jHNb', '&minus; 2'); } },   // na cópia: "− Nº H" sai e entra o "− 2"
+    { t: 10.0, fn: () => { c18jFade('c18jOxb'); c18jNum('c18jOxNb', '4'); } },   // na cópia: "Nº de Oxigênio" sai e entra o 4
+    { t: 10.8, fn: () => { c18jFade('c18jHb'); c18jNum('c18jHNb', '&minus; 2'); } },   // na cópia: "− Nº H" sai e entra o "− 2"
     { t: 12.7, fn: () => c18jNum('c18jIgb', '=') },     // =
     { t: 13.6, fn: () => c18jNum('c18jResb', '2') },    // 2
     { t: 14.0, fn: () => ['c18kO4', 'c18kH2'].forEach(id => $id(id).classList.remove('grande')) },   // o que estava aumentado volta ao normal
@@ -4638,8 +4641,8 @@ const EVENTOS = {
     { t: 2.0,  fn: () => { c18eTabShow('c18kRot2'); c18eTabShow('c18kForm2'); } },   // Ex2: H3PO4
     { t: 5.7,  fn: () => $id('c18kO4b').classList.add('grande') },   // cresce o O4
     { t: 7.2,  fn: () => $id('c18kH3').classList.add('grande') },    // cresce o H3
-    { t: 10.8, fn: () => { c18jSome('c18jOxb'); c18jNum('c18jOxNb', '4'); } },   // na cópia: Nº de Oxigênio -> 4
-    { t: 11.8, fn: () => { c18jSome('c18jHb'); c18jNum('c18jHNb', '&minus; 3'); } },   // − 3
+    { t: 10.8, fn: () => { c18jFade('c18jOxb'); c18jNum('c18jOxNb', '4'); } },   // na cópia: Nº de Oxigênio -> 4
+    { t: 11.8, fn: () => { c18jFade('c18jHb'); c18jNum('c18jHNb', '&minus; 3'); } },   // − 3
     { t: 14.0, fn: () => c18jNum('c18jIgb', '=') },     // =
     { t: 15.0, fn: () => c18jNum('c18jResb', '1') },    // 1
   ]),
@@ -4648,8 +4651,8 @@ const EVENTOS = {
     { t: 2.0,  fn: () => { c18eTabShow('c18kRot3'); c18eTabShow('c18kForm3'); } },   // Ex3: HClO
     { t: 6.0,  fn: () => $id('c18kOm').classList.add('grande') },   // cresce o O
     { t: 8.0,  fn: () => $id('c18kHm').classList.add('grande') },   // cresce o H
-    { t: 11.0, fn: () => { c18jSome('c18jOxb'); c18jNum('c18jOxNb', '1'); } },   // na cópia: Nº de Oxigênio -> 1
-    { t: 12.0, fn: () => { c18jSome('c18jHb'); c18jNum('c18jHNb', '&minus; 1'); } },   // − 1
+    { t: 11.0, fn: () => { c18jFade('c18jOxb'); c18jNum('c18jOxNb', '1'); } },   // na cópia: Nº de Oxigênio -> 1
+    { t: 12.0, fn: () => { c18jFade('c18jHb'); c18jNum('c18jHNb', '&minus; 1'); } },   // − 1
     { t: 14.0, fn: () => c18jNum('c18jIgb', '=') },     // =
     { t: 15.0, fn: () => c18jNum('c18jResb', '0') },    // 0
   ]),
@@ -4694,6 +4697,7 @@ function c18jPreparar() {
 // ---- 1.8K: substituições no frame da regra + quiz do exemplo ----
 function c18jSome(id) { const e = $id(id); if (!e) return; e.classList.remove('show'); setTimeout(() => e.classList.add('off'), 620); }   // termo sai em fade e colapsa
 function c18jNum(id, txt) { const e = $id(id); if (!e) return; if (txt != null) e.innerHTML = txt; e.classList.remove('off'); e.classList.add('show'); }   // número entra no lugar
+function c18jFade(id) { const e = $id(id); if (e) e.classList.remove('show'); }   // termo do slot só some em fade (mantém a largura; o número entra por cima, na mesma posição)
 // reset entre exemplos: a fórmula do exemplo (rot/form) some, destaques desfeitos e o frame VOLTA à fórmula original
 function c18ExReset(rotId, formId, growIds) {
   [rotId, formId].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
@@ -4713,6 +4717,7 @@ const C18EX = {
 };
 let c18ExAtual = 'K';
 function c18ExResponder(op) {
+  cortarAudiosQuiz();
   const cfg = C18EX[c18ExAtual];
   $id('c18kOpcoes').classList.remove('show');
   if (op === cfg.certa) {         // acertou: applause + confetes + funfare -> faixa de acerto
@@ -6253,6 +6258,7 @@ function mostrarQuizCarga() {
 }
 function esconderQuizCarga() { $id('quizCarga').classList.remove('show'); }
 function responderCarga(val, btn) {
+  cortarAudiosQuiz();
   const q = $id('quizCarga');
   if (q.classList.contains('resp')) return;   // já respondeu
   q.classList.add('resp');
@@ -6288,8 +6294,15 @@ const dica3Audio = new Audio('audios/dica3.mp3');          // dica da questão 3
 const proximaAudio = new Audio('audios/próxima.mp3');      // transição antes da próxima questão
 const maisumaAudio = new Audio('audios/maisuma.mp3');      // transição antes da questão 3
 [exLavaia1a, quiz1Audio, quiz2Audio, quiz3Audio, dica1Audio, dica2Audio, dica3Audio, proximaAudio, maisumaAudio].forEach(a => a.preload = 'auto');
-const tocarAudioQuiz = a => { try { a.currentTime = 0; const p = a.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} };
+let _audioQuizAtual = null;   // última narração de quiz tocada (pra cortar assim que o usuário responde)
+const tocarAudioQuiz = a => { try { a.currentTime = 0; const p = a.play(); if (p && p.catch) p.catch(() => {}); _audioQuizAtual = a; } catch (e) {} };
 const pararAudioQuiz = a => { try { a.pause(); a.currentTime = 0; } catch (e) {} };
+// corta imediatamente o áudio de QUALQUER quiz quando o usuário escolhe a resposta:
+// a narração de quiz atual (via tocarAudioQuiz) + o player principal (mini-quizzes narram pela faixa)
+function cortarAudiosQuiz() {
+  if (_audioQuizAtual) { try { _audioQuizAtual.pause(); } catch (e) {} }
+  try { if (typeof player !== 'undefined' && player && !player.paused) player.pause(); } catch (e) {}
+}
 // questão 1: quando o enunciado ("Ex. lávaia1a") termina, espera 1s e toca o "quiz1"
 exLavaia1a.addEventListener('ended', () => {
   setTimeout(() => { if ($id('quiz1').classList.contains('show')) tocarAudioQuiz(quiz1Audio); }, 1000);
@@ -6383,6 +6396,7 @@ function fecharQuiz1() {
   pararAudioQuiz(exLavaia1a); pararAudioQuiz(quiz1Audio); pararAudioQuiz(dica1Audio);
 }
 function responderQuiz1(letra, btn) {
+  cortarAudiosQuiz();
   if (quiz1Resp) return;
   quiz1Resp = true;
   pararAudiosDasQuestoes();   // corta o áudio que estiver tocando
@@ -6461,6 +6475,7 @@ function fecharQuiz2() {
   pararAudioQuiz(quiz2Audio); pararAudioQuiz(dica2Audio);
 }
 function responderQuiz2(letra, btn) {
+  cortarAudiosQuiz();
   if (quiz2Resp) return;
   quiz2Resp = true;
   pararAudiosDasQuestoes();   // corta o áudio que estiver tocando
@@ -6513,6 +6528,7 @@ function fecharQuiz3() {
   pararAudioQuiz(quiz3Audio); pararAudioQuiz(dica3Audio);
 }
 function responderQuiz3(letra, btn) {
+  cortarAudiosQuiz();
   if (quiz3Resp) return;
   quiz3Resp = true;
   pararAudiosDasQuestoes();   // corta o áudio que estiver tocando
@@ -6596,6 +6612,7 @@ function q4PointerUp(e) {
   if (over) q4Responder(ok, chip);   // só conta como resposta se soltar no slot
 }
 function q4Responder(ok, chip) {
+  cortarAudiosQuiz();
   if (q4Resp) return;
   q4Resp = true;
   quizTotal++; if (ok) quizAcertos++;
@@ -7024,6 +7041,7 @@ function qf3Montar() {
   $id('qf3').querySelectorAll('.qf3opt').forEach(b => { b.disabled = false; b.classList.remove('certo', 'errado'); });
 }
 function qf3Responder(letra, btn) {
+  cortarAudiosQuiz();
   if (qf3Resp) return; qf3Resp = true;
   pararAudioQuiz(quizF43);
   const certo = (letra === 'c');   // c) Capacidade de liberar H+ em solução
@@ -7151,6 +7169,7 @@ function qf5Montar() {
   });
 }
 function qf5Responder(b) {
+  cortarAudiosQuiz();
   if (qf5Resp) return; qf5Resp = true;
   pararAudioQuiz(quizF45);
   const certo = (b.dataset.b === QF5_CORRETA);
@@ -7200,6 +7219,7 @@ function qfQuestao6() { qffEntrar(0, 'Questão 6', 'q5'); }
 function qfQuestao7() { qffEntrar(1, 'Questão 7', null); }
 function qfQuestao8() { qffEntrar(2, 'Questão 8', null); }
 function qffResponder(op, btn) {
+  cortarAudiosQuiz();
   if (qffResp) return; qffResp = true;
   const it = QF_FORCA[qffIdx];
   const certo = (op === it.certa);
@@ -7505,8 +7525,9 @@ function c18LimparTextos() {
   ['nomeHCl', 'nomeHNCO', 'c18bAlfa', 'c18bFraco', 'c18bCorr', 'c18dAlfa', 'c18dForte', 'c18dLabHNCO', 'c18dLabHCl', 'c18dA3', 'c18dA92'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
   const tab = $id('c18eTab'); if (tab) tab.querySelectorAll('span').forEach(s => s.classList.remove('show'));   // tabela do grau de ionização (1.8E)
   ['c18iLista', 'c18jLista'].forEach(id => { const li = $id(id); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); });   // listas dos hidrácidos (1.8I) e oxiácidos (1.8J)
-  ['c18jOxNb', 'c18jHNb', 'c18jIgb', 'c18jResb'].forEach(id => { const e = $id(id); if (e) e.classList.add('off'); });   // números da cópia (1.8K/L/M) somem
-  ['c18jOxb', 'c18jHb'].forEach(id => { const e = $id(id); if (e) e.classList.remove('off'); });   // termos da cópia voltam
+  const fb = $id('c18jFrameb'); if (fb) { fb.classList.remove('show'); fb.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // frame-cópia (1.8K/L/M) — fora da lista, limpa aqui
+  ['c18jIgb', 'c18jResb'].forEach(id => { const e = $id(id); if (e) e.classList.add('off'); });   // "=" e resultado voltam a colapsar
+  ['c18jOxb', 'c18jHb'].forEach(id => { const e = $id(id); if (e) e.classList.remove('off'); });   // termos da cópia voltam pro layout
   ['c18kRot1', 'c18kForm1', 'c18kRot2', 'c18kForm2', 'c18kRot3', 'c18kForm3'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });   // exemplos (1.8K/L/M)
   ['c18kH2', 'c18kO4', 'c18kH3', 'c18kO4b', 'c18kHm', 'c18kOm'].forEach(id => { const e = $id(id); if (e) e.classList.remove('grande'); });
   const vv = $id('c18jV1'); if (vv) vv.classList.remove('maior');
@@ -7818,6 +7839,7 @@ function qmUmaVez(audio, fn, fallbackMs) {
   if (audio) audio.addEventListener('ended', run); else run();
 }
 function qmResponder(val, btn) {
+  cortarAudiosQuiz();
   if (qmResp || !quizMiniEl.classList.contains('show')) return; qmResp = true;
   const acido = qmQuestoes[qmIdx], certo = (val === acido.t);
   qmUltimaCerta = certo;
@@ -7942,6 +7964,7 @@ function qm2MostrarEquacao(q) {
   eEl.innerHTML = q.eq; eEl.classList.remove('sai'); void eEl.offsetWidth; eEl.classList.add('entra-esq');
 }
 function qm2Responder(cat) {
+  cortarAudiosQuiz();
   if (qm2Resp || !quizMini2El.classList.contains('show')) return; qm2Resp = true;
   const q = qm2Questoes[qm2Idx], certo = (cat === q.cat);
   qm2UltimaCerta = certo;
