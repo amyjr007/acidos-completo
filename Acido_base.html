@@ -1961,7 +1961,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.120.0</div>
+<div id="versao">v1.121.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3551,9 +3551,8 @@ function dissolverTira(g) {
   g.traverse(o => { if (o.material && o.name !== 'litmus') { o.material.transparent = true; mats.push(o.material); } });
   const t0 = performance.now();
   (function step() {
-    const k = Math.min(1, (performance.now() - t0) / 600);
-    mats.forEach(m => m.opacity = 1 - k);
-    g.scale.setScalar(1 - k * 0.4); g.position.y += 0.012;
+    const k = Math.min(1, (performance.now() - t0) / 500);
+    mats.forEach(m => m.opacity = 1 - k);   // só fade out (sem levantar nem encolher)
     if (k < 1) requestAnimationFrame(step); else scene.remove(g);
   })();
 }
@@ -6282,7 +6281,7 @@ function iniciarCena13B() {
     b.visible = true;
     b.traverse(o => { if (o.material && o.material.userData._baseOp != null) o.material.opacity = o.material.userData._baseOp; });
     if (reagents[i].label) reagents[i].label.visible = true;   // etiqueta (fórmula) já revelada
-    reagents[i].locked = true; escurecerCopo(i, true);
+    reagents[i].locked = true; escurecerBeakerFade(reagents[i].beaker, true);   // escurece em fade (mantém a ação, sem corte seco)
   });
   mostrarNomeAcido(AC_X[0], 'Ácido Clorídrico');   // idempotente (não duplica no fluxo normal)
   mostrarNomeAcido(AC_X[1], 'Ácido Carbônico');
