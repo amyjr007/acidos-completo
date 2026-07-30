@@ -1961,7 +1961,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.118.0</div>
+<div id="versao">v1.119.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3585,11 +3585,11 @@ function tornarVermelho(g, surf) {
   pintarContato(g, surf); g._vermelho = true;
   if (!litmusVermelhoUsado) { litmusVermelhoUsado = true; if (typeof onPapelVermelho === 'function') onPapelVermelho(); }
 }
-// solta a tira: continua sendo a ativa (pode pegar de novo). Na água afunda até o fundo; no ar cai.
+// solta a tira: continua sendo a ativa (pode pegar de novo). Na água fica onde está (não afunda/dissolve); no ar cai.
 function soltarPapel(g) {
   const surf = coposMergulho(g.position.x, g.position.y);
-  if (surf != null) { tornarVermelho(g, surf); g._vy = 0; quedaTiras.push(g); }   // na água -> afunda
-  else if (g.position.y > LITMUS_Y + 0.02) { g._vy = 0; quedaTiras.push(g); }      // no ar -> cai
+  if (surf != null) { tornarVermelho(g, surf); }                                   // na água -> fica submerso onde parou; só a parte de contato avermelha (pode tirar pra ver)
+  else if (g.position.y > LITMUS_Y + 0.02) { g._vy = 0; quedaTiras.push(g); }      // no ar -> cai até a bancada
 }
 
 // demonstração interativa (dialogo1.3B): o usuário enche e derrama a pipeta
@@ -6581,7 +6581,9 @@ function fecharQuiz2() {
   $id('quiz2').classList.remove('show');
   quiz2Litmus = false;
   limparLabelsABC();
-  if (typeof limparTornassol === 'function') limparTornassol();
+  // na família 1.4 (indicadores) o bloco de tornassol precisa continuar disponível pra mais testes — não limpa aqui
+  const _fid14 = (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id) || '';
+  if (typeof limparTornassol === 'function' && _fid14 !== 'dialogo1.4A' && _fid14 !== 'dialogo1.4B') limparTornassol();
   pararAudioQuiz(quiz2Audio); pararAudioQuiz(dica2Audio);
 }
 function responderQuiz2(letra, btn) {
