@@ -1961,7 +1961,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.127.0</div>
+<div id="versao">v1.128.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5219,6 +5219,7 @@ const SUMARIO = [
   { titulo: 'Força pela fórmula: Oxiácidos', faixa: idxFaixa('dialogo1.8J') },
   { titulo: 'Quiz 4',                        faixa: idxFaixa('dialogo1.8M'), acao: irParaQuizF },
   { titulo: 'Nomenclatura dos Hidrácidos',   faixa: idxFaixa('dialogo1.9') },
+  { titulo: 'Nomenclatura dos Oxiácidos',    faixa: idxFaixa('dialogo1.9E'), acao: irParaNomenOxi },
 ];
 
 SUMARIO.forEach(item => {
@@ -8327,6 +8328,12 @@ function montarCenaEquacao() {
 function irParaEquacao() {
   montarCenaEquacao();
   const i = idxFaixa('dialogo1.5');
+  if (i >= 0) tocarFaixa(i);
+}
+// navegação rápida "Nomenclatura dos Oxiácidos": começa na posição 2 (contexto dos hidrácidos) e toca o 1.9E — a transição leva à posição 1
+function irParaNomenOxi() {
+  irParaCamera(CAM_2, false);
+  const i = idxFaixa('dialogo1.9E');
   if (i >= 0) tocarFaixa(i);
 }
 // H+ vira sobrescrito; caret pisca enquanto digita
