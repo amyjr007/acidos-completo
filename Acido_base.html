@@ -1961,7 +1961,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.126.0</div>
+<div id="versao">v1.127.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2586,6 +2586,24 @@ const quadroBranco = new THREE.Mesh(new THREE.PlaneGeometry(26, 17),
 quadroBranco.position.set(27.5, 10.8, 5.6);
 quadroBranco.rotation.y = -Math.PI / 2;
 scene.add(quadroBranco);
+
+// ---- Nomenclatura (1.9E): placas 3D "escritas na parede" pra transição hidrácidos -> oxiácidos ----
+// hidrácidos: snapshot desenhado numa placa logo À FRENTE do quadro (parede da posição 2); gira pra fora com a câmera
+const nomenHidraCv = document.createElement('canvas'); nomenHidraCv.width = 1024; nomenHidraCv.height = 680;
+const nomenHidraCtx = nomenHidraCv.getContext('2d');
+const nomenHidraTex = new THREE.CanvasTexture(nomenHidraCv); nomenHidraTex.anisotropy = 8;
+const boardNomenHidra = new THREE.Mesh(new THREE.PlaneGeometry(24, 15.9),
+  new THREE.MeshBasicMaterial({ map: nomenHidraTex, transparent: true, fog: false, side: THREE.DoubleSide, depthWrite: false }));
+boardNomenHidra.position.set(27.42, 10.8, 5.6); boardNomenHidra.rotation.y = -Math.PI / 2; boardNomenHidra.visible = false;
+scene.add(boardNomenHidra);
+// oxiácidos: "b) Regra pros oxiácidos" já escrita, na parede da posição 1 (posicionada a partir da CAM_1 em runtime)
+const nomenOxiCv = document.createElement('canvas'); nomenOxiCv.width = 1024; nomenOxiCv.height = 680;
+const nomenOxiCtx = nomenOxiCv.getContext('2d');
+const nomenOxiTex = new THREE.CanvasTexture(nomenOxiCv); nomenOxiTex.anisotropy = 8;
+const boardNomenOxi = new THREE.Mesh(new THREE.PlaneGeometry(15, 9.96),
+  new THREE.MeshBasicMaterial({ map: nomenOxiTex, transparent: true, fog: false, side: THREE.DoubleSide, depthWrite: false }));
+boardNomenOxi.visible = false;
+scene.add(boardNomenOxi);
 
 // spot que ilumina a parede/quadro (aponta pra +X, não atrapalha a cena principal que olha -Z)
 const spotQuadro = new THREE.SpotLight(0xfff3d8, 2.4, 130, Math.PI / 4.5, 0.55, 1.1);
@@ -4249,6 +4267,7 @@ const FAIXAS = [
   { id: 'dialogo1.9B',  arquivo: 'audios/dialogo1.9B.mp3',  titulo: 'Diálogo 1.9B — Ex. 2 (HBr)' },
   { id: 'dialogo1.9C',  arquivo: 'audios/dialogo1.9C.mp3',  titulo: 'Diálogo 1.9C — Ex. 3 (HCN)' },
   { id: 'dialogo1.9D',  arquivo: 'audios/dialogo1.9D.mp3',  titulo: 'Diálogo 1.9D — Ex. 4 (H2S)' },
+  { id: 'dialogo1.9E',  arquivo: 'audios/dialogo1.9E.mp3',  titulo: 'Diálogo 1.9E — Oxiácidos' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -4764,6 +4783,9 @@ const EVENTOS = {
     { t: 18.2, fn: () => c19Digitar('c19w3', 'Ídrico', 18.2, 19.2) },   // digita "Ídrico"
     { t: 19.2, fn: () => { c19Limpar('c19w3'); const s = $id('c19ExS'); if (s) s.classList.remove('grande'); c19Digitar('c19w2', 'Sulfídrico', 19.2, 20.2); } },   // apaga "sulfur ídrico", S volta ao normal + digita "Sulfídrico" -> "Ácido Sulfídrico"
   ]),
+  'dialogo1.9E':  () => rodarStory([
+    { t: 0.0,  fn: () => { nomen19Transicao(); irParaCamera(CAM_1, true, 2600); } },   // hidrácidos "congelam" na parede (placa 3D) e giram pra fora; "b) Regra pros Oxiácidos" já escrita na posição 1
+  ]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
 // Pulo direto pro 1.8I pelo sumário (item 19): reconstrói a cena como no fim do 1.8H — título + "c)" na tela,
@@ -5013,7 +5035,8 @@ function tocarFaixa(i) {
   if (!['dialogo1.6', 'dialogo1.6A', 'dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena16 === 'function') esconderCena16();   // o título segue nos quizzes, no 1.7 e na família 1.8
   if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
   if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
-  if (!['dialogo1.9', 'dialogo1.9B', 'dialogo1.9C', 'dialogo1.9D'].includes(f.id) && typeof esconderCena19 === 'function') esconderCena19();   // cena da nomenclatura — mantém entre os exemplos (1.9/B/C/D)
+  if (!['dialogo1.9', 'dialogo1.9B', 'dialogo1.9C', 'dialogo1.9D', 'dialogo1.9E'].includes(f.id) && typeof esconderCena19 === 'function') esconderCena19();   // cena da nomenclatura — mantém entre os exemplos (1.9/B/C/D) e no 1.9E (o overlay é congelado numa placa 3D)
+  if (f.id !== 'dialogo1.9E' && typeof esconderBoardsNomen === 'function') esconderBoardsNomen();   // as placas 3D da nomenclatura só existem durante o 1.9E
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = (f.auto || f.semPlay) ? 'none' : '';   // faixa automática (ou marcada semPlay, ex.: 1.8I) toca sem o botão de play
@@ -7461,6 +7484,66 @@ function c19Digitar(id, alvo, t0, t1) {
   tick();
 }
 function c19Limpar(id) { const e = $id(id); if (!e) return; if (e._raf) cancelAnimationFrame(e._raf); e._raf = null; e.innerHTML = ''; }   // cancela o typewriter e apaga (não deixa sobra)
+
+// ---- Placas 3D da nomenclatura (transição do 1.9E: hidrácidos saem girando na parede; oxiácidos já na posição 1) ----
+// snapshot dos hidrácidos: redesenha o essencial do overlay (título + a) + regra + fórmula) na placa da parede
+function desenharNomenHidra() {
+  const x = nomenHidraCtx; x.clearRect(0, 0, 1024, 680);
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.shadowColor = 'rgba(0,0,0,0.6)'; x.shadowBlur = 8;
+  x.fillStyle = '#a6e534'; x.font = '800 46px system-ui, Segoe UI, sans-serif';
+  x.fillText('Nomenclatura dos ácidos', 512, 118);
+  x.fillStyle = '#eaf7d9'; x.font = '700 32px system-ui, Segoe UI, sans-serif';
+  x.fillText('a) Regra para os', 512, 198);
+  x.fillText('Hidrácidos', 512, 238);
+  x.fillStyle = '#ffd21e'; x.font = '800 40px system-ui, Segoe UI, sans-serif';
+  x.fillText('Regra', 512, 316);
+  x.fillStyle = '#eaf7d9'; x.font = '700 30px system-ui, Segoe UI, sans-serif';
+  x.fillText('Ácido + nome do', 512, 396);
+  x.fillText('ânion + ÍDRICO', 512, 438);
+  x.shadowBlur = 0;
+  nomenHidraTex.needsUpdate = true;
+}
+// "b) Regra pros Oxiácidos" — só o título por enquanto (na parede da posição 1)
+function desenharNomenOxi() {
+  const x = nomenOxiCtx; x.clearRect(0, 0, 1024, 680);
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.shadowColor = 'rgba(0,0,0,0.6)'; x.shadowBlur = 8;
+  x.fillStyle = '#eaf7d9'; x.font = '700 42px system-ui, Segoe UI, sans-serif';
+  x.fillText('b) Regra pros', 512, 150);
+  x.fillText('Oxiácidos', 512, 200);
+  x.shadowBlur = 0;
+  nomenOxiTex.needsUpdate = true;
+}
+// posiciona a placa dos oxiácidos "de frente" pra CAM_1 (fica fora de cena na posição 2; entra ao girar)
+function posicionarBoardOxi() {
+  const p = CAM_1;
+  const cx = p.target[0] + p.dist * Math.sin(p.phi) * Math.sin(p.theta);
+  const cy = p.target[1] + p.dist * Math.cos(p.phi);
+  const cz = p.target[2] + p.dist * Math.sin(p.phi) * Math.cos(p.theta);
+  const camPos = new THREE.Vector3(cx, cy, cz);
+  const tgt = new THREE.Vector3(p.target[0], p.target[1], p.target[2]);
+  const fwd = tgt.clone().sub(camPos).normalize();
+  const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize();
+  const up = new THREE.Vector3().crossVectors(right, fwd).normalize();
+  const centro = camPos.clone().addScaledVector(fwd, 11.5).addScaledVector(up, 1.2);   // 11.5 à frente, 1.2 acima do centro do olhar
+  boardNomenOxi.position.copy(centro);
+  boardNomenOxi.lookAt(camPos);
+}
+function esconderBoardsNomen() {
+  if (typeof boardNomenHidra !== 'undefined') boardNomenHidra.visible = false;
+  if (typeof boardNomenOxi !== 'undefined') boardNomenOxi.visible = false;
+}
+// transição do 1.9E: congela os hidrácidos na parede (placa 3D) e escreve "b)" na parede da posição 1
+function nomen19Transicao() {
+  desenharNomenHidra();
+  boardNomenHidra.material.opacity = 1; boardNomenHidra.visible = true;
+  desenharNomenOxi(); posicionarBoardOxi();
+  boardNomenOxi.material.opacity = 1; boardNomenOxi.visible = true;   // já escrita; entra em cena quando a câmera chega na posição 1
+  // some o overlay HTML dos hidrácidos (cross-fade curto: a placa fica na parede) e reseta a cena19
+  cena19El.style.transition = 'opacity .35s ease'; cena19El.style.opacity = '0';
+  setTimeout(() => { esconderCena19(); cena19El.style.opacity = ''; cena19El.style.transition = ''; }, 380);
+}
 const C16_HIDRA = [   // 6 hidrácidos mais comuns (sem oxigênio)
   { f: 'HF', n: 'Fluorídrico' }, { f: 'HCl', n: 'Clorídrico' }, { f: 'HBr', n: 'Bromídrico' },
   { f: 'HI', n: 'Iodídrico' }, { f: 'H2S', n: 'Sulfídrico' }, { f: 'HCN', n: 'Cianídrico' },
