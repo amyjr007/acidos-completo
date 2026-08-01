@@ -1324,6 +1324,33 @@
   }
   #c19gOpcoes .cg-opt.certo { border-color: #59d94f; color: #bff5b5; }
   #c19gOpcoes .cg-opt.errado { border-color: #e05a5a; color: #f3b7b7; }
+  /* Reta dos Nox -> prefixo/sufixo dos oxiácidos (dialogo1.9H): montada conforme o áudio avança */
+  #c19hReta { position: fixed; left: 50%; transform: translateX(-50%); width: 330px; height: 130px; z-index: 42; pointer-events: none; }
+  #c19hReta .c19h-eixo { position: absolute; left: 0; top: 40px; width: 330px; height: 26px; opacity: 0; transition: opacity .9s ease; }
+  #c19hReta.show .c19h-eixo { opacity: 1; }
+  #c19hReta .c19h-linha, #c19hReta .c19h-ponta { fill: none; stroke: #e9edd6; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  #c19hReta .c19h-div { stroke: rgba(233, 237, 214, .4); stroke-width: 2; }   /* divisória discreta no meio */
+  #c19hReta .c19h-num {
+    position: absolute; top: 14px; transform: translate(-50%, 8px); opacity: 0;
+    font: 700 20px system-ui, sans-serif; color: #ffd21e; text-shadow: 0 1px 3px rgba(0, 0, 0, .55);
+    transition: opacity .45s ease, transform .45s cubic-bezier(.2, .9, .3, 1.5);
+  }
+  #c19hReta .c19h-num.on { opacity: 1; transform: translate(-50%, 0); }
+  #c19hReta .c19h-num.pulse { animation: c19hPulse .8s ease; }
+  @keyframes c19hPulse { 0%, 100% { transform: translate(-50%, 0) scale(1); } 50% { transform: translate(-50%, 0) scale(1.6); } }
+  #c19hN1 { left: 16px; }
+  #c19hN4 { left: 130px; }
+  #c19hN7 { left: 292px; }
+  #c19hReta .c19h-brace { position: absolute; left: 16px; top: 66px; width: 114px; height: 20px; opacity: 0; transform-origin: center bottom; }
+  #c19hReta .c19h-brace path { fill: none; stroke: #6fb7ff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  #c19hReta .c19h-brace.on { animation: c19hBaixo .9s cubic-bezier(.2, .8, .2, 1.25) both; }
+  @keyframes c19hBaixo { 0% { opacity: 0; transform: translateY(28px) scaleY(.15); } 60% { opacity: 1; } 100% { opacity: 1; transform: translateY(0) scaleY(1); } }
+  #c19hReta .c19h-suf {
+    position: absolute; left: 73px; top: 90px; transform: translateX(-50%); opacity: 0;
+    font: 800 26px Georgia, serif; color: #6fb7ff; letter-spacing: 1px; text-shadow: 0 0 16px rgba(111, 183, 255, .5);
+  }
+  #c19hReta .c19h-suf.on { animation: c19hDrama .85s cubic-bezier(.2, .8, .2, 1.4) both; }
+  @keyframes c19hDrama { 0% { opacity: 0; transform: translateX(-50%) translateY(24px) scale(.3); } 55% { opacity: 1; transform: translateX(-50%) translateY(-5px) scale(1.28); } 100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
   #cena19 .c19-regra {
     position: absolute; top: 26%; left: 0; right: 0; text-align: center;
     font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(22px, 6vw, 36px);
@@ -2022,7 +2049,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.133.0</div>
+<div id="versao">v1.134.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2277,6 +2304,21 @@
   <button class="cg-opt" data-v="-1">&minus;1</button>
   <button class="cg-opt" data-v="1">+1</button>
   <button class="cg-opt" data-v="2">+2</button>
+</div>
+<!-- Reta dos Nox -> prefixo/sufixo (dialogo1.9H): posicionada por JS abaixo do HClO; montada conforme o áudio -->
+<div id="c19hReta" aria-hidden="true">
+  <svg class="c19h-eixo" viewBox="0 0 330 26" preserveAspectRatio="none">
+    <line class="c19h-linha" x1="6" y1="13" x2="300" y2="13"/>
+    <path class="c19h-ponta" d="M300 5 L320 13 L300 21"/>
+    <line class="c19h-div" x1="153" y1="3" x2="153" y2="23"/>
+  </svg>
+  <span class="c19h-num" id="c19hN1">+1</span>
+  <span class="c19h-num" id="c19hN4">+4</span>
+  <span class="c19h-num" id="c19hN7">+7</span>
+  <svg class="c19h-brace" id="c19hBrace" viewBox="0 0 114 20" preserveAspectRatio="none">
+    <path d="M2 2 L2 12 L112 12 L112 2 M57 12 L57 17"/>
+  </svg>
+  <span class="c19h-suf" id="c19hOso">oso</span>
 </div>
 
 <!-- Cena do dialogo1.7: classificação quanto aos H ionizáveis (mono/di/tri/tetrácidos) -->
@@ -4342,6 +4384,7 @@ const FAIXAS = [
   { id: 'dialogo1.9G',  arquivo: 'audios/dialogo1.9G.mp3',  titulo: 'Diálogo 1.9G — Carga total (HClO)' },
   { id: 'dialogo1.9GR', arquivo: 'audios/dialogo1.9GR.mp3', titulo: 'Diálogo 1.9G (acerto)' },
   { id: 'dialogo1.9GW', arquivo: 'audios/dialogo1.9GW.mp3', titulo: 'Diálogo 1.9G (erro)' },
+  { id: 'dialogo1.9H',  arquivo: 'audios/dialogo1.9H.mp3',  titulo: 'Diálogo 1.9H — Reta dos Nox (oso)' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -4903,6 +4946,16 @@ const EVENTOS = {
     { t: 16.0, fn: () => { cgBig('cgH', false); cgBig('cgCl', false); cgBig('cgO', true); } },   // +1 voltam ao normal; aumenta o -2 do O
     { t: 17.0, fn: () => { cgBig('cgO', false); cgMostrar('cgEq'); } },   // = 0
   ]),
+  'dialogo1.9H':  () => rodarStory([
+    { t: 0.0,  fn: c19hInicio },                                    // prepara a reta (posiciona abaixo do HClO; tudo escondido)
+    { t: 11.0, fn: () => { posicionarReta(); $id('c19hReta').classList.add('show'); } },   // a seta entra em fade in (só o eixo + a divisória discreta)
+    { t: 16.8, fn: () => $id('c19hN1').classList.add('on') },       // +1 na ponta esquerda
+    { t: 18.0, fn: () => $id('c19hN7').classList.add('on') },       // +7 na ponta direita
+    { t: 19.2, fn: () => c19hPulse('c19hN1') },                     // pulsa o +1
+    { t: 20.0, fn: () => $id('c19hN4').classList.add('on') },       // +4 antes da divisória central
+    { t: 23.0, fn: () => $id('c19hBrace').classList.add('on') },    // colchete azul entre +1 e +4 (entrada dramática de baixo)
+    { t: 28.0, fn: () => $id('c19hOso').classList.add('on') },      // "oso" abaixo da reta (entrada dramática, azul)
+  ]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
 // Pulo direto pro 1.8I pelo sumário (item 19): reconstrói a cena como no fim do 1.8H — título + "c)" na tela,
@@ -5190,6 +5243,8 @@ $id('playBtn').addEventListener('click', () => {
     // fim do 1.5C (acerto): o play pula o 1.5Cn (narração do erro) e vai direto pro 1.5D
     const _cur = FAIXAS[faixaAtual];
     if (_cur && _cur.id === 'dialogo1.5Cy') { const d = idxFaixa('dialogo1.5D'); if (d >= 0) { tocarFaixa(d); return; } }
+    // fim do 1.9G (acerto): o play pula o 1.9GW (re-dedução do erro) e vai direto pro 1.9H
+    if (_cur && _cur.id === 'dialogo1.9GR') { const h = idxFaixa('dialogo1.9H'); if (h >= 0) { tocarFaixa(h); return; } }
     if (faixaAtual < FAIXAS.length - 1) tocarFaixa(faixaAtual + 1);
     return;
   }
@@ -5242,8 +5297,8 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5C') { $id('playBtn').style.display = 'none'; mostrarQuizCarga(); return; }
   // fim do 1.9G: em vez do play, entram as 3 opções da carga do Cl (-1 / +1 / +2)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.9G') { $id('playBtn').style.display = 'none'; c19gOpcoesMostrar(); return; }
-  // fim do 1.9GR/1.9GW (acerto/erro): sem play por enquanto (continuação a definir)
-  if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo1.9GR' || FAIXAS[faixaAtual].id === 'dialogo1.9GW')) { $id('playBtn').style.display = 'none'; return; }
+  // fim do 1.9GR/1.9GW (acerto/erro): o play volta e leva ao 1.9H (o acerto pula o 1.9GW — ver click do playBtn)
+  if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo1.9GR' || FAIXAS[faixaAtual].id === 'dialogo1.9GW')) { $id('playBtn').style.display = ''; return; }
   // fim do 1.5D: em vez do play, aparece o botão "Quiz" (abre a questão 1)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5D') { $id('playBtn').style.display = 'none'; mostrarQuizBtn(); return; }
   // fim do 1.4A: some o texto e o play (força a interação do papel de tornassol; o 1.4B entra quando o papel fica vermelho)
@@ -7669,6 +7724,7 @@ function esconderNomenTransicao() {
   const n = $id('c19fNox'); if (n) n.classList.remove('show');
   if (cena19El) { cena19El.style.transform = ''; cena19El.style.willChange = ''; }
   esconderC19G();
+  c19hAtivo = false; c19hReset();   // some a reta dos Nox (1.9H) na navegação/replay
 }
 // ---- Carga total do HClO (dialogo1.9G): cada carga acima do seu átomo ----
 let c19gAtivo = false, c19gResp = false;
@@ -7723,6 +7779,25 @@ function responderCargaCl(v, btn) {
 }
 if ($id('c19gOpcoes')) $id('c19gOpcoes').querySelectorAll('.cg-opt').forEach(b => b.addEventListener('click', () => responderCargaCl(parseInt(b.dataset.v, 10), b)));
 addEventListener('resize', () => { if (c19gAtivo) posicionarCargas(); });   // reposiciona as cargas do 1.9G ao girar/redimensionar
+
+// ---- Reta dos Nox -> prefixo/sufixo (dialogo1.9H): esquema montado conforme o áudio ----
+let c19hAtivo = false;
+function posicionarReta() {   // ancora a reta logo abaixo do HClO (centralizado/ampliado desde o 1.9F)
+  const r = $id('c19hReta'), hclo = $id('c19clHClO');
+  if (!r || !hclo) return;
+  const rc = hclo.getBoundingClientRect();
+  r.style.top = Math.round(rc.bottom + 26) + 'px';
+}
+function c19hReset() {
+  const r = $id('c19hReta'); if (!r) return;
+  r.classList.remove('show');
+  ['c19hN1', 'c19hN4', 'c19hN7'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on', 'pulse'); });
+  const b = $id('c19hBrace'); if (b) b.classList.remove('on');
+  const o = $id('c19hOso'); if (o) o.classList.remove('on');
+}
+function c19hInicio() { c19hAtivo = true; c19hReset(); posicionarReta(); }
+function c19hPulse(id) { const e = $id(id); if (!e) return; e.classList.remove('pulse'); void e.offsetWidth; e.classList.add('pulse'); setTimeout(() => { if (e) e.classList.remove('pulse'); }, 850); }
+addEventListener('resize', () => { if (c19hAtivo) posicionarReta(); });   // reposiciona a reta do 1.9H ao girar/redimensionar
 // transição do 1.9E: cola o overlay dos hidrácidos na parede (posição 2) e o desliza/some enquanto a câmera vira pra posição 1
 function nomen19Transicao() {
   resetNomenCloro();                                      // começa limpo (replay): "Oxiácidos do cloro" escondido
