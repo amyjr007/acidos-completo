@@ -2127,7 +2127,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.166.0</div>
+<div id="versao">v1.167.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5522,8 +5522,10 @@ player.addEventListener('ended', () => {
   // fim do 1.9H3: o play aparece e leva ao dialogo2 (fluxo padrão, sem case aqui)
   // fim do dialogo2: entram as opções da carga do P (+3 / +5 / +7)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo2') { $id('playBtn').style.display = 'none'; c2OpcoesMostrar(); return; }
-  // fim do dialogo2R/2W: some tudo menos o +5 e entram os botões "Repetir o raciocínio" / "Continuar"
-  if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo2R' || FAIXAS[faixaAtual].id === 'dialogo2W')) { $id('playBtn').style.display = 'none'; c2FimMostrar(); return; }
+  // fim do dialogo2W (erro): some tudo menos o +5 e entram os botões "Repetir o raciocínio" / "Continuar"
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo2W') { $id('playBtn').style.display = 'none'; c2FimMostrar(); return; }
+  // fim do dialogo2R (acerto): segue pro próximo diálogo (ainda a definir) — sem botões por enquanto
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo2R') { $id('playBtn').style.display = 'none'; return; }
   // fim do 1.5D: em vez do play, aparece o botão "Quiz" (abre a questão 1)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5D') { $id('playBtn').style.display = 'none'; mostrarQuizBtn(); return; }
   // fim do 1.4A: some o texto e o play (força a interação do papel de tornassol; o 1.4B entra quando o papel fica vermelho)
