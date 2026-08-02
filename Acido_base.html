@@ -1375,7 +1375,8 @@
   }
   #c2Formula.show { opacity: 1; transform: translateX(0); }
   #c2Formula sub { font-size: .5em; }
-  #c2Formula #c2H, #c2Formula #c2P, #c2Formula #c2O, #c2Formula #c2s3, #c2Formula #c2s4 { display: inline-block; transform-origin: center bottom; }
+  #c2Formula #c2H, #c2Formula #c2P, #c2Formula #c2O, #c2Formula #c2s3, #c2Formula #c2s4 { display: inline-block; transform-origin: center bottom; transition: transform .4s cubic-bezier(.2, .9, .3, 1.5); }
+  #c2Formula .cbig { transform: scale(1.4); }   /* aumenta e mantém (dialogo2W) */
   #c2Formula .pulse { animation: c2atPulsa .7s ease; }
   @keyframes c2atPulsa { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.4); } }
   /* cargas do H3PO4 (posicionadas por JS: total acima, por átomo abaixo, incógnita no P) */
@@ -2125,7 +2126,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.164.0</div>
+<div id="versao">v1.165.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2404,6 +2405,9 @@
 <span class="c2cg" id="c2Otot">&minus;8</span>
 <span class="c2cg c2incog" id="c2Pinc"></span>
 <span class="c2cg" id="c2Eq">= 0</span>
+<span class="c2cg" id="c2wX2">&times;2</span>
+<span class="c2cg" id="c2w8">8</span>
+<span class="c2cg" id="c2w5">+5</span>
 <div id="c2Opcoes" class="nomOpcoes"><button class="nom-opt" data-v="3">+3</button><button class="nom-opt" data-v="5">+5</button><button class="nom-opt" data-v="7">+7</button></div>
 <!-- Reta dos Nox -> prefixo/sufixo (dialogo1.9H): posicionada por JS abaixo do HClO; montada conforme o áudio -->
 <div id="c19hReta" aria-hidden="true">
@@ -4497,6 +4501,8 @@ const FAIXAS = [
   { id: 'dialogo1.9H2W', arquivo: 'audios/dialogo1.9H2W.mp3', titulo: 'Diálogo 1.9H2 (erro)' },
   { id: 'dialogo1.9H3',  arquivo: 'audios/dialogo1.9H3.mp3',  titulo: 'Diálogo 1.9H3 — Ácido Hipocloroso' },
   { id: 'dialogo2',      arquivo: 'audios/dialogo2.mp3',      titulo: 'Diálogo 2 — Ex.02 H3PO4 (carga total)' },
+  { id: 'dialogo2R',     arquivo: 'audios/dialogo2R.mp3',     titulo: 'Diálogo 2 (acerto)' },
+  { id: 'dialogo2W',     arquivo: 'audios/dialogo2W.mp3',     titulo: 'Diálogo 2 (erro)' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -5146,6 +5152,18 @@ const EVENTOS = {
     { t: 44.5, fn: () => c2Show('c2Eq') },                // = 0
     { t: 46.0, fn: () => c2Show('c2Pinc') },              // retângulo pontilhado acima do P (incógnita)
   ]),
+  'dialogo2R': () => rodarStory([]),   // acerto (+5) — comemoração já entra no responderC2
+  'dialogo2W': () => rodarStory([       // erro: some o cálculo anterior e re-deduz (8 do O, 3 do H -> +5 no P)
+    { t: 0.0,  fn: c2wInicio },                            // some (fade out) todo o cálculo anterior
+    { t: 7.0,  fn: () => c2Pulse('c2O') },                 // pulsa o O
+    { t: 11.2, fn: () => c2Big('c2s4', true) },            // aumenta o 4 do O
+    { t: 12.0, fn: () => c2Show('c2wX2') },                // ×2 do lado do 4
+    { t: 14.9, fn: () => { c2Show('c2w8'); c2Big('c2s4', false); } },   // 8 em cima do O; o 4 volta ao normal
+    { t: 16.8, fn: () => c2Pulse('c2H') },                 // pulsa o H
+    { t: 18.6, fn: () => c2cgBig('c2w8', true) },          // aumenta o 8
+    { t: 19.3, fn: () => c2Big('c2s3', true) },            // aumenta o 3 do H
+    { t: 20.3, fn: () => { c2Show('c2w5'); c2cgBig('c2w8', false); c2Big('c2s3', false); } },   // +5 em cima do P; os outros voltam ao normal
+  ]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
 // Pulo direto pro 1.8I pelo sumário (item 19): reconstrói a cena como no fim do 1.8H — título + "c)" na tela,
@@ -5396,7 +5414,7 @@ function tocarFaixa(i) {
   if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
   if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
   if (!['dialogo1.9', 'dialogo1.9B', 'dialogo1.9C', 'dialogo1.9D', 'dialogo1.9E'].includes(f.id) && typeof esconderCena19 === 'function') esconderCena19();   // cena da nomenclatura — mantém entre os exemplos (1.9/B/C/D) e no 1.9E (o overlay é congelado numa placa 3D)
-  if (!['dialogo1.9E', 'dialogo1.9F', 'dialogo1.9G', 'dialogo1.9GR', 'dialogo1.9GW', 'dialogo1.9H', 'dialogo1.9H1', 'dialogo1.9H1R', 'dialogo1.9H1W', 'dialogo1.9H2', 'dialogo1.9H2R', 'dialogo1.9H2W', 'dialogo1.9H3', 'dialogo2'].includes(f.id) && typeof esconderNomenTransicao === 'function') esconderNomenTransicao();   // a nomenclatura dos oxiácidos segue por toda a família 1.9E→dialogo2
+  if (!['dialogo1.9E', 'dialogo1.9F', 'dialogo1.9G', 'dialogo1.9GR', 'dialogo1.9GW', 'dialogo1.9H', 'dialogo1.9H1', 'dialogo1.9H1R', 'dialogo1.9H1W', 'dialogo1.9H2', 'dialogo1.9H2R', 'dialogo1.9H2W', 'dialogo1.9H3', 'dialogo2', 'dialogo2R', 'dialogo2W'].includes(f.id) && typeof esconderNomenTransicao === 'function') esconderNomenTransicao();   // a nomenclatura dos oxiácidos segue por toda a família 1.9E→dialogo2
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = (f.auto || f.semPlay) ? 'none' : '';   // faixa automática (ou marcada semPlay, ex.: 1.8I) toca sem o botão de play
@@ -5501,6 +5519,8 @@ player.addEventListener('ended', () => {
   // fim do 1.9H3: o play aparece e leva ao dialogo2 (fluxo padrão, sem case aqui)
   // fim do dialogo2: entram as opções da carga do P (+3 / +5 / +7)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo2') { $id('playBtn').style.display = 'none'; c2OpcoesMostrar(); return; }
+  // fim do dialogo2R/2W: última faixa por enquanto — sem play (continuação a definir)
+  if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo2R' || FAIXAS[faixaAtual].id === 'dialogo2W')) { $id('playBtn').style.display = 'none'; return; }
   // fim do 1.5D: em vez do play, aparece o botão "Quiz" (abre a questão 1)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5D') { $id('playBtn').style.display = 'none'; mostrarQuizBtn(); return; }
   // fim do 1.4A: some o texto e o play (força a interação do papel de tornassol; o 1.4B entra quando o papel fica vermelho)
@@ -8060,7 +8080,12 @@ function posicionarC2() {
   put('c2Total', rH.left - 14, yCima, 'translateX(-100%)');
   put('c2Eq', rO.right + 14, yCima, 'translateX(0)');
   put('c2H1', cH, yBaixo); put('c2O2', cO, yBaixo);
+  // elementos do 2W (re-dedução): "8" e "+5" acima; "×2" ao lado do O4
+  put('c2w8', cO, yCima); put('c2w5', cP, yCima);
+  const wx2 = $id('c2wX2'); if (wx2) { wx2.style.top = Math.round((rO.top + rO.bottom) / 2) + 'px'; wx2.style.left = Math.round(rO.right + 6) + 'px'; wx2.style.transform = 'translateY(-50%)'; }
 }
+function c2Big(id, on) { const e = $id(id); if (e) e.classList.toggle('cbig', !!on); }   // aumenta e mantém um subscrito/átomo da fórmula
+function c2cgBig(id, on) { const e = $id(id); if (e) e.style.transform = 'translateX(-50%)' + (on ? ' scale(1.4)' : ''); }   // idem, pra uma carga (mantém o translate)
 function c2Inicio() {
   // desliza o HClO e a reta pra direita (empurrados) e some o +1 do Cl
   const hclo = $id('c19clHClO'); if (hclo) { hclo.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; hclo.style.transform = 'translateX(85vw) ' + (hclo.style.transform || ''); }
@@ -8087,17 +8112,28 @@ function responderC2(v, btn) {
     if (pinc) { pinc.classList.remove('c2incog'); pinc.textContent = '+5'; pinc.classList.add('on'); }
     playSfx('applause'); playSfx('funfare'); if (typeof festaConfete === 'function') festaConfete();
     setTimeout(() => { if (o) o.classList.remove('show'); }, 900);
+    setTimeout(() => tocarFaixa(idxFaixa('dialogo2R')), 1000);
   } else {
     playSfx('error'); if (typeof tremerTela === 'function') tremerTela();
-    if (o) { const c = o.querySelector('.nom-opt[data-v="5"]'); if (c) c.classList.add('certo'); }
+    setTimeout(() => { if (o) o.classList.remove('show'); }, 900);
+    setTimeout(() => tocarFaixa(idxFaixa('dialogo2W')), 1200);
   }
 }
 function c2Esconder() {
   const f = $id('c2Formula'); if (f) { f.style.transition = 'none'; f.classList.remove('show'); }
-  document.querySelectorAll('.c2cg').forEach(e => { e.classList.remove('on', 'pulse'); e.style.animation = ''; });
+  document.querySelectorAll('.c2cg').forEach(e => { e.classList.remove('on', 'pulse'); e.style.animation = ''; e.style.transform = ''; });
+  ['c2H', 'c2P', 'c2O', 'c2s3', 'c2s4'].forEach(id => { const e = $id(id); if (e) e.classList.remove('cbig'); });
   const pinc = $id('c2Pinc'); if (pinc) { pinc.textContent = ''; pinc.classList.add('c2incog'); }
   const o = $id('c2Opcoes'); if (o) o.classList.remove('show');
   const reta = $id('c19hReta'); if (reta) { reta.style.transition = ''; reta.style.transform = ''; }
+}
+// início do 2W (erro): some (fade out) todo o cálculo anterior; mantém a fórmula
+function c2wInicio() {
+  ['c2Total', 'c2H1', 'c2O2', 'c2Htot', 'c2Otot', 'c2Eq', 'c2Pinc'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on'); });
+  ['c2w8', 'c2w5', 'c2wX2'].forEach(id => { const e = $id(id); if (e) { e.classList.remove('on'); e.style.transform = ''; } });
+  ['c2H', 'c2P', 'c2O', 'c2s3', 'c2s4'].forEach(id => { const e = $id(id); if (e) { e.classList.remove('cbig'); e.style.animation = ''; } });
+  const pinc = $id('c2Pinc'); if (pinc) { pinc.textContent = ''; pinc.classList.add('c2incog'); }
+  posicionarC2();
 }
 if ($id('c2Opcoes')) $id('c2Opcoes').querySelectorAll('.nom-opt').forEach(b => b.addEventListener('click', () => responderC2(b.dataset.v, b)));
 addEventListener('resize', () => { const f = $id('c2Formula'); if (f && f.classList.contains('show')) posicionarC2(); });
