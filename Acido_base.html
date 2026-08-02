@@ -1385,7 +1385,7 @@
   #c3Texto {
     position: fixed; left: 0; right: 0; top: 56%; text-align: center; z-index: 43; pointer-events: none; padding: 0 14px;
     font-family: system-ui, sans-serif; font-weight: 700; font-size: clamp(15px, 4.4vw, 24px);
-    color: #eaf7d9; text-shadow: 0 1px 3px rgba(0, 0, 0, .55); white-space: normal;
+    color: #eaf7d9; text-shadow: 0 1px 3px rgba(0, 0, 0, .55); white-space: normal; transition: opacity .6s ease;
   }
   #c3Texto .caret { color: #fff; font-weight: 400; animation: caretBlink .8s steps(1) infinite; }
   #c3Ico {
@@ -2154,7 +2154,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.173.0</div>
+<div id="versao">v1.174.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2452,7 +2452,8 @@
 <span class="c2cg" id="c3n2">2</span>
 <span class="c2cg" id="c38">8</span>
 <span class="c2cg" id="c3m1">&minus;1</span>
-<span class="c2cg" id="c37">+7</span>
+<span class="c2cg" id="c37">= +7</span>
+<span class="c2cg" id="c3i7">+7</span>
 <span id="c3Ico">ico</span>
 <!-- Opções "baixo"/"alto" (fim do dialogo3A) -->
 <div id="c3aOpcoes" class="nomOpcoes"><button class="nom-opt" data-v="baixo">baixo</button><button class="nom-opt" data-v="alto">alto</button></div>
@@ -5256,7 +5257,7 @@ const EVENTOS = {
   ]),
   'dialogo3': () => rodarStory([       // Ex.03: HIO4 (atalho 2xO - H = Nox central; I = +7)
     { t: 0.0,  fn: c3Inicio },                             // exemplo anterior sai pra direita; HIO4 entra pela esquerda
-    { t: 17.2, fn: () => c19Digitar('c3Texto', 'Número de Oxigênios - números de Hidrogênios', 17.2, 22.0) },   // texto (digitação)
+    { t: 17.2, fn: () => c19Digitar('c3Texto', '(Nº de oxigênios × 2) - Nº de Hidrogênios', 17.2, 22.0) },   // texto (digitação)
     { t: 27.3, fn: () => c2Pulse('c3s4') },                // pulsa o 4 (do O)
     { t: 29.1, fn: () => c2Big('c3s4', true) },            // aumenta o 4
     { t: 30.1, fn: () => c2Show('c3x') },                  // ×
@@ -5265,9 +5266,13 @@ const EVENTOS = {
     { t: 35.7, fn: () => c2Pulse('c3H') },                 // pulsa o H
     { t: 39.0, fn: () => c2cgPulse('c38') },               // pulsa o 8
     { t: 40.2, fn: () => c2Show('c3m1') },                 // -1 ao lado do 8
-    { t: 42.0, fn: () => c2Show('c37') },                  // +7 em cima do I
+    { t: 42.0, fn: () => c2Show('c37') },                  // "= +7" à direita do -1
+    { t: 44.0, fn: () => { c2Show('c3i7'); c2cgPulse('c3i7', 3); ['c38', 'c3m1', 'c3x', 'c3n2', 'c37'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on'); }); } },   // +7 em cima do Iodo (pulsa 3x); o cálculo (8, -1, ×2, = +7) some em fade out
   ]),
-  'dialogo3A':  () => rodarStory([]),   // pergunta baixo/alto entra no fim (ver handler)
+  'dialogo3A':  () => rodarStory([       // some a fórmula digitada; aumenta o +7 do Iodo (pergunta baixo/alto no fim)
+    { t: 0.0, fn: () => { const tx = $id('c3Texto'); if (tx) { tx.style.transition = 'opacity .6s ease'; tx.style.opacity = '0'; } } },   // some a fórmula digitada
+    { t: 1.8, fn: () => c2cgBig('c3i7', true) },           // aumenta o +7 do Iodo
+  ]),
   'dialogo3AR': () => rodarStory([       // acerto: "alto"
     { t: 4.0, fn: () => { const e = $id('c3Ico'); if (e) e.classList.add('show'); } },   // "ico" (rosa) na tela
   ]),
@@ -8343,8 +8348,10 @@ function posicionarC3() {
   const yCima = Math.round(rf.top - 24);
   const cI = rI.left + rI.width / 2, cO = rO.left + rO.width / 2;
   const put = (id, left, top, tx) => { const e = $id(id); if (!e) return; e.style.top = Math.round(top) + 'px'; e.style.left = Math.round(left) + 'px'; e.style.transform = tx || 'translateX(-50%)'; };
-  put('c38', cO, yCima); put('c37', cI, yCima);
-  put('c3m1', cO + 22, yCima, 'translateX(0)');   // "-1" à direita do 8
+  put('c38', cO, yCima);
+  put('c3m1', cO + 20, yCima, 'translateX(0)');   // "-1" à direita do 8
+  put('c37', cO + 58, yCima, 'translateX(0)');    // "= +7" à direita do -1
+  put('c3i7', cI, yCima);                          // "+7" acima do Iodo
   const midY = Math.round((rO.top + rO.bottom) / 2);
   const x = $id('c3x'); if (x) { x.style.top = midY + 'px'; x.style.left = Math.round(rO.right + 6) + 'px'; x.style.transform = 'translateY(-50%)'; }
   const n2 = $id('c3n2'); if (n2) { n2.style.top = midY + 'px'; n2.style.left = Math.round(rO.right + 22) + 'px'; n2.style.transform = 'translateY(-50%)'; }
@@ -8354,17 +8361,19 @@ function c3Inicio() {
   const c2f = $id('c2Formula'); if (c2f) { c2f.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; c2f.style.transform = 'translateX(85vw)'; }
   const reta = $id('c19hReta'); if (reta) { reta.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; reta.style.transform = 'translateX(85vw) translateX(-50%) scale(1.035)'; }
   const cn = $id('c2cNome'); if (cn) { cn.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; cn.style.transform = 'translateX(85vw)'; }
-  document.querySelectorAll('.c2cg').forEach(e => { e.classList.remove('on', 'c2pulsaLento'); e.style.animation = ''; });   // some as cargas do exemplo anterior
+  document.querySelectorAll('.c2cg').forEach(e => { e.classList.remove('on', 'c2pulsaLento'); e.style.animation = ''; e.style.transform = ''; });   // some as cargas do exemplo anterior
   // HIO4 entra pela esquerda
   const f = $id('c3Formula');
   if (f) { f.style.transition = 'none'; f.classList.remove('show'); void f.offsetWidth; f.style.transition = ''; f.classList.add('show'); }
   ['c3H', 'c3I', 'c3O', 'c3s4'].forEach(id => { const e = $id(id); if (e) { e.classList.remove('cbig'); e.style.animation = ''; } });
+  const tx = $id('c3Texto'); if (tx) { tx.style.transition = 'none'; tx.style.opacity = ''; }
   if (typeof c19Limpar === 'function') c19Limpar('c3Texto');
   setTimeout(posicionarC3, 1100);
 }
 function c3Esconder() {
   const f = $id('c3Formula'); if (f) { f.style.transition = 'none'; f.classList.remove('show'); }
   ['c3H', 'c3I', 'c3O', 'c3s4'].forEach(id => { const e = $id(id); if (e) { e.classList.remove('cbig'); e.style.animation = ''; } });
+  const tx = $id('c3Texto'); if (tx) { tx.style.transition = ''; tx.style.opacity = ''; }
   if (typeof c19Limpar === 'function') c19Limpar('c3Texto');
   const ic = $id('c3Ico'); if (ic) ic.classList.remove('show');
   const ao = $id('c3aOpcoes'); if (ao) ao.classList.remove('show');
