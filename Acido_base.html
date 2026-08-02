@@ -1391,6 +1391,18 @@
   @keyframes c2cgPulsa { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.5); } }
   #c2Total { font-size: 14.4px; }
   .c2cg.c2incog { color: transparent; width: 30px; height: 21px; box-sizing: border-box; border: 2px dashed #ffd21e; border-radius: 6px; text-shadow: none; }
+  .c2cg.c2pulsaLento { animation: c2PulsaLento 1.4s ease-in-out infinite; }   /* +5 do P pulsa devagar até responder (2A/2B) */
+  @keyframes c2PulsaLento { 0%, 100% { transform: translateX(-50%) scale(1.4); } 50% { transform: translateX(-50%) scale(1.72); } }
+  /* nome do oxiácido montado (dialogo2C): Ácido + fósforo/ico -> Fosfórico */
+  #c2cNome {
+    position: fixed; left: 0; right: 0; top: 70%; text-align: center; z-index: 42; pointer-events: none; padding: 0 12px;
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(22px, 6.5vw, 40px);
+    color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, .55); white-space: nowrap;
+    opacity: 0; transition: opacity .5s ease;
+  }
+  #c2cNome.show { opacity: 1; }
+  #c2cNome .c2c-rosa { color: #d81b60; }   /* "ico" em rosa carmim */
+  #c2cNome .caret { color: #fff; font-weight: 400; animation: caretBlink .8s steps(1) infinite; }
   /* Reta dos Nox -> prefixo/sufixo dos oxiácidos (dialogo1.9H): montada conforme o áudio avança */
   #c19hReta { position: fixed; left: 50%; transform: translateX(-50%) scale(1.035); z-index: 42; pointer-events: none; width: 330px; height: 130px; }   /* +15% e depois -10% em toda a tabela */
   #c19hReta .c19h-eixo { position: absolute; left: 0; top: 46px; width: 330px; height: 26px; opacity: 0; transition: opacity .9s ease; }
@@ -2127,7 +2139,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.170.0</div>
+<div id="versao">v1.171.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2416,6 +2428,8 @@
 <div id="c2aOpcoes" class="nomOpcoes"><button class="nom-opt" data-v="baixo">baixo</button><button class="nom-opt" data-v="alto">alto</button></div>
 <!-- Opções "Sim"/"Não" (fim do dialogo2B) -->
 <div id="c2bOpcoes" class="nomOpcoes"><button class="nom-opt" data-v="sim">Sim</button><button class="nom-opt" data-v="nao">Não</button></div>
+<!-- Nome do oxiácido montado (dialogo2C): Ácido + fósforo/ico -> Fosfórico -->
+<div id="c2cNome"><span id="c2cAcido"></span> <span id="c2cFosforo"></span><span id="c2cIco" class="c2c-rosa"></span></div>
 <!-- Reta dos Nox -> prefixo/sufixo (dialogo1.9H): posicionada por JS abaixo do HClO; montada conforme o áudio -->
 <div id="c19hReta" aria-hidden="true">
   <svg class="c19h-eixo" viewBox="0 0 330 26" preserveAspectRatio="none">
@@ -4516,6 +4530,7 @@ const FAIXAS = [
   { id: 'dialogo2B',     arquivo: 'audios/dialogo2B.mp3',     titulo: 'Diálogo 2B' },
   { id: 'dialogo2BR',    arquivo: 'audios/dialogo2BR.mp3',    titulo: 'Diálogo 2B (acerto)' },
   { id: 'dialogo2BW',    arquivo: 'audios/dialogo2BW.mp3',    titulo: 'Diálogo 2B (erro)' },
+  { id: 'dialogo2C',     arquivo: 'audios/dialogo2C.mp3',     titulo: 'Diálogo 2C — Ácido Fosfórico' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -5196,7 +5211,19 @@ const EVENTOS = {
   'dialogo2BR': () => rodarStory([       // acerto: +5 não é o maior
     { t: 3.4, fn: () => c19hFadeOut(['c19hHiper', 'c19hN5', 'c19hN7']) },   // some hiper, +5 e +7 da tabela
   ]),
-  'dialogo2BW': () => rodarStory([]),
+  'dialogo2BW': () => rodarStory([       // erro
+    { t: 3.0,  fn: () => c19hPulse('c19hN5') },            // pulsa o +5
+    { t: 5.0,  fn: () => c19hPulse('c19hN7') },            // pulsa o +7...
+    { t: 5.85, fn: () => c19hPulse('c19hN7') },            // ...2x
+    { t: 7.0,  fn: () => c19hFadeOut(['c19hHiper', 'c19hN5', 'c19hN7']) },   // some hiper, +5 e +7 (após os pulsos)
+  ]),
+  'dialogo2C': () => rodarStory([       // monta "Ácido Fosfórico"
+    { t: 6.0,  fn: () => c19hPulse('c19hIco') },            // pulsa "ico" da tabela
+    { t: 10.2, fn: () => { $id('c2cNome').classList.add('show'); c19Digitar('c2cAcido', 'Ácido', 10.2, 11.2); } },   // "Ácido" (digitação)
+    { t: 12.0, fn: () => c19Digitar('c2cFosforo', 'fósforo', 12.0, 13.2) },   // "fósforo"
+    { t: 14.0, fn: () => { const e = $id('c2cIco'); if (e) e.textContent = 'ico'; } },   // "ico" (rosa)
+    { t: 16.0, fn: () => { c19Limpar('c2cFosforo'); const i = $id('c2cIco'); if (i) i.textContent = ''; c19Digitar('c2cFosforo', 'Fosfórico', 16.0, 17.5); } },   // apaga "fósforo ico" e escreve "Fosfórico" (branco)
+  ]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
 // Pulo direto pro 1.8I pelo sumário (item 19): reconstrói a cena como no fim do 1.8H — título + "c)" na tela,
@@ -5447,7 +5474,7 @@ function tocarFaixa(i) {
   if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
   if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
   if (!['dialogo1.9', 'dialogo1.9B', 'dialogo1.9C', 'dialogo1.9D', 'dialogo1.9E'].includes(f.id) && typeof esconderCena19 === 'function') esconderCena19();   // cena da nomenclatura — mantém entre os exemplos (1.9/B/C/D) e no 1.9E (o overlay é congelado numa placa 3D)
-  if (!['dialogo1.9E', 'dialogo1.9F', 'dialogo1.9G', 'dialogo1.9GR', 'dialogo1.9GW', 'dialogo1.9H', 'dialogo1.9H1', 'dialogo1.9H1R', 'dialogo1.9H1W', 'dialogo1.9H2', 'dialogo1.9H2R', 'dialogo1.9H2W', 'dialogo1.9H3', 'dialogo2', 'dialogo2R', 'dialogo2W', 'dialogo2A', 'dialogo2AR', 'dialogo2AW', 'dialogo2B', 'dialogo2BR', 'dialogo2BW'].includes(f.id) && typeof esconderNomenTransicao === 'function') esconderNomenTransicao();   // a nomenclatura dos oxiácidos segue por toda a família 1.9E→dialogo2B
+  if (!['dialogo1.9E', 'dialogo1.9F', 'dialogo1.9G', 'dialogo1.9GR', 'dialogo1.9GW', 'dialogo1.9H', 'dialogo1.9H1', 'dialogo1.9H1R', 'dialogo1.9H1W', 'dialogo1.9H2', 'dialogo1.9H2R', 'dialogo1.9H2W', 'dialogo1.9H3', 'dialogo2', 'dialogo2R', 'dialogo2W', 'dialogo2A', 'dialogo2AR', 'dialogo2AW', 'dialogo2B', 'dialogo2BR', 'dialogo2BW', 'dialogo2C'].includes(f.id) && typeof esconderNomenTransicao === 'function') esconderNomenTransicao();   // a nomenclatura dos oxiácidos segue por toda a família 1.9E→dialogo2C
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = (f.auto || f.semPlay) ? 'none' : '';   // faixa automática (ou marcada semPlay, ex.: 1.8I) toca sem o botão de play
@@ -5563,8 +5590,10 @@ player.addEventListener('ended', () => {
   // fim do dialogo2AW (erro): NÃO avança sozinho — aparece o play (que leva ao 2B)
   // fim do dialogo2B: entram as opções "Sim"/"Não" -> 2BR/2BW
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo2B') { $id('playBtn').style.display = 'none'; c2bOpcoesMostrar(); return; }
-  // fim do dialogo2BR/2BW: última faixa por enquanto — sem play
-  if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo2BR' || FAIXAS[faixaAtual].id === 'dialogo2BW')) { $id('playBtn').style.display = 'none'; return; }
+  // fim do dialogo2BR/2BW: segue automaticamente pro dialogo2C
+  if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo2BR' || FAIXAS[faixaAtual].id === 'dialogo2BW')) { $id('playBtn').style.display = 'none'; setTimeout(() => tocarFaixa(idxFaixa('dialogo2C')), 800); return; }
+  // fim do dialogo2C: última faixa por enquanto — sem play
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo2C') { $id('playBtn').style.display = 'none'; return; }
   // fim do 1.5D: em vez do play, aparece o botão "Quiz" (abre a questão 1)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5D') { $id('playBtn').style.display = 'none'; mostrarQuizBtn(); return; }
   // fim do 1.4A: some o texto e o play (força a interação do papel de tornassol; o 1.4B entra quando o papel fica vermelho)
@@ -8172,6 +8201,8 @@ function c2Esconder() {
   const fb = $id('c2FimBtns'); if (fb) fb.classList.remove('show');
   const ao = $id('c2aOpcoes'); if (ao) ao.classList.remove('show');
   const bo = $id('c2bOpcoes'); if (bo) bo.classList.remove('show');
+  if (typeof c2PulsaLento === 'function') c2PulsaLento(false);
+  const cn = $id('c2cNome'); if (cn) { cn.classList.remove('show'); ['c2cAcido', 'c2cFosforo', 'c2cIco'].forEach(s => { if (typeof c19Limpar === 'function') c19Limpar(s); }); }
   const reta = $id('c19hReta'); if (reta) { reta.style.transition = ''; reta.style.transform = ''; }
 }
 // fim do 2R/2W: some (fade out) todos os números menos o +5 e entram os 2 botões
@@ -8209,9 +8240,11 @@ function c2aMostrarReta() {   // a reta entra pela ESQUERDA, completa, abaixo do
   ['c19hN1', 'c19hN2', 'c19hN4', 'c19hN5', 'c19hN7', 'c19hBaixo', 'c19hAlto', 'c19hOso', 'c19hIco', 'c19hHipo', 'c19hHiper'].forEach(id => { const e = $id(id); if (e) { e.classList.remove('pulse', 'big', 'some'); e.classList.add('on'); } });
   c19hAtivo = true;
 }
-function c2aOpcoesMostrar() { c2aResp = false; _perguntaMostrar('O nox do fósforo calculado é +5. Isso é:'); const o = $id('c2aOpcoes'); if (o) { o.querySelectorAll('.nom-opt').forEach(b => { b.classList.remove('certo', 'errado'); b.disabled = false; }); o.classList.add('show'); } }
+function c2PulsaLento(on) { ['c2Pinc', 'c2w5'].forEach(id => { const e = $id(id); if (e) e.classList.toggle('c2pulsaLento', !!on); }); }   // +5 do P pulsa devagar até responder
+function c2aOpcoesMostrar() { c2aResp = false; _perguntaMostrar('O nox do fósforo calculado é +5. Isso é:'); c2PulsaLento(true); const o = $id('c2aOpcoes'); if (o) { o.querySelectorAll('.nom-opt').forEach(b => { b.classList.remove('certo', 'errado'); b.disabled = false; }); o.classList.add('show'); } }
 function responderC2A(v, btn) {
   if (c2aResp) return; c2aResp = true;
+  c2PulsaLento(false);
   const o = $id('c2aOpcoes'); if (o) o.querySelectorAll('.nom-opt').forEach(b => b.disabled = true);
   const certo = (v === 'alto');   // P = +5 -> "alto"
   btn.classList.add(certo ? 'certo' : 'errado');
@@ -8229,9 +8262,10 @@ function responderC2A(v, btn) {
 if ($id('c2aOpcoes')) $id('c2aOpcoes').querySelectorAll('.nom-opt').forEach(b => b.addEventListener('click', () => responderC2A(b.dataset.v, b)));
 // ---- dialogo2B: quiz Sim/Não -> 2BR (acerto) / 2BW (erro) ----
 let c2bResp = false;
-function c2bOpcoesMostrar() { c2bResp = false; _perguntaMostrar('O nox +5 é o maior nox possível?'); const o = $id('c2bOpcoes'); if (o) { o.querySelectorAll('.nom-opt').forEach(b => { b.classList.remove('certo', 'errado'); b.disabled = false; }); o.classList.add('show'); } }
+function c2bOpcoesMostrar() { c2bResp = false; _perguntaMostrar('O nox +5 é o maior nox possível?'); c2PulsaLento(true); const o = $id('c2bOpcoes'); if (o) { o.querySelectorAll('.nom-opt').forEach(b => { b.classList.remove('certo', 'errado'); b.disabled = false; }); o.classList.add('show'); } }
 function responderC2B(v, btn) {
   if (c2bResp) return; c2bResp = true;
+  c2PulsaLento(false);
   const o = $id('c2bOpcoes'); if (o) o.querySelectorAll('.nom-opt').forEach(b => b.disabled = true);
   const certo = (v === 'nao');   // +5 não é o maior nox (o maior é +7)
   btn.classList.add(certo ? 'certo' : 'errado');
