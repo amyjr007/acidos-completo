@@ -1308,8 +1308,8 @@
     font-family: system-ui, sans-serif; font-weight: 700; color: #ffffff; text-shadow: 0 1px 3px rgba(0, 0, 0, .55);
   }
   body.treme { animation: gameShake .5s ease; }   /* "a tela treme" no erro (dialogo1.9G) */
-  #cgTotal { font-size: 12.5px; }   /* 1pt menor que "Navegação rápida" (13.5px) */
-  #c19gCarga .cg-nox, #c19gCarga .cg-eq { font-size: 13.5px; }
+  #c19gCarga #cgTotal { font-size: 14.4px; color: #ffd21e; }   /* "carga total" amarelo, +15% (era 12.5px) */
+  #c19gCarga .cg-nox, #c19gCarga .cg-eq { font-size: 15.5px; }   /* +15% (era 13.5px) */
   #c19gCarga.amarelo span { color: #ffd21e; }
   #c19gCarga span.on { opacity: 1; }
   /* pulsada do +1 do Cl (mantém o tamanho aumentado, scale 1.4, entre as pulsadas) */
@@ -1317,7 +1317,7 @@
   @keyframes cgPulsa { 0%, 100% { transform: translateX(-50%) scale(1.4); } 50% { transform: translateX(-50%) scale(1.9); } }
   /* incógnita da carga do Cl: em vez do "x", um retângulo pontilhado de cantos arredondados */
   #c19gCarga #cgCl.cg-incognita {
-    color: transparent; width: 26px; height: 18px; box-sizing: border-box;
+    color: transparent; width: 30px; height: 21px; box-sizing: border-box;   /* +15% */
     border: 2px dashed #ffd21e; border-radius: 6px; text-shadow: none;
   }
   /* opções da carga do Cl (fim do dialogo1.9G) */
@@ -1327,13 +1327,13 @@
   }
   #c19gOpcoes.show { opacity: 1; pointer-events: auto; }
   #c19gOpcoes .cg-opt {
-    font: 800 22px system-ui, sans-serif; color: #eaf7d9; background: var(--painel);
+    font: 800 25px system-ui, sans-serif; color: #eaf7d9; background: var(--painel);   /* +15% (era 22px) */
     border: 2px solid rgba(166, 229, 52, .5); border-radius: 14px; padding: 10px 22px; cursor: pointer;
   }
   #c19gOpcoes .cg-opt.certo { border-color: #59d94f; color: #bff5b5; }
   #c19gOpcoes .cg-opt.errado { border-color: #e05a5a; color: #f3b7b7; }
   /* Reta dos Nox -> prefixo/sufixo dos oxiácidos (dialogo1.9H): montada conforme o áudio avança */
-  #c19hReta { position: fixed; left: 50%; transform: translateX(-50%); width: 330px; height: 130px; z-index: 42; pointer-events: none; }
+  #c19hReta { position: fixed; left: 50%; transform: translateX(-50%) scale(1.15); z-index: 42; pointer-events: none; width: 330px; height: 130px; }   /* +15% (elementos a partir do 1.9G) */
   #c19hReta .c19h-eixo { position: absolute; left: 0; top: 46px; width: 330px; height: 26px; opacity: 0; transition: opacity .9s ease; }
   #c19hReta.show .c19h-eixo { opacity: 1; }
   #c19hReta .c19h-linha, #c19hReta .c19h-ponta { fill: none; stroke: #e9edd6; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
@@ -1361,8 +1361,8 @@
   #c19hReta .c19h-cima.on, #c19hReta .c19h-suf.on { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
   #c19hReta .c19h-cima.pulse, #c19hReta .c19h-suf.pulse { animation: c19hPulseWord .8s ease; }
   @keyframes c19hPulseWord { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.5); } }
-  #c19hAlto { left: 234px; color: #ff8ac4; text-shadow: 0 0 16px rgba(255, 138, 196, .5); }   /* "alto"/"ico" rosa, à direita, entre +5 e +7 */
-  #c19hIco  { left: 234px; color: #ff8ac4; text-shadow: 0 0 16px rgba(255, 138, 196, .5); }
+  #c19hAlto { left: 234px; color: #d81b60; text-shadow: 0 0 16px rgba(216, 27, 96, .55); }   /* "alto"/"ico" rosa carmim, à direita, entre +5 e +7 */
+  #c19hIco  { left: 234px; color: #d81b60; text-shadow: 0 0 16px rgba(216, 27, 96, .55); }
   #cena19 .c19-regra {
     position: absolute; top: 26%; left: 0; right: 0; text-align: center;
     font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(22px, 6vw, 36px);
@@ -2061,7 +2061,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.142.0</div>
+<div id="versao">v1.143.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2304,7 +2304,7 @@
 <div id="c19fNox">Precisamos do Nox do átomo central</div>
 <!-- Carga total do HClO (dialogo1.9G): cada carga fica acima do seu átomo (posicionadas por JS) -->
 <div id="c19gCarga">
-  <span id="cgTotal">Carga total</span>
+  <span id="cgTotal">carga total</span>
   <span class="cg-nox" id="cgH">+1</span>
   <span class="cg-nox" id="cgCl">x</span>
   <span class="cg-nox" id="cgO">&minus;2</span>
@@ -7745,7 +7745,8 @@ function c19fFimOxi() {
   const el = $id('c19clHClO');
   if (el) {
     const r = el.getBoundingClientRect();
-    const dx = innerWidth / 2 - (r.left + r.width / 2), dy = innerHeight / 2 - (r.top + r.height / 2);
+    const dx = innerWidth / 2 - (r.left + r.width / 2);
+    const dy = innerHeight / 2 - (r.top + r.height / 2) - 2.25 * r.height;   // 1,5 linhas do HClO ampliado (scale 1.5) acima do centro
     el.style.transition = 'transform .7s cubic-bezier(.2, .9, .3, 1.4)';
     el.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px) scale(1.5)';
     el.style.zIndex = '43';
