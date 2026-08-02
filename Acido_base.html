@@ -2091,7 +2091,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.148.0</div>
+<div id="versao">v1.149.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5524,6 +5524,7 @@ const SUMARIO = [
   { titulo: 'Nomenclatura dos Oxiácidos',    faixa: idxFaixa('dialogo1.9E'), acao: irParaNomenOxi },
   { titulo: 'Ex.01 - HClO',                  faixa: idxFaixa('dialogo1.9G'), acao: irParaCargaHClO },   // [TEMPORÁRIO - dev] pula direto pra carga total do HClO (1.9G)
   { titulo: 'A tabela de Nox pra nomenclatura de oxiácidos', faixa: idxFaixa('dialogo1.9H'), acao: irParaTabelaNox },
+  { titulo: 'Aplicação da tabela no HClO',   faixa: idxFaixa('dialogo1.9H1'), acao: irParaAplicaTabela },
 ];
 
 SUMARIO.forEach(item => {
@@ -8806,6 +8807,24 @@ function irParaTabelaNox() {
   const carga = $id('c19gCarga'); if (carga) carga.classList.add('amarelo');
   const cl = $id('cgCl'); if (cl) { cl.classList.remove('cg-incognita'); cl.textContent = '+1'; cl.classList.add('on'); }   // só o +1 do Cl revelado (como no fim do 1.9G)
   const i = idxFaixa('dialogo1.9H');
+  if (i >= 0) tocarFaixa(i);
+}
+// mostra a reta dos Nox já completa (estado do fim do 1.9H)
+function montarRetaCompleta() {
+  posicionarReta();
+  const r = $id('c19hReta'); if (r) r.classList.add('show');
+  ['c19hN1', 'c19hN2', 'c19hN4', 'c19hN5', 'c19hN7', 'c19hBaixo', 'c19hAlto', 'c19hOso', 'c19hIco', 'c19hHipo', 'c19hHiper'].forEach(id => { const e = $id(id); if (e) { e.classList.remove('pulse', 'big'); e.classList.add('on'); } });
+}
+// navegação rápida "Aplicação da tabela no HClO": monta o HClO (+1 do Cl aumentado) e a reta completa e toca o 1.9H1
+function irParaAplicaTabela() {
+  montarCargaHClO();
+  if (typeof posicionarCargas === 'function') posicionarCargas();
+  const carga = $id('c19gCarga'); if (carga) carga.classList.add('amarelo');
+  const cl = $id('cgCl'); if (cl) { cl.classList.remove('cg-incognita'); cl.textContent = '+1'; cl.classList.add('on'); }
+  cgBig('cgCl', true);   // +1 do Cl aumentado (como no 1.9H)
+  ['cgTotal', 'cgH', 'cgO', 'cgSoma', 'cgEq'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on'); });
+  c19hAtivo = true; montarRetaCompleta();
+  const i = idxFaixa('dialogo1.9H1');
   if (i >= 0) tocarFaixa(i);
 }
 // H+ vira sobrescrito; caret pisca enquanto digita
