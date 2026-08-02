@@ -1401,8 +1401,9 @@
   #c19hReta #c19hIco  { left: 234px; color: #d81b60; text-shadow: 0 0 16px rgba(216, 27, 96, .55); }
   #c19hReta #c19hN2 { left: 54px; color: #6fb7ff; }   /* "+2" (azul) que aparece ao lado do +1 (dialogo1.9H, t33.7) */
   /* "hipo" (azul, acima-esquerda do +1) e "hiper" (carmim, acima-direita do +7) — 1pt menor que os números (19px) */
-  #c19hReta #c19hHipo  { left: -2px;  top: -16px; font-size: 19px; color: #6fb7ff; text-shadow: 0 0 12px rgba(111, 183, 255, .5); }
-  #c19hReta #c19hHiper { left: 316px; top: -16px; font-size: 19px; color: #d81b60; text-shadow: 0 0 12px rgba(216, 27, 96, .55); }
+  #c19hReta #c19hHipo  { left: -2px;  top: -16px; font-size: 18px; color: #6fb7ff; text-shadow: 0 0 12px rgba(111, 183, 255, .5); }
+  #c19hReta #c19hHiper { left: 316px; top: -16px; font-size: 18px; color: #d81b60; text-shadow: 0 0 12px rgba(216, 27, 96, .55); }
+  #c19hReta .some { opacity: 0 !important; }   /* some com fade out (some junto após responder) */
   #cena19 .c19-regra {
     position: absolute; top: 26%; left: 0; right: 0; text-align: center;
     font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(22px, 6vw, 36px);
@@ -2101,7 +2102,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.150.0</div>
+<div id="versao">v1.151.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -7939,7 +7940,7 @@ function posicionarReta() {   // ancora a reta abaixo do HClO (uma linha mais ba
 function c19hReset() {
   const r = $id('c19hReta'); if (!r) return;
   r.classList.remove('show');
-  ['c19hN1', 'c19hN2', 'c19hN4', 'c19hN5', 'c19hN7', 'c19hBaixo', 'c19hAlto', 'c19hOso', 'c19hIco', 'c19hHipo', 'c19hHiper'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on', 'pulse', 'big'); });
+  ['c19hN1', 'c19hN2', 'c19hN4', 'c19hN5', 'c19hN7', 'c19hBaixo', 'c19hAlto', 'c19hOso', 'c19hIco', 'c19hHipo', 'c19hHiper'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on', 'pulse', 'big', 'some'); });
 }
 function c19hBig(id, on) { const e = $id(id); if (e) e.classList.toggle('big', !!on); }   // aumenta e mantém um número da reta
 function c19hInicio() {   // aumenta o +1 do Cl e some (fade out) o resto das cargas
@@ -7971,8 +7972,9 @@ function _responderNom(o, certo, btn, corr, faixaR, faixaW) {
     setTimeout(() => tocarFaixa(idxFaixa(faixaW)), 1200);
   }
 }
-function responderH1(v, btn) { if (c19h1Resp) return; c19h1Resp = true; _responderNom($id('c19h1Opcoes'), v === 'baixo', btn, 'baixo', 'dialogo1.9H1R', 'dialogo1.9H1W'); }
-function responderH2(v, btn) { if (c19h2Resp) return; c19h2Resp = true; _responderNom($id('c19h2Opcoes'), v === 'sim', btn, 'sim', 'dialogo1.9H2R', 'dialogo1.9H2W'); }
+function c19hFadeOut(ids) { ids.forEach(id => { const e = $id(id); if (e) e.classList.add('some'); }); }   // some com fade out (mantém a posição)
+function responderH1(v, btn) { if (c19h1Resp) return; c19h1Resp = true; c19hFadeOut(['c19hAlto', 'c19hIco', 'c19hN4', 'c19hN7', 'c19hHiper']); _responderNom($id('c19h1Opcoes'), v === 'baixo', btn, 'baixo', 'dialogo1.9H1R', 'dialogo1.9H1W'); }
+function responderH2(v, btn) { if (c19h2Resp) return; c19h2Resp = true; c19hFadeOut(['c19hHiper']); _responderNom($id('c19h2Opcoes'), v === 'sim', btn, 'sim', 'dialogo1.9H2R', 'dialogo1.9H2W'); }
 if ($id('c19h1Opcoes')) $id('c19h1Opcoes').querySelectorAll('.nom-opt').forEach(b => b.addEventListener('click', () => responderH1(b.dataset.v, b)));
 if ($id('c19h2Opcoes')) $id('c19h2Opcoes').querySelectorAll('.nom-opt').forEach(b => b.addEventListener('click', () => responderH2(b.dataset.v, b)));
 // esconde opções/pergunta/nome e reseta os "aumentados" da família 1.9H1→H3 (chamado ao sair da nomenclatura)
@@ -8834,7 +8836,7 @@ function irParaTabelaNox() {
 function montarRetaCompleta() {
   posicionarReta();
   const r = $id('c19hReta'); if (r) r.classList.add('show');
-  ['c19hN1', 'c19hN2', 'c19hN4', 'c19hN5', 'c19hN7', 'c19hBaixo', 'c19hAlto', 'c19hOso', 'c19hIco', 'c19hHipo', 'c19hHiper'].forEach(id => { const e = $id(id); if (e) { e.classList.remove('pulse', 'big'); e.classList.add('on'); } });
+  ['c19hN1', 'c19hN2', 'c19hN4', 'c19hN5', 'c19hN7', 'c19hBaixo', 'c19hAlto', 'c19hOso', 'c19hIco', 'c19hHipo', 'c19hHiper'].forEach(id => { const e = $id(id); if (e) { e.classList.remove('pulse', 'big', 'some'); e.classList.add('on'); } });
 }
 // navegação rápida "Aplicação da tabela no HClO": monta o HClO (+1 do Cl aumentado) e a reta completa e toca o 1.9H1
 function irParaAplicaTabela() {
