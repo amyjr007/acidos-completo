@@ -1346,10 +1346,10 @@
   #c19hReta .c19h-num.on { opacity: 1; transform: translate(-50%, 0); }
   #c19hReta .c19h-num.pulse { animation: c19hPulse .8s ease; }
   @keyframes c19hPulse { 0%, 100% { transform: translate(-50%, 0) scale(1); } 50% { transform: translate(-50%, 0) scale(1.6); } }
-  #c19hN1 { left: 16px; color: #6fb7ff; }    /* +1 e +4 azuis (faixa "baixo"/oso) */
-  #c19hN4 { left: 130px; color: #6fb7ff; }
-  #c19hN5 { left: 175px; color: #ff8ac4; }   /* +5 e +7 rosa (faixa "alto"/ico) */
-  #c19hN7 { left: 292px; color: #ff8ac4; }
+  #c19hReta #c19hN1 { left: 16px; color: #6fb7ff; }    /* +1 e +4 azuis (mesma cor de "baixo") */
+  #c19hReta #c19hN4 { left: 130px; color: #6fb7ff; }
+  #c19hReta #c19hN5 { left: 175px; color: #d81b60; }   /* +5 e +7 rosa carmim (mesma cor de "alto"/"ico") */
+  #c19hReta #c19hN7 { left: 292px; color: #d81b60; }
   /* "baixo"/"alto" (acima) e "oso"/"ico" (abaixo) — espelhados; entrada dramática por transição, pulso por keyframe */
   #c19hReta .c19h-cima, #c19hReta .c19h-suf {
     position: absolute; left: 73px; opacity: 0;
@@ -1361,8 +1361,8 @@
   #c19hReta .c19h-cima.on, #c19hReta .c19h-suf.on { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
   #c19hReta .c19h-cima.pulse, #c19hReta .c19h-suf.pulse { animation: c19hPulseWord .8s ease; }
   @keyframes c19hPulseWord { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.5); } }
-  #c19hAlto { left: 234px; color: #d81b60; text-shadow: 0 0 16px rgba(216, 27, 96, .55); }   /* "alto"/"ico" rosa carmim, à direita, entre +5 e +7 */
-  #c19hIco  { left: 234px; color: #d81b60; text-shadow: 0 0 16px rgba(216, 27, 96, .55); }
+  #c19hReta #c19hAlto { left: 234px; color: #d81b60; text-shadow: 0 0 16px rgba(216, 27, 96, .55); }   /* "alto"/"ico" rosa carmim, à direita, entre +5 e +7 */
+  #c19hReta #c19hIco  { left: 234px; color: #d81b60; text-shadow: 0 0 16px rgba(216, 27, 96, .55); }
   #cena19 .c19-regra {
     position: absolute; top: 26%; left: 0; right: 0; text-align: center;
     font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(22px, 6vw, 36px);
@@ -2061,7 +2061,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.144.0</div>
+<div id="versao">v1.145.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
