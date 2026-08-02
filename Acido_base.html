@@ -1343,15 +1343,15 @@
   #c19hReta .c19h-num.on { opacity: 1; transform: translate(-50%, 0); }
   #c19hReta .c19h-num.pulse { animation: c19hPulse .8s ease; }
   @keyframes c19hPulse { 0%, 100% { transform: translate(-50%, 0) scale(1); } 50% { transform: translate(-50%, 0) scale(1.6); } }
-  #c19hN1 { left: 16px; }
-  #c19hN4 { left: 130px; }
+  #c19hN1 { left: 16px; color: #6fb7ff; }    /* +1 e +4 azuis (faixa "Baixo"/oso) */
+  #c19hN4 { left: 130px; color: #6fb7ff; }
   #c19hN7 { left: 292px; }
   /* "Baixo" (acima da reta) e "oso" (abaixo) — espelhados, azuis, centrados na faixa +1..+4 */
   #c19hReta .c19h-cima, #c19hReta .c19h-suf {
     position: absolute; left: 73px; transform: translateX(-50%); opacity: 0;
     font: 800 24px Georgia, serif; color: #6fb7ff; letter-spacing: 1px; text-shadow: 0 0 16px rgba(111, 183, 255, .5);
   }
-  #c19hReta .c19h-cima { top: 19px; }
+  #c19hReta .c19h-cima { top: -8px; }   /* uma linha acima dos números */
   #c19hReta .c19h-suf  { top: 74px; }
   #c19hReta .c19h-cima.on { animation: c19hDramaCima .85s cubic-bezier(.2, .8, .2, 1.4) both; }
   #c19hReta .c19h-suf.on  { animation: c19hDrama     .85s cubic-bezier(.2, .8, .2, 1.4) both; }
@@ -2055,7 +2055,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.138.0</div>
+<div id="versao">v1.139.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
