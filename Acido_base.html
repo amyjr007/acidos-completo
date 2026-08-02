@@ -2055,7 +2055,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.137.0</div>
+<div id="versao">v1.138.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -4959,7 +4959,7 @@ const EVENTOS = {
   ]),
   'dialogo1.9H':  () => rodarStory([
     { t: 0.0,  fn: c19hInicio },                                    // prepara a reta (posiciona abaixo do HClO; mantém tudo do 1.9G) e aumenta o +1 do Cl
-    { t: 11.0, fn: () => { posicionarReta(); $id('c19hReta').classList.add('show'); } },   // a seta entra em fade in (só o eixo + a divisória discreta)
+    { t: 15.0, fn: () => { posicionarReta(); $id('c19hReta').classList.add('show'); } },   // a seta entra em fade in (só o eixo + a divisória discreta)
     { t: 16.8, fn: () => $id('c19hN1').classList.add('on') },       // +1 na ponta esquerda
     { t: 18.0, fn: () => $id('c19hN7').classList.add('on') },       // +7 na ponta direita
     { t: 19.2, fn: () => c19hPulse('c19hN1') },                     // pulsa o +1
@@ -7804,7 +7804,11 @@ function c19hReset() {
   r.classList.remove('show');
   ['c19hN1', 'c19hN4', 'c19hN7', 'c19hBaixo', 'c19hOso'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on', 'pulse'); });
 }
-function c19hInicio() { c19hAtivo = true; c19hReset(); posicionarReta(); cgBig('cgCl', true); }   // mantém todo o esquema do 1.9G e aumenta o +1 do Cl
+function c19hInicio() {   // aumenta o +1 do Cl e some (fade out) o resto das cargas
+  c19hAtivo = true; c19hReset(); posicionarReta();
+  cgBig('cgCl', true);
+  ['cgTotal', 'cgH', 'cgO', 'cgSoma', 'cgEq'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on'); });
+}
 function c19hPulse(id) { const e = $id(id); if (!e) return; e.classList.remove('pulse'); void e.offsetWidth; e.classList.add('pulse'); setTimeout(() => { if (e) e.classList.remove('pulse'); }, 850); }
 addEventListener('resize', () => { if (c19hAtivo) posicionarReta(); });   // reposiciona a reta do 1.9H ao girar/redimensionar
 // transição do 1.9E: cola o overlay dos hidrácidos na parede (posição 2) e o desliza/some enquanto a câmera vira pra posição 1
