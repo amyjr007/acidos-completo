@@ -1343,20 +1343,23 @@
   #c19hReta .c19h-num.on { opacity: 1; transform: translate(-50%, 0); }
   #c19hReta .c19h-num.pulse { animation: c19hPulse .8s ease; }
   @keyframes c19hPulse { 0%, 100% { transform: translate(-50%, 0) scale(1); } 50% { transform: translate(-50%, 0) scale(1.6); } }
-  #c19hN1 { left: 16px; color: #6fb7ff; }    /* +1 e +4 azuis (faixa "Baixo"/oso) */
+  #c19hN1 { left: 16px; color: #6fb7ff; }    /* +1 e +4 azuis (faixa "baixo"/oso) */
   #c19hN4 { left: 130px; color: #6fb7ff; }
-  #c19hN7 { left: 292px; }
-  /* "Baixo" (acima da reta) e "oso" (abaixo) — espelhados, azuis, centrados na faixa +1..+4 */
+  #c19hN5 { left: 175px; color: #ff8ac4; }   /* +5 e +7 rosa (faixa "alto"/ico) */
+  #c19hN7 { left: 292px; color: #ff8ac4; }
+  /* "baixo"/"alto" (acima) e "oso"/"ico" (abaixo) — espelhados; entrada dramática por transição, pulso por keyframe */
   #c19hReta .c19h-cima, #c19hReta .c19h-suf {
-    position: absolute; left: 73px; transform: translateX(-50%); opacity: 0;
+    position: absolute; left: 73px; opacity: 0;
     font: 800 24px Georgia, serif; color: #6fb7ff; letter-spacing: 1px; text-shadow: 0 0 16px rgba(111, 183, 255, .5);
+    transition: opacity .4s ease, transform .7s cubic-bezier(.2, .8, .2, 1.5);
   }
-  #c19hReta .c19h-cima { top: -8px; }   /* uma linha acima dos números */
-  #c19hReta .c19h-suf  { top: 74px; }
-  #c19hReta .c19h-cima.on { animation: c19hDramaCima .85s cubic-bezier(.2, .8, .2, 1.4) both; }
-  #c19hReta .c19h-suf.on  { animation: c19hDrama     .85s cubic-bezier(.2, .8, .2, 1.4) both; }
-  @keyframes c19hDrama     { 0% { opacity: 0; transform: translateX(-50%) translateY(24px)  scale(.3); } 55% { opacity: 1; transform: translateX(-50%) translateY(-5px) scale(1.28); } 100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
-  @keyframes c19hDramaCima { 0% { opacity: 0; transform: translateX(-50%) translateY(-24px) scale(.3); } 55% { opacity: 1; transform: translateX(-50%) translateY(5px)  scale(1.28); } 100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+  #c19hReta .c19h-cima { top: -8px; transform: translateX(-50%) translateY(-22px) scale(.4); }   /* uma linha acima dos números; entra de cima */
+  #c19hReta .c19h-suf  { top: 74px; transform: translateX(-50%) translateY(22px) scale(.4); }     /* abaixo da reta; entra de baixo */
+  #c19hReta .c19h-cima.on, #c19hReta .c19h-suf.on { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  #c19hReta .c19h-cima.pulse, #c19hReta .c19h-suf.pulse { animation: c19hPulseWord .8s ease; }
+  @keyframes c19hPulseWord { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.5); } }
+  #c19hAlto { left: 211px; color: #ff8ac4; text-shadow: 0 0 16px rgba(255, 138, 196, .5); }   /* "alto"/"ico" rosa, sobre a faixa +4..+7 */
+  #c19hIco  { left: 211px; color: #ff8ac4; text-shadow: 0 0 16px rgba(255, 138, 196, .5); }
   #cena19 .c19-regra {
     position: absolute; top: 26%; left: 0; right: 0; text-align: center;
     font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(22px, 6vw, 36px);
@@ -2055,7 +2058,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.139.0</div>
+<div id="versao">v1.140.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2318,11 +2321,14 @@
     <path class="c19h-ponta" d="M300 5 L320 13 L300 21"/>
     <line class="c19h-div" x1="153" y1="3" x2="153" y2="23"/>
   </svg>
-  <span class="c19h-cima" id="c19hBaixo">Baixo</span>
+  <span class="c19h-cima" id="c19hBaixo">baixo</span>
+  <span class="c19h-cima" id="c19hAlto">alto</span>
   <span class="c19h-num" id="c19hN1">+1</span>
   <span class="c19h-num" id="c19hN4">+4</span>
+  <span class="c19h-num" id="c19hN5">+5</span>
   <span class="c19h-num" id="c19hN7">+7</span>
   <span class="c19h-suf" id="c19hOso">oso</span>
+  <span class="c19h-suf" id="c19hIco">ico</span>
 </div>
 
 <!-- Cena do dialogo1.7: classificação quanto aos H ionizáveis (mono/di/tri/tetrácidos) -->
@@ -4389,6 +4395,7 @@ const FAIXAS = [
   { id: 'dialogo1.9GR', arquivo: 'audios/dialogo1.9GR.mp3', titulo: 'Diálogo 1.9G (acerto)' },
   { id: 'dialogo1.9GW', arquivo: 'audios/dialogo1.9GW.mp3', titulo: 'Diálogo 1.9G (erro)' },
   { id: 'dialogo1.9H',  arquivo: 'audios/dialogo1.9H.mp3',  titulo: 'Diálogo 1.9H — Reta dos Nox (oso)' },
+  { id: 'dialogo1.9H1', arquivo: 'audios/dialogo1.9H1.mp3', titulo: 'Diálogo 1.9H1 — Reta dos Nox (ico)' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -4964,8 +4971,22 @@ const EVENTOS = {
     { t: 18.0, fn: () => $id('c19hN7').classList.add('on') },       // +7 na ponta direita
     { t: 19.2, fn: () => c19hPulse('c19hN1') },                     // pulsa o +1
     { t: 20.0, fn: () => $id('c19hN4').classList.add('on') },       // +4 antes da divisória central
-    { t: 23.0, fn: () => $id('c19hBaixo').classList.add('on') },    // "Baixo" azul acima da reta (espelho do "oso"; entrada dramática de cima)
+    { t: 23.0, fn: () => $id('c19hBaixo').classList.add('on') },    // "baixo" azul acima da reta (espelho do "oso"; entrada dramática de cima)
     { t: 28.0, fn: () => $id('c19hOso').classList.add('on') },      // "oso" abaixo da reta (entrada dramática de baixo, azul)
+  ]),
+  'dialogo1.9H1': () => rodarStory([
+    { t: 0.0,  fn: c19h1Inicio },                                   // mantém a reta do 1.9H; +5/alto/ico começam escondidos
+    { t: 1.0,  fn: () => $id('c19hN5').classList.add('on') },       // +5 (rosa)
+    { t: 2.0,  fn: () => c19hPulse('c19hN7') },                     // pulsa o +7 (já rosa desde o 1.9H)
+    { t: 5.0,  fn: () => $id('c19hAlto').classList.add('on') },     // "alto" (rosa) entre +4 e +7, na linha do "baixo"
+    { t: 11.0, fn: () => $id('c19hIco').classList.add('on') },      // "ico" abaixo da seta (rosa)
+    { t: 14.2, fn: () => c19hPulse('c19hN1') },                     // pulsa +1
+    { t: 14.9, fn: () => c19hPulse('c19hN4') },                     // pulsa +4
+    { t: 15.4, fn: () => c19hPulse('c19hBaixo') },                  // pulsa "baixo"
+    { t: 17.0, fn: () => c19hPulse('c19hOso') },                    // pulsa "oso"
+    { t: 18.0, fn: () => c19hPulse('c19hN5') },                     // pulsa +5
+    { t: 18.9, fn: () => c19hPulse('c19hN7') },                     // pulsa +7
+    { t: 20.7, fn: () => c19hPulse('c19hIco') },                    // pulsa "ico"
   ]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
@@ -5217,7 +5238,7 @@ function tocarFaixa(i) {
   if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
   if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
   if (!['dialogo1.9', 'dialogo1.9B', 'dialogo1.9C', 'dialogo1.9D', 'dialogo1.9E'].includes(f.id) && typeof esconderCena19 === 'function') esconderCena19();   // cena da nomenclatura — mantém entre os exemplos (1.9/B/C/D) e no 1.9E (o overlay é congelado numa placa 3D)
-  if (!['dialogo1.9E', 'dialogo1.9F', 'dialogo1.9G', 'dialogo1.9GR', 'dialogo1.9GW', 'dialogo1.9H'].includes(f.id) && typeof esconderNomenTransicao === 'function') esconderNomenTransicao();   // a nomenclatura dos oxiácidos ("b)" + cloro + Nox + carga total + reta) segue por toda a família 1.9E→1.9H
+  if (!['dialogo1.9E', 'dialogo1.9F', 'dialogo1.9G', 'dialogo1.9GR', 'dialogo1.9GW', 'dialogo1.9H', 'dialogo1.9H1'].includes(f.id) && typeof esconderNomenTransicao === 'function') esconderNomenTransicao();   // a nomenclatura dos oxiácidos ("b)" + cloro + Nox + carga total + reta) segue por toda a família 1.9E→1.9H1
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = (f.auto || f.semPlay) ? 'none' : '';   // faixa automática (ou marcada semPlay, ex.: 1.8I) toca sem o botão de play
@@ -7802,7 +7823,7 @@ function posicionarReta() {   // ancora a reta abaixo do HClO (uma linha mais ba
 function c19hReset() {
   const r = $id('c19hReta'); if (!r) return;
   r.classList.remove('show');
-  ['c19hN1', 'c19hN4', 'c19hN7', 'c19hBaixo', 'c19hOso'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on', 'pulse'); });
+  ['c19hN1', 'c19hN4', 'c19hN5', 'c19hN7', 'c19hBaixo', 'c19hAlto', 'c19hOso', 'c19hIco'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on', 'pulse'); });
 }
 function c19hInicio() {   // aumenta o +1 do Cl e some (fade out) o resto das cargas
   c19hAtivo = true; c19hReset(); posicionarReta();
@@ -7810,6 +7831,10 @@ function c19hInicio() {   // aumenta o +1 do Cl e some (fade out) o resto das ca
   ['cgTotal', 'cgH', 'cgO', 'cgSoma', 'cgEq'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on'); });
 }
 function c19hPulse(id) { const e = $id(id); if (!e) return; e.classList.remove('pulse'); void e.offsetWidth; e.classList.add('pulse'); setTimeout(() => { if (e) e.classList.remove('pulse'); }, 850); }
+function c19h1Inicio() {   // 1.9H1: mantém a reta do 1.9H; só garante +5/alto/ico escondidos (revelados pelos cues)
+  c19hAtivo = true; posicionarReta();
+  ['c19hN5', 'c19hAlto', 'c19hIco'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on', 'pulse'); });
+}
 addEventListener('resize', () => { if (c19hAtivo) posicionarReta(); });   // reposiciona a reta do 1.9H ao girar/redimensionar
 // transição do 1.9E: cola o overlay dos hidrácidos na parede (posição 2) e o desliza/some enquanto a câmera vira pra posição 1
 function nomen19Transicao() {
