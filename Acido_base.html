@@ -2066,7 +2066,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.146.0</div>
+<div id="versao">v1.147.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5441,6 +5441,7 @@ const SUMARIO = [
   { titulo: 'Nomenclatura dos Hidrácidos',   faixa: idxFaixa('dialogo1.9') },
   { titulo: 'Nomenclatura dos Oxiácidos',    faixa: idxFaixa('dialogo1.9E'), acao: irParaNomenOxi },
   { titulo: 'Ex.01 - HClO',                  faixa: idxFaixa('dialogo1.9G'), acao: irParaCargaHClO },   // [TEMPORÁRIO - dev] pula direto pra carga total do HClO (1.9G)
+  { titulo: 'A tabela de Nox pra nomenclatura de oxiácidos', faixa: idxFaixa('dialogo1.9H'), acao: irParaTabelaNox },
 ];
 
 SUMARIO.forEach(item => {
@@ -8686,6 +8687,15 @@ function montarCargaHClO() {
 function irParaCargaHClO() {
   montarCargaHClO();
   const i = idxFaixa('dialogo1.9G');
+  if (i >= 0) tocarFaixa(i);
+}
+// navegação rápida "A tabela de Nox...": monta o HClO com o +1 do Cl revelado (estado do fim do 1.9G) e toca o 1.9H
+function irParaTabelaNox() {
+  montarCargaHClO();                                 // HClO centralizado + "b)" + câmera na posição 1
+  if (typeof posicionarCargas === 'function') posicionarCargas();
+  const carga = $id('c19gCarga'); if (carga) carga.classList.add('amarelo');
+  const cl = $id('cgCl'); if (cl) { cl.classList.remove('cg-incognita'); cl.textContent = '+1'; cl.classList.add('on'); }   // só o +1 do Cl revelado (como no fim do 1.9G)
+  const i = idxFaixa('dialogo1.9H');
   if (i >= 0) tocarFaixa(i);
 }
 // H+ vira sobrescrito; caret pisca enquanto digita
