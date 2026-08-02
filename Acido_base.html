@@ -1367,7 +1367,7 @@
   #c19h3Nome.pulse { animation: nomePulsa .7s ease; }
   @keyframes nomePulsa { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
   /* Reta dos Nox -> prefixo/sufixo dos oxiácidos (dialogo1.9H): montada conforme o áudio avança */
-  #c19hReta { position: fixed; left: 50%; transform: translateX(-50%) scale(1.15); z-index: 42; pointer-events: none; width: 330px; height: 130px; }   /* +15% (elementos a partir do 1.9G) */
+  #c19hReta { position: fixed; left: 50%; transform: translateX(-50%) scale(1.035); z-index: 42; pointer-events: none; width: 330px; height: 130px; }   /* +15% e depois -10% em toda a tabela */
   #c19hReta .c19h-eixo { position: absolute; left: 0; top: 46px; width: 330px; height: 26px; opacity: 0; transition: opacity .9s ease; }
   #c19hReta.show .c19h-eixo { opacity: 1; }
   #c19hReta .c19h-linha, #c19hReta .c19h-ponta { fill: none; stroke: #e9edd6; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
@@ -2102,7 +2102,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.153.0</div>
+<div id="versao">v1.154.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
