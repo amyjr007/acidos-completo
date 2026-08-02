@@ -2125,7 +2125,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.163.0</div>
+<div id="versao">v1.164.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5139,6 +5139,8 @@ const EVENTOS = {
     { t: 30.3, fn: () => c2Show('c2H1') },                // +1 embaixo do H3
     { t: 30.5, fn: () => c2cgPulse('c2H1') },             // pulsa o +1
     { t: 32.0, fn: () => c2Pulse('c2s3', 3) },            // pulsa o 3 (3x, do H)
+    { t: 34.5, fn: () => c2cgPulse('c2H1') },             // pulsa o +1 (1x)
+    { t: 35.9, fn: () => c2Pulse('c2s3') },               // pulsa o 3 (do H)
     { t: 37.8, fn: () => c2Show('c2Htot') },              // +3 acima do H3
     { t: 40.7, fn: () => c2Pulse('c2P') },                // pulsa o P
     { t: 44.5, fn: () => c2Show('c2Eq') },                // = 0
