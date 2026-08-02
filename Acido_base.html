@@ -2127,7 +2127,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.169.0</div>
+<div id="versao">v1.170.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5193,7 +5193,9 @@ const EVENTOS = {
     { t: 6.0, fn: () => { c19hFadeOut(['c19hAlto', 'c19hBaixo', 'c19hOso', 'c19hN1', 'c19hN2', 'c19hN4', 'c19hHipo']); c19hBig('c19hN5', false); c19hBig('c19hN7', false); c19hBig('c19hAlto', false); c19hBig('c19hIco', true); } },   // some alto/baixo/oso/+1/+2/+4/hipo; +5/+7 normal; aumenta "ico"
   ]),
   'dialogo2B': () => rodarStory([]),
-  'dialogo2BR': () => rodarStory([]),
+  'dialogo2BR': () => rodarStory([       // acerto: +5 não é o maior
+    { t: 3.4, fn: () => c19hFadeOut(['c19hHiper', 'c19hN5', 'c19hN7']) },   // some hiper, +5 e +7 da tabela
+  ]),
   'dialogo2BW': () => rodarStory([]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
@@ -5556,8 +5558,9 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo2R') { $id('playBtn').style.display = 'none'; setTimeout(() => tocarFaixa(idxFaixa('dialogo2A')), 800); return; }
   // fim do dialogo2A: entram as opções "baixo"/"alto" (correto = alto)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo2A') { $id('playBtn').style.display = 'none'; c2aOpcoesMostrar(); return; }
-  // fim do dialogo2AR/2AW: segue automaticamente pro dialogo2B
-  if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo2AR' || FAIXAS[faixaAtual].id === 'dialogo2AW')) { $id('playBtn').style.display = 'none'; setTimeout(() => tocarFaixa(idxFaixa('dialogo2B')), 800); return; }
+  // fim do dialogo2AR (acerto): segue automaticamente pro dialogo2B
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo2AR') { $id('playBtn').style.display = 'none'; setTimeout(() => tocarFaixa(idxFaixa('dialogo2B')), 800); return; }
+  // fim do dialogo2AW (erro): NÃO avança sozinho — aparece o play (que leva ao 2B)
   // fim do dialogo2B: entram as opções "Sim"/"Não" -> 2BR/2BW
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo2B') { $id('playBtn').style.display = 'none'; c2bOpcoesMostrar(); return; }
   // fim do dialogo2BR/2BW: última faixa por enquanto — sem play
@@ -8206,7 +8209,7 @@ function c2aMostrarReta() {   // a reta entra pela ESQUERDA, completa, abaixo do
   ['c19hN1', 'c19hN2', 'c19hN4', 'c19hN5', 'c19hN7', 'c19hBaixo', 'c19hAlto', 'c19hOso', 'c19hIco', 'c19hHipo', 'c19hHiper'].forEach(id => { const e = $id(id); if (e) { e.classList.remove('pulse', 'big', 'some'); e.classList.add('on'); } });
   c19hAtivo = true;
 }
-function c2aOpcoesMostrar() { c2aResp = false; const o = $id('c2aOpcoes'); if (o) { o.querySelectorAll('.nom-opt').forEach(b => { b.classList.remove('certo', 'errado'); b.disabled = false; }); o.classList.add('show'); } }
+function c2aOpcoesMostrar() { c2aResp = false; _perguntaMostrar('O nox do fósforo calculado é +5. Isso é:'); const o = $id('c2aOpcoes'); if (o) { o.querySelectorAll('.nom-opt').forEach(b => { b.classList.remove('certo', 'errado'); b.disabled = false; }); o.classList.add('show'); } }
 function responderC2A(v, btn) {
   if (c2aResp) return; c2aResp = true;
   const o = $id('c2aOpcoes'); if (o) o.querySelectorAll('.nom-opt').forEach(b => b.disabled = true);
@@ -8214,32 +8217,32 @@ function responderC2A(v, btn) {
   btn.classList.add(certo ? 'certo' : 'errado');
   if (certo) {
     playSfx('applause'); playSfx('funfare'); if (typeof festaConfete === 'function') festaConfete();
-    setTimeout(() => { if (o) o.classList.remove('show'); }, 800);
+    setTimeout(() => { if (o) o.classList.remove('show'); _perguntaEsconder(); }, 800);
     setTimeout(() => tocarFaixa(idxFaixa('dialogo2AR')), 1000);
   } else {
     playSfx('error'); if (typeof tremerTela === 'function') tremerTela();
     if (o) { const c = o.querySelector('.nom-opt[data-v="alto"]'); if (c) c.classList.add('certo'); }
-    setTimeout(() => { if (o) o.classList.remove('show'); }, 900);
+    setTimeout(() => { if (o) o.classList.remove('show'); _perguntaEsconder(); }, 900);
     setTimeout(() => tocarFaixa(idxFaixa('dialogo2AW')), 1200);
   }
 }
 if ($id('c2aOpcoes')) $id('c2aOpcoes').querySelectorAll('.nom-opt').forEach(b => b.addEventListener('click', () => responderC2A(b.dataset.v, b)));
 // ---- dialogo2B: quiz Sim/Não -> 2BR (acerto) / 2BW (erro) ----
 let c2bResp = false;
-function c2bOpcoesMostrar() { c2bResp = false; const o = $id('c2bOpcoes'); if (o) { o.querySelectorAll('.nom-opt').forEach(b => { b.classList.remove('certo', 'errado'); b.disabled = false; }); o.classList.add('show'); } }
+function c2bOpcoesMostrar() { c2bResp = false; _perguntaMostrar('O nox +5 é o maior nox possível?'); const o = $id('c2bOpcoes'); if (o) { o.querySelectorAll('.nom-opt').forEach(b => { b.classList.remove('certo', 'errado'); b.disabled = false; }); o.classList.add('show'); } }
 function responderC2B(v, btn) {
   if (c2bResp) return; c2bResp = true;
   const o = $id('c2bOpcoes'); if (o) o.querySelectorAll('.nom-opt').forEach(b => b.disabled = true);
-  const certo = (v === 'nao');   // [PLACEHOLDER] confirmar qual é a correta (sim/não)
+  const certo = (v === 'nao');   // +5 não é o maior nox (o maior é +7)
   btn.classList.add(certo ? 'certo' : 'errado');
   if (certo) {
     playSfx('applause'); playSfx('funfare'); if (typeof festaConfete === 'function') festaConfete();
-    setTimeout(() => { if (o) o.classList.remove('show'); }, 800);
+    setTimeout(() => { if (o) o.classList.remove('show'); _perguntaEsconder(); }, 800);
     setTimeout(() => tocarFaixa(idxFaixa('dialogo2BR')), 1000);
   } else {
     playSfx('error'); if (typeof tremerTela === 'function') tremerTela();
     if (o) { const c = o.querySelector('.nom-opt[data-v="nao"]'); if (c) c.classList.add('certo'); }
-    setTimeout(() => { if (o) o.classList.remove('show'); }, 900);
+    setTimeout(() => { if (o) o.classList.remove('show'); _perguntaEsconder(); }, 900);
     setTimeout(() => tocarFaixa(idxFaixa('dialogo2BW')), 1200);
   }
 }
