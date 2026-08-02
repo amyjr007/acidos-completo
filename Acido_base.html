@@ -2102,7 +2102,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.158.0</div>
+<div id="versao">v1.159.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5071,11 +5071,13 @@ const EVENTOS = {
     { t: 0.0, fn: () => cgPulsaLento(true) },   // volta a pulsar o +1 do Cl até o usuário escolher Sim/Não
   ]),
   'dialogo1.9H2R': () => rodarStory([       // acerto: "Sim"
+    { t: 1.0, fn: () => c19hPulse('c19hN1') },                     // pulsa +1 (reta)
+    { t: 1.9, fn: () => c19hPulse('c19hN2') },                     // pulsa +2 (reta)
     { t: 7.0, fn: () => c19hBig('c19hHipo', true) },              // aumenta "hipo"
   ]),
   'dialogo1.9H2W': () => rodarStory([       // erro
     { t: 3.0, fn: () => c19hPulse('c19hN1') },                     // pulsa +1 (reta)
-    { t: 4.0, fn: () => c19hPulse('c19hN2') },                     // pulsa +2 (reta)
+    { t: 3.9, fn: () => c19hPulse('c19hN2') },                     // pulsa +2 (reta)
     { t: 5.9, fn: () => cgPulsa('cgCl') },                         // pulsa o +1 em cima do Cl...
     { t: 6.6, fn: () => cgPulsa('cgCl') },                         // ...2x
     { t: 9.0, fn: () => c19hBig('c19hHipo', true) },              // aumenta "hipo"
