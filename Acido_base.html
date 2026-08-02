@@ -2125,7 +2125,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.160.0</div>
+<div id="versao">v1.161.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5600,6 +5600,7 @@ const SUMARIO = [
   { titulo: 'Ex.01 - HClO',                  faixa: idxFaixa('dialogo1.9G'), acao: irParaCargaHClO },   // [TEMPORÁRIO - dev] pula direto pra carga total do HClO (1.9G)
   { titulo: 'A tabela de Nox pra nomenclatura de oxiácidos', faixa: idxFaixa('dialogo1.9H'), acao: irParaTabelaNox },
   { titulo: 'Aplicação da tabela no HClO',   faixa: idxFaixa('dialogo1.9H1'), acao: irParaAplicaTabela },
+  { titulo: 'A nomenclatura do H3PO4',       faixa: idxFaixa('dialogo2'), acao: irParaNomeH3PO4 },
 ];
 
 SUMARIO.forEach(item => {
@@ -8964,6 +8965,16 @@ function irParaAplicaTabela() {
   ['cgTotal', 'cgH', 'cgO', 'cgSoma', 'cgEq'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on'); });
   c19hAtivo = true; montarRetaCompleta();
   const i = idxFaixa('dialogo1.9H1');
+  if (i >= 0) tocarFaixa(i);
+}
+// navegação rápida "A nomenclatura do H3PO4": limpa a cena do HClO e toca o dialogo2 (H3PO4 entra pela esquerda)
+function irParaNomeH3PO4() {
+  irParaCamera(CAM_1, false);
+  if (typeof esconderNomenH === 'function') esconderNomenH();
+  if (typeof c19hReset === 'function') { c19hAtivo = false; c19hReset(); }
+  const cloro = $id('c19cloro'); if (cloro) cloro.classList.remove('show');   // HClO não é o foco aqui
+  const b = $id('c19bOxi'); if (b) b.classList.add('show');
+  const i = idxFaixa('dialogo2');
   if (i >= 0) tocarFaixa(i);
 }
 // H+ vira sobrescrito; caret pisca enquanto digita
