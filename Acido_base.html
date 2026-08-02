@@ -1367,19 +1367,27 @@
   #c19h3Nome .caret { color: #fff; font-weight: 400; animation: caretBlink .8s steps(1) infinite; }
   #c19h3Nome.pulse { animation: nomePulsa .7s ease; }
   @keyframes nomePulsa { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-  /* Ex.02: H3PO4 (dialogo2) — fórmula que entra pela esquerda até o centro */
-  #c2Formula {
+  /* Ex.02: H3PO4 (dialogo2) / Ex.03: HIO4 (dialogo3) — fórmula que entra pela esquerda até o centro */
+  #c2Formula, #c3Formula {
     position: fixed; left: 0; right: 0; top: 40%; text-align: center; z-index: 43; pointer-events: none; padding: 0 12px;
     font-family: "Cambria Math", Georgia, serif; font-weight: 800; font-size: clamp(33px, 9.75vw, 60px);
     color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, .55); white-space: nowrap;
     opacity: 0; transform: translateX(-120vw); transition: opacity .3s ease, transform 1s cubic-bezier(.2, .9, .3, 1.2);
   }
-  #c2Formula.show { opacity: 1; transform: translateX(0); }
-  #c2Formula sub { font-size: .5em; }
-  #c2Formula #c2H, #c2Formula #c2P, #c2Formula #c2O, #c2Formula #c2s3, #c2Formula #c2s4 { display: inline-block; transform-origin: center bottom; transition: transform .4s cubic-bezier(.2, .9, .3, 1.5); }
-  #c2Formula .cbig { transform: scale(1.4); }   /* aumenta e mantém (dialogo2W) */
-  #c2Formula .pulse { animation: c2atPulsa .7s ease; }
+  #c2Formula.show, #c3Formula.show { opacity: 1; transform: translateX(0); }
+  #c2Formula sub, #c3Formula sub { font-size: .5em; }
+  #c2Formula #c2H, #c2Formula #c2P, #c2Formula #c2O, #c2Formula #c2s3, #c2Formula #c2s4,
+  #c3Formula #c3H, #c3Formula #c3I, #c3Formula #c3O, #c3Formula #c3s4 { display: inline-block; transform-origin: center bottom; transition: transform .4s cubic-bezier(.2, .9, .3, 1.5); }
+  #c2Formula .cbig, #c3Formula .cbig { transform: scale(1.4); }   /* aumenta e mantém */
+  #c2Formula .pulse, #c3Formula .pulse { animation: c2atPulsa .7s ease; }
   @keyframes c2atPulsa { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.4); } }
+  /* texto do atalho (dialogo3) */
+  #c3Texto {
+    position: fixed; left: 0; right: 0; top: 56%; text-align: center; z-index: 43; pointer-events: none; padding: 0 14px;
+    font-family: system-ui, sans-serif; font-weight: 700; font-size: clamp(15px, 4.4vw, 24px);
+    color: #eaf7d9; text-shadow: 0 1px 3px rgba(0, 0, 0, .55); white-space: normal;
+  }
+  #c3Texto .caret { color: #fff; font-weight: 400; animation: caretBlink .8s steps(1) infinite; }
   /* cargas do H3PO4 (posicionadas por JS: total acima, por átomo abaixo, incógnita no P) */
   .c2cg {
     position: fixed; z-index: 43; opacity: 0; pointer-events: none; white-space: nowrap; transform: translateX(-50%);
@@ -2139,7 +2147,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.171.0</div>
+<div id="versao">v1.172.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2430,6 +2438,14 @@
 <div id="c2bOpcoes" class="nomOpcoes"><button class="nom-opt" data-v="sim">Sim</button><button class="nom-opt" data-v="nao">Não</button></div>
 <!-- Nome do oxiácido montado (dialogo2C): Ácido + fósforo/ico -> Fosfórico -->
 <div id="c2cNome"><span id="c2cAcido"></span> <span id="c2cFosforo"></span><span id="c2cIco" class="c2c-rosa"></span></div>
+<!-- Ex.03: HIO4 (dialogo3) — atalho: (2 x nº de O) - nº de H = Nox central -->
+<div id="c3Formula"><span id="c3H">H</span><span id="c3I">I</span><span id="c3Og"><span id="c3O">O</span><sub id="c3s4">4</sub></span></div>
+<div id="c3Texto"></div>
+<span class="c2cg" id="c3x">&times;</span>
+<span class="c2cg" id="c3n2">2</span>
+<span class="c2cg" id="c38">8</span>
+<span class="c2cg" id="c3m1">&minus;1</span>
+<span class="c2cg" id="c37">+7</span>
 <!-- Reta dos Nox -> prefixo/sufixo (dialogo1.9H): posicionada por JS abaixo do HClO; montada conforme o áudio -->
 <div id="c19hReta" aria-hidden="true">
   <svg class="c19h-eixo" viewBox="0 0 330 26" preserveAspectRatio="none">
@@ -4531,6 +4547,7 @@ const FAIXAS = [
   { id: 'dialogo2BR',    arquivo: 'audios/dialogo2BR.mp3',    titulo: 'Diálogo 2B (acerto)' },
   { id: 'dialogo2BW',    arquivo: 'audios/dialogo2BW.mp3',    titulo: 'Diálogo 2B (erro)' },
   { id: 'dialogo2C',     arquivo: 'audios/dialogo2C.mp3',     titulo: 'Diálogo 2C — Ácido Fosfórico' },
+  { id: 'dialogo3',      arquivo: 'audios/dialogo3.mp3',      titulo: 'Diálogo 3 — Ex.03 HIO4 (atalho)' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -5224,6 +5241,19 @@ const EVENTOS = {
     { t: 14.0, fn: () => { const e = $id('c2cIco'); if (e) e.textContent = 'ico'; } },   // "ico" (rosa)
     { t: 16.0, fn: () => { c19Limpar('c2cFosforo'); const i = $id('c2cIco'); if (i) i.textContent = ''; c19Digitar('c2cFosforo', 'Fosfórico', 16.0, 17.5); } },   // apaga "fósforo ico" e escreve "Fosfórico" (branco)
   ]),
+  'dialogo3': () => rodarStory([       // Ex.03: HIO4 (atalho 2xO - H = Nox central; I = +7)
+    { t: 0.0,  fn: c3Inicio },                             // exemplo anterior sai pra direita; HIO4 entra pela esquerda
+    { t: 17.2, fn: () => c19Digitar('c3Texto', 'Número de Oxigênios - números de Hidrogênios', 17.2, 22.0) },   // texto (digitação)
+    { t: 27.3, fn: () => c2Pulse('c3s4') },                // pulsa o 4 (do O)
+    { t: 29.1, fn: () => c2Big('c3s4', true) },            // aumenta o 4
+    { t: 30.1, fn: () => c2Show('c3x') },                  // ×
+    { t: 30.5, fn: () => c2Show('c3n2') },                 // 2
+    { t: 32.7, fn: () => { c2Show('c38'); c2Big('c3s4', false); } },   // 8 em cima do O (o 4 volta ao normal)
+    { t: 35.7, fn: () => c2Pulse('c3H') },                 // pulsa o H
+    { t: 39.0, fn: () => c2cgPulse('c38') },               // pulsa o 8
+    { t: 40.2, fn: () => c2Show('c3m1') },                 // -1 ao lado do 8
+    { t: 42.0, fn: () => c2Show('c37') },                  // +7 em cima do I
+  ]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
 // Pulo direto pro 1.8I pelo sumário (item 19): reconstrói a cena como no fim do 1.8H — título + "c)" na tela,
@@ -5474,7 +5504,7 @@ function tocarFaixa(i) {
   if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
   if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
   if (!['dialogo1.9', 'dialogo1.9B', 'dialogo1.9C', 'dialogo1.9D', 'dialogo1.9E'].includes(f.id) && typeof esconderCena19 === 'function') esconderCena19();   // cena da nomenclatura — mantém entre os exemplos (1.9/B/C/D) e no 1.9E (o overlay é congelado numa placa 3D)
-  if (!['dialogo1.9E', 'dialogo1.9F', 'dialogo1.9G', 'dialogo1.9GR', 'dialogo1.9GW', 'dialogo1.9H', 'dialogo1.9H1', 'dialogo1.9H1R', 'dialogo1.9H1W', 'dialogo1.9H2', 'dialogo1.9H2R', 'dialogo1.9H2W', 'dialogo1.9H3', 'dialogo2', 'dialogo2R', 'dialogo2W', 'dialogo2A', 'dialogo2AR', 'dialogo2AW', 'dialogo2B', 'dialogo2BR', 'dialogo2BW', 'dialogo2C'].includes(f.id) && typeof esconderNomenTransicao === 'function') esconderNomenTransicao();   // a nomenclatura dos oxiácidos segue por toda a família 1.9E→dialogo2C
+  if (!['dialogo1.9E', 'dialogo1.9F', 'dialogo1.9G', 'dialogo1.9GR', 'dialogo1.9GW', 'dialogo1.9H', 'dialogo1.9H1', 'dialogo1.9H1R', 'dialogo1.9H1W', 'dialogo1.9H2', 'dialogo1.9H2R', 'dialogo1.9H2W', 'dialogo1.9H3', 'dialogo2', 'dialogo2R', 'dialogo2W', 'dialogo2A', 'dialogo2AR', 'dialogo2AW', 'dialogo2B', 'dialogo2BR', 'dialogo2BW', 'dialogo2C', 'dialogo3'].includes(f.id) && typeof esconderNomenTransicao === 'function') esconderNomenTransicao();   // a nomenclatura dos oxiácidos segue por toda a família 1.9E→dialogo3
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = (f.auto || f.semPlay) ? 'none' : '';   // faixa automática (ou marcada semPlay, ex.: 1.8I) toca sem o botão de play
@@ -5592,8 +5622,9 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo2B') { $id('playBtn').style.display = 'none'; c2bOpcoesMostrar(); return; }
   // fim do dialogo2BR/2BW: segue automaticamente pro dialogo2C
   if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo2BR' || FAIXAS[faixaAtual].id === 'dialogo2BW')) { $id('playBtn').style.display = 'none'; setTimeout(() => tocarFaixa(idxFaixa('dialogo2C')), 800); return; }
-  // fim do dialogo2C: última faixa por enquanto — sem play
-  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo2C') { $id('playBtn').style.display = 'none'; return; }
+  // fim do dialogo2C: o play aparece e leva ao dialogo3 (fluxo padrão, sem case aqui)
+  // fim do dialogo3: última faixa por enquanto — sem play
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo3') { $id('playBtn').style.display = 'none'; return; }
   // fim do 1.5D: em vez do play, aparece o botão "Quiz" (abre a questão 1)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5D') { $id('playBtn').style.display = 'none'; mostrarQuizBtn(); return; }
   // fim do 1.4A: some o texto e o play (força a interação do papel de tornassol; o 1.4B entra quando o papel fica vermelho)
@@ -8202,7 +8233,8 @@ function c2Esconder() {
   const ao = $id('c2aOpcoes'); if (ao) ao.classList.remove('show');
   const bo = $id('c2bOpcoes'); if (bo) bo.classList.remove('show');
   if (typeof c2PulsaLento === 'function') c2PulsaLento(false);
-  const cn = $id('c2cNome'); if (cn) { cn.classList.remove('show'); ['c2cAcido', 'c2cFosforo', 'c2cIco'].forEach(s => { if (typeof c19Limpar === 'function') c19Limpar(s); }); }
+  const cn = $id('c2cNome'); if (cn) { cn.classList.remove('show'); cn.style.transition = ''; cn.style.transform = ''; ['c2cAcido', 'c2cFosforo', 'c2cIco'].forEach(s => { if (typeof c19Limpar === 'function') c19Limpar(s); }); }
+  if (typeof c3Esconder === 'function') c3Esconder();
   const reta = $id('c19hReta'); if (reta) { reta.style.transition = ''; reta.style.transform = ''; }
 }
 // fim do 2R/2W: some (fade out) todos os números menos o +5 e entram os 2 botões
@@ -8281,6 +8313,39 @@ function responderC2B(v, btn) {
   }
 }
 if ($id('c2bOpcoes')) $id('c2bOpcoes').querySelectorAll('.nom-opt').forEach(b => b.addEventListener('click', () => responderC2B(b.dataset.v, b)));
+// ---- Ex.03: HIO4 (dialogo3) — atalho (2 x nº O - nº H = Nox central) ----
+function posicionarC3() {
+  const I = $id('c3I'), Og = $id('c3Og'), f = $id('c3Formula');
+  if (!I || !Og || !f) return;
+  const rI = I.getBoundingClientRect(), rO = Og.getBoundingClientRect(), rf = f.getBoundingClientRect();
+  const yCima = Math.round(rf.top - 24);
+  const cI = rI.left + rI.width / 2, cO = rO.left + rO.width / 2;
+  const put = (id, left, top, tx) => { const e = $id(id); if (!e) return; e.style.top = Math.round(top) + 'px'; e.style.left = Math.round(left) + 'px'; e.style.transform = tx || 'translateX(-50%)'; };
+  put('c38', cO, yCima); put('c37', cI, yCima);
+  put('c3m1', cO + 22, yCima, 'translateX(0)');   // "-1" à direita do 8
+  const midY = Math.round((rO.top + rO.bottom) / 2);
+  const x = $id('c3x'); if (x) { x.style.top = midY + 'px'; x.style.left = Math.round(rO.right + 6) + 'px'; x.style.transform = 'translateY(-50%)'; }
+  const n2 = $id('c3n2'); if (n2) { n2.style.top = midY + 'px'; n2.style.left = Math.round(rO.right + 22) + 'px'; n2.style.transform = 'translateY(-50%)'; }
+}
+function c3Inicio() {
+  // desliza o exemplo anterior (H3PO4 + tabela + nome) pra direita
+  const c2f = $id('c2Formula'); if (c2f) { c2f.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; c2f.style.transform = 'translateX(85vw)'; }
+  const reta = $id('c19hReta'); if (reta) { reta.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; reta.style.transform = 'translateX(85vw) translateX(-50%) scale(1.035)'; }
+  const cn = $id('c2cNome'); if (cn) { cn.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; cn.style.transform = 'translateX(85vw)'; }
+  document.querySelectorAll('.c2cg').forEach(e => { e.classList.remove('on', 'c2pulsaLento'); e.style.animation = ''; });   // some as cargas do exemplo anterior
+  // HIO4 entra pela esquerda
+  const f = $id('c3Formula');
+  if (f) { f.style.transition = 'none'; f.classList.remove('show'); void f.offsetWidth; f.style.transition = ''; f.classList.add('show'); }
+  ['c3H', 'c3I', 'c3O', 'c3s4'].forEach(id => { const e = $id(id); if (e) { e.classList.remove('cbig'); e.style.animation = ''; } });
+  if (typeof c19Limpar === 'function') c19Limpar('c3Texto');
+  setTimeout(posicionarC3, 1100);
+}
+function c3Esconder() {
+  const f = $id('c3Formula'); if (f) { f.style.transition = 'none'; f.classList.remove('show'); }
+  ['c3H', 'c3I', 'c3O', 'c3s4'].forEach(id => { const e = $id(id); if (e) { e.classList.remove('cbig'); e.style.animation = ''; } });
+  if (typeof c19Limpar === 'function') c19Limpar('c3Texto');
+}
+addEventListener('resize', () => { const f = $id('c3Formula'); if (f && f.classList.contains('show')) posicionarC3(); });
 // transição do 1.9E: cola o overlay dos hidrácidos na parede (posição 2) e o desliza/some enquanto a câmera vira pra posição 1
 function nomen19Transicao() {
   resetNomenCloro();                                      // começa limpo (replay): "Oxiácidos do cloro" escondido
