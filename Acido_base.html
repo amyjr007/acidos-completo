@@ -2061,7 +2061,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.143.0</div>
+<div id="versao">v1.144.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5431,6 +5431,7 @@ const SUMARIO = [
   { titulo: 'Quiz 4',                        faixa: idxFaixa('dialogo1.8M'), acao: irParaQuizF },
   { titulo: 'Nomenclatura dos Hidrácidos',   faixa: idxFaixa('dialogo1.9') },
   { titulo: 'Nomenclatura dos Oxiácidos',    faixa: idxFaixa('dialogo1.9E'), acao: irParaNomenOxi },
+  { titulo: 'Ex.01 - HClO',                  faixa: idxFaixa('dialogo1.9G'), acao: irParaCargaHClO },   // [TEMPORÁRIO - dev] pula direto pra carga total do HClO (1.9G)
 ];
 
 SUMARIO.forEach(item => {
@@ -8652,6 +8653,33 @@ function irParaNomenOxi() {
   irParaCamera(CAM_2, false);
   if (typeof montarNomenHidraFim === 'function') montarNomenHidraFim();
   const i = idxFaixa('dialogo1.9E');
+  if (i >= 0) tocarFaixa(i);
+}
+// [TEMPORÁRIO - dev] monta o HClO centralizado (estado do fim do 1.9F) na posição 1 e toca o 1.9G
+function montarCargaHClO() {
+  irParaCamera(CAM_1, false);
+  const c = $id('c19cloro');
+  if (c) {
+    c.classList.add('show');
+    const tit = c.querySelector('.c19cl-tit'); if (tit) { tit.style.transition = 'none'; tit.style.opacity = '0'; }
+    ['c19clHClO2', 'c19clHClO3', 'c19clHClO4'].forEach(id => { const e = $id(id); if (e) { e.style.transition = 'none'; e.style.opacity = '0'; } });
+    c.querySelectorAll('.cga-at').forEach(e => e.classList.remove('grande', 'at-big', 'at-pulsa'));
+    const el = $id('c19clHClO');
+    if (el) {
+      el.style.transition = 'none'; el.style.opacity = ''; el.style.transform = 'none';
+      const r = el.getBoundingClientRect();
+      const dx = innerWidth / 2 - (r.left + r.width / 2);
+      const dy = innerHeight / 2 - (r.top + r.height / 2) - 2.25 * r.height;   // 1,5 linhas acima (igual ao 1.9F)
+      el.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px) scale(1.5)';
+      el.style.zIndex = '43';
+    }
+  }
+  const b = $id('c19bOxi'); if (b) b.classList.add('show');
+  const nox = $id('c19fNox'); if (nox) nox.classList.remove('show');
+}
+function irParaCargaHClO() {
+  montarCargaHClO();
+  const i = idxFaixa('dialogo1.9G');
   if (i >= 0) tocarFaixa(i);
 }
 // H+ vira sobrescrito; caret pisca enquanto digita
