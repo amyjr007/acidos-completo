@@ -2102,7 +2102,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.152.0</div>
+<div id="versao">v1.153.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -7973,7 +7973,7 @@ function _responderNom(o, certo, btn, corr, faixaR, faixaW) {
   }
 }
 function c19hFadeOut(ids) { ids.forEach(id => { const e = $id(id); if (e) e.classList.add('some'); }); }   // some com fade out (mantém a posição)
-function responderH1(v, btn) { if (c19h1Resp) return; c19h1Resp = true; c19hFadeOut(['c19hAlto', 'c19hIco', 'c19hN4', 'c19hN7']); _responderNom($id('c19h1Opcoes'), v === 'baixo', btn, 'baixo', 'dialogo1.9H1R', 'dialogo1.9H1W'); }
+function responderH1(v, btn) { if (c19h1Resp) return; c19h1Resp = true; c19hFadeOut(['c19hAlto', 'c19hIco', 'c19hN4', 'c19hN5', 'c19hN7']); _responderNom($id('c19h1Opcoes'), v === 'baixo', btn, 'baixo', 'dialogo1.9H1R', 'dialogo1.9H1W'); }
 function responderH2(v, btn) { if (c19h2Resp) return; c19h2Resp = true; c19hFadeOut(['c19hHiper']); _responderNom($id('c19h2Opcoes'), v === 'sim', btn, 'sim', 'dialogo1.9H2R', 'dialogo1.9H2W'); }
 if ($id('c19h1Opcoes')) $id('c19h1Opcoes').querySelectorAll('.nom-opt').forEach(b => b.addEventListener('click', () => responderH1(b.dataset.v, b)));
 if ($id('c19h2Opcoes')) $id('c19h2Opcoes').querySelectorAll('.nom-opt').forEach(b => b.addEventListener('click', () => responderH2(b.dataset.v, b)));
