@@ -2055,7 +2055,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.135.0</div>
+<div id="versao">v1.136.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -4935,7 +4935,13 @@ const EVENTOS = {
     { t: 30.0, fn: () => cgMostrar('cgEq') },                       // = 0
     { t: 34.0, fn: () => cgMostrar('cgCl') },                       // "x" (amarelo) acima do Cl
   ]),
-  'dialogo1.9GR': () => rodarStory([]),   // acerto (+1) — comemoração já entra no responderCargaCl
+  'dialogo1.9GR': () => rodarStory([       // acerto (+1) — comemoração já entra no responderCargaCl; aqui o recap das cargas
+    { t: 1.0, fn: () => cgBig('cgH', true) },     // aumenta o +1 do H
+    { t: 2.0, fn: () => cgBig('cgCl', true) },    // aumenta o +1 do Cl
+    { t: 2.8, fn: () => cgMostrar('cgSoma') },    // +2 em cima, entre os dois +1
+    { t: 4.0, fn: () => cgBig('cgO', true) },     // aumenta o -2 do O
+    { t: 5.0, fn: () => cgBig('cgEq', true) },    // aumenta o = 0
+  ]),
   'dialogo1.9GW': () => rodarStory([       // erro: re-deduz as cargas passo a passo
     { t: 0.0,  fn: () => { posicionarCargas(); const c = $id('c19gCarga'); if (c) c.classList.add('amarelo'); const cl = $id('cgCl'); if (cl) { cl.textContent = ''; cl.classList.add('cg-incognita'); } } },
     { t: 1.8,  fn: () => atBig('c19gO', true) },                        // aumenta o O
