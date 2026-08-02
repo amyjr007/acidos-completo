@@ -1315,6 +1315,8 @@
   /* pulsada do +1 do Cl (mantém o tamanho aumentado, scale 1.4, entre as pulsadas) */
   #c19gCarga #cgCl.cg-pulsa { animation: cgPulsa .7s ease; }
   @keyframes cgPulsa { 0%, 100% { transform: translateX(-50%) scale(1.4); } 50% { transform: translateX(-50%) scale(1.9); } }
+  #c19gCarga #cgCl.cg-pulsaLento { animation: cgPulsaLento 1.4s ease-in-out infinite; }   /* pulso lento do +1 do Cl até o usuário responder (1.9H1/1.9H2) */
+  @keyframes cgPulsaLento { 0%, 100% { transform: translateX(-50%) scale(1.4); } 50% { transform: translateX(-50%) scale(1.72); } }
   /* incógnita da carga do Cl: em vez do "x", um retângulo pontilhado de cantos arredondados */
   #c19gCarga #cgCl.cg-incognita {
     color: transparent; width: 30px; height: 21px; box-sizing: border-box;   /* +15% */
@@ -1344,6 +1346,14 @@
   }
   .nomOpcoes .nom-opt.certo { border-color: #59d94f; color: #bff5b5; }
   .nomOpcoes .nom-opt.errado { border-color: #e05a5a; color: #f3b7b7; }
+  /* pergunta que aparece acima das opções (some junto com elas) */
+  #c19hPergunta {
+    position: fixed; left: 0; right: 0; bottom: calc(150px + env(safe-area-inset-bottom)); text-align: center; z-index: 60; padding: 0 16px;
+    font-family: system-ui, sans-serif; font-weight: 700; font-size: clamp(16px, 4.8vw, 25px);
+    color: #eaf7d9; text-shadow: 0 1px 3px rgba(0, 0, 0, .55);
+    opacity: 0; pointer-events: none; transition: opacity .5s ease;
+  }
+  #c19hPergunta.show { opacity: 1; }
   /* nome do oxiácido montado (dialogo1.9H3): Ácido + hipo/cloro/oso -> Hipocloroso */
   #c19h3Nome {
     position: fixed; left: 0; right: 0; top: 70%; text-align: center; z-index: 42; pointer-events: none; padding: 0 12px;
@@ -2091,7 +2101,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.149.0</div>
+<div id="versao">v1.150.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2357,6 +2367,8 @@
   <button class="nom-opt" data-v="sim">Sim</button>
   <button class="nom-opt" data-v="nao">Não</button>
 </div>
+<!-- Pergunta acima das opções (1.9H1/1.9H2) -->
+<div id="c19hPergunta"></div>
 <!-- Nome do oxiácido montado (dialogo1.9H3) -->
 <div id="c19h3Nome"><span id="c19h3Acido"></span> <span id="c19h3Hipo" class="az"></span><span id="c19h3Cloro"></span><span id="c19h3Oso" class="az"></span></div>
 <!-- Reta dos Nox -> prefixo/sufixo (dialogo1.9H): posicionada por JS abaixo do HClO; montada conforme o áudio -->
@@ -5042,7 +5054,9 @@ const EVENTOS = {
     { t: 51.3, fn: () => c19hPulse('c19hN7') },                     // pulsa o +7
     { t: 53.6, fn: () => $id('c19hHiper').classList.add('on') },    // escreve "hiper" (acima-direita do +7)
   ]),
-  'dialogo1.9H1':  () => rodarStory([]),   // pergunta "baixo ou alto?"; as opções entram no fim (ver handler)
+  'dialogo1.9H1':  () => rodarStory([
+    { t: 5.6, fn: () => cgPulsaLento(true) },   // +1 do Cl pulsa devagar até o usuário escolher baixo/alto
+  ]),
   'dialogo1.9H1R': () => rodarStory([       // acerto: "baixo"
     { t: 0.9, fn: () => c19hBig('c19hBaixo', true) },              // aumenta "baixo" (fica até depois)
     { t: 2.2, fn: () => c19hBig('c19hOso', true) },               // aumenta "oso"
@@ -5052,7 +5066,9 @@ const EVENTOS = {
     { t: 7.7,  fn: () => c19hBig('c19hBaixo', true) },             // aumenta "baixo"
     { t: 10.0, fn: () => c19hBig('c19hOso', true) },              // aumenta "oso"
   ]),
-  'dialogo1.9H2':  () => rodarStory([]),   // pergunta "Sim ou Não?"; opções no fim (ver handler)
+  'dialogo1.9H2':  () => rodarStory([
+    { t: 0.0, fn: () => cgPulsaLento(true) },   // volta a pulsar o +1 do Cl até o usuário escolher Sim/Não
+  ]),
   'dialogo1.9H2R': () => rodarStory([       // acerto: "Sim"
     { t: 7.0, fn: () => c19hBig('c19hHipo', true) },              // aumenta "hipo"
   ]),
@@ -7935,19 +7951,23 @@ function c19hPulse(id) { const e = $id(id); if (!e) return; e.classList.remove('
 addEventListener('resize', () => { if (c19hAtivo) posicionarReta(); });   // reposiciona a reta do 1.9H ao girar/redimensionar
 // ---- Quiz "baixo/alto" (fim do 1.9H1) e "Sim/Não" (fim do 1.9H2) ----
 let c19h1Resp = false, c19h2Resp = false;
-function c19h1OpcoesMostrar() { c19h1Resp = false; const o = $id('c19h1Opcoes'); if (o) { o.querySelectorAll('.nom-opt').forEach(b => { b.classList.remove('certo', 'errado'); b.disabled = false; }); o.classList.add('show'); } }
-function c19h2OpcoesMostrar() { c19h2Resp = false; const o = $id('c19h2Opcoes'); if (o) { o.querySelectorAll('.nom-opt').forEach(b => { b.classList.remove('certo', 'errado'); b.disabled = false; }); o.classList.add('show'); } }
+function cgPulsaLento(on) { const e = $id('cgCl'); if (e) e.classList.toggle('cg-pulsaLento', !!on); }   // pulso lento do +1 do Cl até responder
+function _perguntaMostrar(txt) { const p = $id('c19hPergunta'); if (p) { p.textContent = txt; p.classList.add('show'); } }
+function _perguntaEsconder() { const p = $id('c19hPergunta'); if (p) p.classList.remove('show'); }
+function c19h1OpcoesMostrar() { c19h1Resp = false; _perguntaMostrar('O nox do cloro na molécula é:'); const o = $id('c19h1Opcoes'); if (o) { o.querySelectorAll('.nom-opt').forEach(b => { b.classList.remove('certo', 'errado'); b.disabled = false; }); o.classList.add('show'); } }
+function c19h2OpcoesMostrar() { c19h2Resp = false; _perguntaMostrar('Tá entre os menores nox possíveis?'); const o = $id('c19h2Opcoes'); if (o) { o.querySelectorAll('.nom-opt').forEach(b => { b.classList.remove('certo', 'errado'); b.disabled = false; }); o.classList.add('show'); } }
 function _responderNom(o, certo, btn, corr, faixaR, faixaW) {
+  cgPulsaLento(false);                 // para o pulso do +1 ao responder
   o.querySelectorAll('.nom-opt').forEach(b => b.disabled = true);
   btn.classList.add(certo ? 'certo' : 'errado');
   if (certo) {
     playSfx('applause'); playSfx('funfare'); if (typeof festaConfete === 'function') festaConfete();
-    setTimeout(() => o.classList.remove('show'), 800);
+    setTimeout(() => { o.classList.remove('show'); _perguntaEsconder(); }, 800);   // pergunta some junto com as opções
     setTimeout(() => tocarFaixa(idxFaixa(faixaR)), 1000);
   } else {
     playSfx('error'); if (typeof tremerTela === 'function') tremerTela();
     const c = o.querySelector('.nom-opt[data-v="' + corr + '"]'); if (c) c.classList.add('certo');
-    setTimeout(() => o.classList.remove('show'), 900);
+    setTimeout(() => { o.classList.remove('show'); _perguntaEsconder(); }, 900);   // pergunta some junto com as opções
     setTimeout(() => tocarFaixa(idxFaixa(faixaW)), 1200);
   }
 }
@@ -7955,9 +7975,10 @@ function responderH1(v, btn) { if (c19h1Resp) return; c19h1Resp = true; _respond
 function responderH2(v, btn) { if (c19h2Resp) return; c19h2Resp = true; _responderNom($id('c19h2Opcoes'), v === 'sim', btn, 'sim', 'dialogo1.9H2R', 'dialogo1.9H2W'); }
 if ($id('c19h1Opcoes')) $id('c19h1Opcoes').querySelectorAll('.nom-opt').forEach(b => b.addEventListener('click', () => responderH1(b.dataset.v, b)));
 if ($id('c19h2Opcoes')) $id('c19h2Opcoes').querySelectorAll('.nom-opt').forEach(b => b.addEventListener('click', () => responderH2(b.dataset.v, b)));
-// esconde opções/nome e reseta os "aumentados" da família 1.9H1→H3 (chamado ao sair da nomenclatura)
+// esconde opções/pergunta/nome e reseta os "aumentados" da família 1.9H1→H3 (chamado ao sair da nomenclatura)
 function esconderNomenH() {
   ['c19h1Opcoes', 'c19h2Opcoes'].forEach(id => { const o = $id(id); if (o) o.classList.remove('show'); });
+  _perguntaEsconder(); cgPulsaLento(false);
   const n = $id('c19h3Nome'); if (n) { n.classList.remove('show', 'pulse'); ['c19h3Acido', 'c19h3Hipo', 'c19h3Cloro', 'c19h3Oso'].forEach(s => { if (typeof c19Limpar === 'function') c19Limpar(s); }); }
 }
 // transição do 1.9E: cola o overlay dos hidrácidos na parede (posição 2) e o desliza/some enquanto a câmera vira pra posição 1
