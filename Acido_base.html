@@ -481,17 +481,20 @@
     max-width: 620px; line-height: 1.25;
   }
   #q5frasco { position: relative; display: flex; align-items: center; justify-content: center; flex: 1; width: 100%; }
-  #q5frasco .q5bottle { width: clamp(150px, 42vw, 210px); height: auto; filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .5)); }
+  #q5svg { width: clamp(190px, 58vw, 300px); display: flex; align-items: center; justify-content: center; }
+  #q5svg svg { display: block; width: 100%; height: auto; max-height: 46vh; }
+  #q5svg .q5etiqueta {   /* Questão 2: etiqueta larga com o nome do ácido (sem frasco) */
+    display: inline-block; max-width: 86vw; padding: 20px 34px; border-radius: 12px;
+    background: #efe4c6; border: 2px solid #c9b587; color: #2c2013;
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(22px, 6.6vw, 34px);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, .4); white-space: nowrap;
+  }
+  #q5frasco.oculto, #q5alts.oculto { opacity: 0; pointer-events: none; }
+  #q5frasco, #q5alts { transition: opacity .45s ease; }
   #q5letra {
-    position: absolute; left: 50%; top: 2%; transform: translateX(-50%);
+    position: absolute; left: 50%; top: 0; transform: translateX(-50%); z-index: 2;
     font: 800 clamp(20px, 6vw, 30px) Georgia, serif; color: #ffd21e; text-shadow: 0 2px 6px rgba(0, 0, 0, .6);
   }
-  #q5formula {
-    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    font-family: "Cambria Math", Georgia, serif; font-weight: 800; color: #14210a;
-    font-size: clamp(20px, 6.4vw, 30px); text-align: center; width: 44%; line-height: 1.1;
-  }
-  #q5formula sub { font-size: .6em; }
   #q5frasco.drama { animation: q5drama .62s cubic-bezier(.2, .8, .2, 1.5); }
   @keyframes q5drama {
     0%   { opacity: 0; transform: translateY(46px) scale(.35) rotate(-14deg); }
@@ -2213,7 +2216,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.184.0</div>
+<div id="versao">v1.185.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2259,14 +2262,8 @@
   <div id="q5inner">
     <div id="q5titulo"></div>
     <div id="q5frasco">
-      <svg class="q5bottle" viewBox="0 0 120 172" aria-hidden="true">
-        <rect x="47" y="4" width="26" height="15" rx="3" fill="#8a9b63"/>
-        <rect x="51" y="17" width="18" height="15" fill="#cfe0b8"/>
-        <path d="M40 32 Q40 30 42 30 L78 30 Q80 30 80 32 L90 150 Q90 164 76 164 L44 164 Q30 164 30 150 Z" fill="#e4f2cf" stroke="#9fc06a" stroke-width="2.5"/>
-        <rect x="37" y="66" width="46" height="66" rx="5" fill="#fbfaf0" stroke="#d9d2a8" stroke-width="1.5"/>
-      </svg>
       <div id="q5letra"></div>
-      <div id="q5formula"></div>
+      <div id="q5svg"></div>
     </div>
     <div id="q5alts">
       <button class="q5alt" data-i="0"></button>
@@ -8636,32 +8633,56 @@ function c3PrefTrocar(txt) {   // fade out do atual, troca o texto e fade in
 }
 // ================= Quiz 5: identificar nome pela fórmula (e vice-versa), frasco a frasco =================
 const QUIZ5 = [
-  { faixa: 'quiz5-1', titulo: 'Questão 01: Qual o nome dos hidrácidos a seguir?',
+  { faixa: 'quiz5-1', titulo: 'Questão 01: Qual o nome dos hidrácidos a seguir?', modo: 'frasco',
     itens: [
-      { disp: 'HCl',              alts: ['ácido clórico', 'ácido cloroso', 'ácido clorídrico'],      correta: 2 },
-      { disp: 'HF',               alts: ['ácido ferrídrico', 'ácido fluorídrico', 'ácido férrico'],  correta: 1 },
-      { disp: 'H<sub>2</sub>S',   alts: ['ácido salicídrico', 'ácido enxofídrico', 'ácido sulfídrico'], correta: 2 },
+      { disp: 'HCl', alts: ['ácido clórico', 'ácido cloroso', 'ácido clorídrico'],      correta: 2 },
+      { disp: 'HF',  alts: ['ácido ferrídrico', 'ácido fluorídrico', 'ácido férrico'],  correta: 1 },
+      { disp: 'H2S', alts: ['ácido salicídrico', 'ácido enxofídrico', 'ácido sulfídrico'], correta: 2 },
     ] },
-  { faixa: 'quiz5-2', titulo: 'Questão 02: Qual a fórmula do ácido abaixo:',
+  { faixa: 'quiz5-2', titulo: 'Questão 02: Qual a fórmula do ácido abaixo:', modo: 'nome', revelarEm: 5.0,
     itens: [
       { disp: 'Ácido Iodídrico',  alts: ['HIO', 'HI', 'HIO<sub>2</sub>'], correta: 1 },
       { disp: 'Ácido Bromídrico', alts: ['HBm', 'HBO', 'HBr'],            correta: 2 },
     ] },
 ];
 let q5 = { qi: 0, ii: 0, resp: false };
-function q5RenderItem(drama) {
-  const it = QUIZ5[q5.qi].itens[q5.ii];
+function q5RenderFrasco(disp, modo) {
+  if (modo === 'nome') {   // Questão 2: só o nome numa etiqueta larga (sem frasco)
+    $id('q5svg').innerHTML = '<div class="q5etiqueta">' + subFormula(disp) + '</div>';
+    return;
+  }
+  // Questão 1: o MESMO frasco do minigame (fnFrasco), com a fórmula no rótulo
+  const defs = [];
+  const cfg = { g: 'rgba(214,232,240,0.16)', s: '#8a5a25', t: 'liq', l: 0.82, c: 'rgba(150,200,225,0.5)',
+    fHTML: subFormula(disp), n: '', hs: 1.15, w2: 52, lw: 152, lh: 52, ff: 36, fn: 8, lyoff: 26 };
+  const bottle = fnFrasco(160, 270, cfg, 1750, defs);
+  $id('q5svg').innerHTML = '<svg viewBox="0 0 320 300" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><defs>' + gLabelDef + defs.join('') + '</defs>' + bottle + '</svg>';
+}
+function q5AplicarConteudo() {   // preenche letra + frasco/etiqueta + alternativas do item atual
+  const Q = QUIZ5[q5.qi], it = Q.itens[q5.ii];
   $id('q5letra').textContent = String.fromCharCode(97 + q5.ii) + ')';
-  $id('q5formula').innerHTML = it.disp;
+  q5RenderFrasco(it.disp, Q.modo);
   $id('q5alts').querySelectorAll('.q5alt').forEach((b, i) => {
     b.innerHTML = it.alts[i] != null ? it.alts[i] : '';
     b.style.display = it.alts[i] != null ? '' : 'none';
     b.classList.remove('certo', 'errado'); b.disabled = false;
   });
   q5.resp = false;
+}
+function q5RevelarItem(drama) {   // mostra frasco/etiqueta + alternativas (com pop dramático)
+  ['q5frasco', 'q5alts'].forEach(id => { const e = $id(id); if (e) e.classList.remove('oculto'); });
   if (drama) { const fr = $id('q5frasco'); fr.classList.remove('drama'); void fr.offsetWidth; fr.classList.add('drama'); }
 }
-function q5MontarQuestao(qi) { q5.qi = qi; q5.ii = 0; $id('q5titulo').textContent = QUIZ5[qi].titulo; q5RenderItem(true); }
+function q5OcultarItem() { ['q5frasco', 'q5alts'].forEach(id => { const e = $id(id); if (e) e.classList.add('oculto'); }); }
+function q5ProximoItem() { q5AplicarConteudo(); q5RevelarItem(true); }
+function q5MontarQuestao(qi) {
+  q5.qi = qi; q5.ii = 0; $id('q5titulo').textContent = QUIZ5[qi].titulo;
+  q5AplicarConteudo();
+  if (QUIZ5[qi].revelarEm) q5OcultarItem();   // espera o cue do áudio (ex.: 5s do quiz5-2)
+  else q5RevelarItem(true);
+}
+// revela o 1º item da Questão 2 no tempo certo do áudio (nome "Ácido Iodídrico" em 5s)
+EVENTOS['quiz5-2'] = () => rodarStory([{ t: 5.0, fn: () => q5RevelarItem(true) }]);
 function abrirQuiz5() {
   const b5 = $id('quiz5Btn'); if (b5) b5.classList.remove('show');
   if (typeof CAM_1 !== 'undefined') irParaCamera(CAM_1, true, 1500);   // vai pra posição 1
@@ -8682,7 +8703,7 @@ function q5Responder(i, btn) {
 }
 function q5Avancar() {
   const Q = QUIZ5[q5.qi];
-  if (q5.ii < Q.itens.length - 1) { q5.ii++; q5RenderItem(true); return; }   // próximo frasco (animação dramática)
+  if (q5.ii < Q.itens.length - 1) { q5.ii++; q5ProximoItem(); return; }   // próximo item (animação dramática)
   if (q5.qi < QUIZ5.length - 1) { q5TrocarQuestao(q5.qi + 1); return; }        // próxima questão
   q5Fim();
 }
