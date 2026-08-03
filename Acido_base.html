@@ -2170,7 +2170,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.177.0</div>
+<div id="versao">v1.178.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5317,7 +5317,21 @@ const EVENTOS = {
     { t: 33.5, fn: () => c3PrefTrocar('per') },                     // "hiper" sai e "per" entra no lugar (fade)
     { t: 36.0, fn: () => { $id('c3cNome2').classList.add('show'); c19Digitar('c3c2Nome', 'Ácido Periódico', 36.0, 37.5); } },   // 2ª linha: "Ácido Periódico"
   ]),
-  'dialogo3BW': () => rodarStory([]),   // erro — eventos a definir
+  'dialogo3BW': () => rodarStory([       // erro: re-explica e monta "Ácido Hiperiódico" (mesmas palavras/posições do 3BR)
+    { t: 0.0,  fn: c3brInicio },                                    // mesma preparação do 3BR (nomes limpos; "ico" segue visível)
+    { t: 3.0,  fn: () => c2cgBig('c3i7', true) },                   // aumenta o +7 (acima do Iodo)
+    { t: 8.0,  fn: () => c3PrefShow('hiper') },                     // "hiper" (carmim) à esquerda do "ico", na mesma linha (mesma posição do 3BR)
+    { t: 15.9, fn: () => $id('c3PrefT').classList.add('big') },     // aumenta "hiper"
+    { t: 18.0, fn: () => $id('c3IcoT').classList.add('big') },      // aumenta "ico"
+    { t: 20.7, fn: () => { $id('c3cNome').classList.add('show'); c19Digitar('c3cAcido', 'Ácido', 20.7, 21.6); } },   // digita "Ácido"
+    { t: 22.0, fn: () => c19Digitar('c3cHiper', 'hiper', 22.0, 22.9) },   // "hiper"
+    { t: 23.0, fn: () => c19Digitar('c3cIodo', 'iodo', 23.0, 23.9) },     // "iodo"
+    { t: 24.0, fn: () => c19Digitar('c3cIco', 'ico', 24.0, 24.6) },       // "ico"
+    { t: 27.0, fn: () => { c19Limpar('c3cHiper'); c19Limpar('c3cIco'); c19Digitar('c3cIodo', 'Hiperiódico', 27.0, 28.0); } },   // apaga hiper/iodo/ico e escreve "Hiperiódico"
+    { t: 31.0, fn: () => { pausaCurta(1000); playSfx('applause'); playSfx('funfare'); if (typeof festaConfete === 'function') festaConfete(); } },   // pausa de 1s + comemoração
+    { t: 37.4, fn: () => c3PrefTrocar('per') },                     // "hiper" sai e "per" entra no lugar (esquema)
+    { t: 39.9, fn: () => { $id('c3cNome2').classList.add('show'); c19Digitar('c3c2Nome', 'Ácido Periódico', 39.9, 41.4); } },   // 2ª linha: "Ácido Periódico"
+  ]),
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
 // Pulo direto pro 1.8I pelo sumário (item 19): reconstrói a cena como no fim do 1.8H — título + "c)" na tela,
