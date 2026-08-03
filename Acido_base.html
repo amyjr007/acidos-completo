@@ -450,7 +450,7 @@
   #quizCarga .opt.errado { background: rgba(230, 50, 50, .32); border-color: #ff5a5a; color: #fff; }
   #quizCarga .opt sup { font-size: .62em; }
   /* ---- Botão "Quiz" (fim do dialogo1.5D) ---- */
-  #quizBtn, #quizFBtn {
+  #quizBtn, #quizFBtn, #quiz5Btn {
     position: fixed; right: 16px; bottom: calc(12px + env(safe-area-inset-bottom)); transform: scale(.9);
     z-index: 60; display: none; opacity: 0; pointer-events: none;
     font-family: system-ui, sans-serif; font-weight: 900; letter-spacing: .04em;
@@ -460,12 +460,54 @@
     box-shadow: 0 6px 22px rgba(120, 200, 40, .45), inset 0 2px 4px rgba(255, 255, 255, .5);
     transition: opacity .4s ease, transform .25s ease;
   }
-  #quizBtn.show, #quizFBtn.show { display: inline-block; opacity: 1; pointer-events: auto; transform: scale(1); animation: quizBtnPulse 1.8s ease-in-out infinite; }
-  #quizBtn:active, #quizFBtn:active { transform: scale(.94); }
+  #quizBtn.show, #quizFBtn.show, #quiz5Btn.show { display: inline-block; opacity: 1; pointer-events: auto; transform: scale(1); animation: quizBtnPulse 1.8s ease-in-out infinite; }
+  #quizBtn:active, #quizFBtn:active, #quiz5Btn:active { transform: scale(.94); }
   @keyframes quizBtnPulse {
     0%, 100% { box-shadow: 0 6px 22px rgba(120, 200, 40, .45), inset 0 2px 4px rgba(255, 255, 255, .5); }
     50%      { box-shadow: 0 6px 30px rgba(166, 229, 52, .8),  inset 0 2px 4px rgba(255, 255, 255, .5); }
   }
+  /* ---- Quiz 5: nome pela fórmula (e vice-versa), frasco a frasco ---- */
+  #quiz5 {
+    position: fixed; inset: 0; z-index: 58; display: none; opacity: 0;
+    background: rgba(6, 14, 6, .82); transition: opacity .5s ease;
+    padding: calc(20px + env(safe-area-inset-top)) 16px calc(66px + env(safe-area-inset-bottom));
+    overflow: hidden;
+  }
+  #quiz5.show { display: block; opacity: 1; }
+  #q5inner { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; will-change: transform, opacity; }
+  #q5titulo {
+    text-align: center; font-family: system-ui, sans-serif; font-weight: 800;
+    font-size: clamp(17px, 5vw, 25px); color: #eaf7d9; text-shadow: 0 2px 8px rgba(0, 0, 0, .55);
+    max-width: 620px; line-height: 1.25;
+  }
+  #q5frasco { position: relative; display: flex; align-items: center; justify-content: center; flex: 1; width: 100%; }
+  #q5frasco .q5bottle { width: clamp(150px, 42vw, 210px); height: auto; filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .5)); }
+  #q5letra {
+    position: absolute; left: 50%; top: 2%; transform: translateX(-50%);
+    font: 800 clamp(20px, 6vw, 30px) Georgia, serif; color: #ffd21e; text-shadow: 0 2px 6px rgba(0, 0, 0, .6);
+  }
+  #q5formula {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    font-family: "Cambria Math", Georgia, serif; font-weight: 800; color: #14210a;
+    font-size: clamp(20px, 6.4vw, 30px); text-align: center; width: 44%; line-height: 1.1;
+  }
+  #q5formula sub { font-size: .6em; }
+  #q5frasco.drama { animation: q5drama .62s cubic-bezier(.2, .8, .2, 1.5); }
+  @keyframes q5drama {
+    0%   { opacity: 0; transform: translateY(46px) scale(.35) rotate(-14deg); }
+    60%  { opacity: 1; transform: translateY(-8px) scale(1.12) rotate(4deg); }
+    100% { opacity: 1; transform: none; }
+  }
+  #q5alts { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 12px; }
+  #q5alts .q5alt {
+    width: 100%; font: 700 clamp(16px, 4.6vw, 20px) system-ui, sans-serif; color: #eaf7d9;
+    background: var(--painel); border: 2px solid rgba(166, 229, 52, .5); border-radius: 16px;
+    padding: 14px 18px; cursor: pointer; text-align: center; transition: transform .15s ease, border-color .3s ease, color .3s ease;
+  }
+  #q5alts .q5alt sub { font-size: .65em; }
+  #q5alts .q5alt:active { transform: scale(.97); }
+  #q5alts .q5alt.certo { border-color: #59d94f; color: #bff5b5; background: rgba(60, 150, 60, .25); }
+  #q5alts .q5alt.errado { border-color: #e05a5a; color: #f3b7b7; }
   /* ---- Questão 1 (frascos com íons) ---- */
   #quiz1 {
     position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
@@ -1397,8 +1439,8 @@
   #c3Ico.show { opacity: 1; }
   /* prefixo (hiper -> per) à esquerda do "ico", na mesma linha — dialogo3BR */
   #c3IcoT { display: inline-block; transform-origin: center bottom; transition: transform .4s cubic-bezier(.2, .9, .3, 1.5); }
-  #c3PrefT { display: none; margin-right: .42em; transform-origin: center bottom; transition: transform .4s cubic-bezier(.2, .9, .3, 1.5), opacity .5s ease; }
-  #c3PrefT.per { margin-right: .56em; }   /* "per" (mais curto) — afastamento ajustado do "ico" */
+  #c3PrefT { display: none; margin-right: .72em; transform-origin: center bottom; transition: transform .4s cubic-bezier(.2, .9, .3, 1.5), opacity .5s ease; }
+  #c3PrefT.per { margin-right: .86em; }   /* "per" (mais curto) — afastamento ajustado do "ico" */
   #c3PrefT.big, #c3IcoT.big { transform: scale(1.4); }
   /* nomes montados (dialogo3BR): 1ª linha Hiperiódico, 2ª linha Periódico */
   #c3cNome, #c3cNome2 {
@@ -2171,7 +2213,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.183.0</div>
+<div id="versao">v1.184.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2208,6 +2250,31 @@
 
 <!-- Botão "Quiz" da Questão 4 (aparece no fim do dialogo1.8MR/1.8MW) -->
 <button id="quizFBtn">Quiz</button>
+
+<!-- Botão "Quiz" do encerramento (fim do dialogo4) -> abre o Quiz 5 -->
+<button id="quiz5Btn">Quiz</button>
+
+<!-- Quiz 5: identificar nome pela fórmula (e vice-versa), frasco a frasco -->
+<div id="quiz5" aria-hidden="true">
+  <div id="q5inner">
+    <div id="q5titulo"></div>
+    <div id="q5frasco">
+      <svg class="q5bottle" viewBox="0 0 120 172" aria-hidden="true">
+        <rect x="47" y="4" width="26" height="15" rx="3" fill="#8a9b63"/>
+        <rect x="51" y="17" width="18" height="15" fill="#cfe0b8"/>
+        <path d="M40 32 Q40 30 42 30 L78 30 Q80 30 80 32 L90 150 Q90 164 76 164 L44 164 Q30 164 30 150 Z" fill="#e4f2cf" stroke="#9fc06a" stroke-width="2.5"/>
+        <rect x="37" y="66" width="46" height="66" rx="5" fill="#fbfaf0" stroke="#d9d2a8" stroke-width="1.5"/>
+      </svg>
+      <div id="q5letra"></div>
+      <div id="q5formula"></div>
+    </div>
+    <div id="q5alts">
+      <button class="q5alt" data-i="0"></button>
+      <button class="q5alt" data-i="1"></button>
+      <button class="q5alt" data-i="2"></button>
+    </div>
+  </div>
+</div>
 
 <!-- Questão 4: arrastar os frascos pras prateleiras (hidrácidos x oxiácidos) -->
 <div id="quizF">
@@ -4619,6 +4686,8 @@ const FAIXAS = [
   { id: 'dialogo3BR',    arquivo: 'audios/dialogo3BR.mp3',    titulo: 'Diálogo 3B (acerto) — Ácido Hiperiódico' },
   { id: 'dialogo3BW',    arquivo: 'audios/dialogo3BW.mp3',    titulo: 'Diálogo 3B (erro)' },
   { id: 'dialogo4',      arquivo: 'audios/dialogo4.mp3',      titulo: 'Diálogo 4 — Encerramento' },
+  { id: 'quiz5-1',       arquivo: 'audios/quiz5-1.mp3',       titulo: 'Quiz 5 — Questão 01 (nome dos hidrácidos)' },
+  { id: 'quiz5-2',       arquivo: 'audios/quiz5-2.mp3',       titulo: 'Quiz 5 — Questão 02 (fórmula do ácido)' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -5763,8 +5832,10 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo3B') { $id('playBtn').style.display = 'none'; c3bOpcoesMostrar(); return; }
   // fim do 3BR/3BW: o play aparece e leva ao dialogo4 (o 3BR pula o 3BW — ver click do playBtn)
   if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo3BR' || FAIXAS[faixaAtual].id === 'dialogo3BW')) { $id('playBtn').style.display = ''; return; }
-  // fim do dialogo4 (encerramento): esconde o play e mostra o botão de Quiz
-  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo4') { $id('playBtn').style.display = 'none'; if (typeof mostrarQuizBtn === 'function') mostrarQuizBtn(); return; }
+  // fim do dialogo4 (encerramento): esconde o play e mostra o botão de Quiz (abre o Quiz 5)
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo4') { $id('playBtn').style.display = 'none'; if (typeof mostrarQuiz5Btn === 'function') mostrarQuiz5Btn(); return; }
+  // faixas do Quiz 5 (interativas): sem play ao terminar o áudio
+  if (FAIXAS[faixaAtual] && /^quiz5/.test(FAIXAS[faixaAtual].id)) { $id('playBtn').style.display = 'none'; return; }
   // fim do 1.5D: em vez do play, aparece o botão "Quiz" (abre a questão 1)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5D') { $id('playBtn').style.display = 'none'; mostrarQuizBtn(); return; }
   // fim do 1.4A: some o texto e o play (força a interação do papel de tornassol; o 1.4B entra quando o papel fica vermelho)
@@ -5868,6 +5939,7 @@ const SUMARIO = [
   { titulo: 'A nomenclatura do H<sub>3</sub>PO<sub>4</sub>', faixa: idxFaixa('dialogo2'), acao: irParaNomeH3PO4 },
   { titulo: 'A nomenclatura do HIO<sub>4</sub>', faixa: idxFaixa('dialogo3'), acao: irParaNomeHIO4 },
   { titulo: 'Nome do HIO<sub>4</sub>', faixa: idxFaixa('dialogo3B'), acao: irParaNomeHIO4B },   // [PROVISÓRIO - dev] pula direto pro dialogo3B
+  { titulo: 'Quiz 5', faixa: idxFaixa('quiz5-1'), acao: abrirQuiz5 },
 ];
 
 SUMARIO.forEach(item => {
@@ -8562,6 +8634,74 @@ function c3PrefTrocar(txt) {   // fade out do atual, troca o texto e fade in
   p.style.transition = 'opacity .4s ease'; p.style.opacity = '0';
   setTimeout(() => { p.textContent = txt; if (txt === 'per') p.classList.add('per'); requestAnimationFrame(() => { p.style.opacity = '1'; }); }, 420);
 }
+// ================= Quiz 5: identificar nome pela fórmula (e vice-versa), frasco a frasco =================
+const QUIZ5 = [
+  { faixa: 'quiz5-1', titulo: 'Questão 01: Qual o nome dos hidrácidos a seguir?',
+    itens: [
+      { disp: 'HCl',              alts: ['ácido clórico', 'ácido cloroso', 'ácido clorídrico'],      correta: 2 },
+      { disp: 'HF',               alts: ['ácido ferrídrico', 'ácido fluorídrico', 'ácido férrico'],  correta: 1 },
+      { disp: 'H<sub>2</sub>S',   alts: ['ácido salicídrico', 'ácido enxofídrico', 'ácido sulfídrico'], correta: 2 },
+    ] },
+  { faixa: 'quiz5-2', titulo: 'Questão 02: Qual a fórmula do ácido abaixo:',
+    itens: [
+      { disp: 'Ácido Iodídrico',  alts: ['HIO', 'HI', 'HIO<sub>2</sub>'], correta: 1 },
+      { disp: 'Ácido Bromídrico', alts: ['HBm', 'HBO', 'HBr'],            correta: 2 },
+    ] },
+];
+let q5 = { qi: 0, ii: 0, resp: false };
+function q5RenderItem(drama) {
+  const it = QUIZ5[q5.qi].itens[q5.ii];
+  $id('q5letra').textContent = String.fromCharCode(97 + q5.ii) + ')';
+  $id('q5formula').innerHTML = it.disp;
+  $id('q5alts').querySelectorAll('.q5alt').forEach((b, i) => {
+    b.innerHTML = it.alts[i] != null ? it.alts[i] : '';
+    b.style.display = it.alts[i] != null ? '' : 'none';
+    b.classList.remove('certo', 'errado'); b.disabled = false;
+  });
+  q5.resp = false;
+  if (drama) { const fr = $id('q5frasco'); fr.classList.remove('drama'); void fr.offsetWidth; fr.classList.add('drama'); }
+}
+function q5MontarQuestao(qi) { q5.qi = qi; q5.ii = 0; $id('q5titulo').textContent = QUIZ5[qi].titulo; q5RenderItem(true); }
+function abrirQuiz5() {
+  const b5 = $id('quiz5Btn'); if (b5) b5.classList.remove('show');
+  if (typeof CAM_1 !== 'undefined') irParaCamera(CAM_1, true, 1500);   // vai pra posição 1
+  const inner = $id('q5inner'); if (inner) { inner.style.transition = 'none'; inner.style.transform = ''; inner.style.opacity = '1'; }
+  $id('quiz5').classList.add('show');
+  q5MontarQuestao(0);
+  const i = idxFaixa('quiz5-1'); if (i >= 0) tocarFaixa(i);   // Questão 01 aparece junto com o quiz5-1
+}
+function q5Responder(i, btn) {
+  if (q5.resp) return; q5.resp = true;
+  const it = QUIZ5[q5.qi].itens[q5.ii], alts = $id('q5alts');
+  alts.querySelectorAll('.q5alt').forEach(b => b.disabled = true);
+  const certo = (i === it.correta);
+  btn.classList.add(certo ? 'certo' : 'errado');
+  if (certo) { playSfx('applause'); playSfx('funfare'); if (typeof festaConfete === 'function') festaConfete(); }
+  else { playSfx('error'); if (typeof tremerVermelho === 'function') tremerVermelho(); const c = alts.querySelector('.q5alt[data-i="' + it.correta + '"]'); if (c) c.classList.add('certo'); }
+  setTimeout(q5Avancar, certo ? 1100 : 1300);
+}
+function q5Avancar() {
+  const Q = QUIZ5[q5.qi];
+  if (q5.ii < Q.itens.length - 1) { q5.ii++; q5RenderItem(true); return; }   // próximo frasco (animação dramática)
+  if (q5.qi < QUIZ5.length - 1) { q5TrocarQuestao(q5.qi + 1); return; }        // próxima questão
+  q5Fim();
+}
+function q5TrocarQuestao(qi) {   // desliza tudo pra direita; a próxima questão entra pela esquerda
+  const inner = $id('q5inner');
+  inner.style.transition = 'transform .5s ease, opacity .5s ease';
+  inner.style.transform = 'translateX(95vw)'; inner.style.opacity = '0';
+  setTimeout(() => {
+    q5MontarQuestao(qi);
+    inner.style.transition = 'none'; inner.style.transform = 'translateX(-95vw)'; inner.style.opacity = '0';
+    void inner.offsetWidth;
+    inner.style.transition = 'transform .55s ease, opacity .55s ease'; inner.style.transform = 'translateX(0)'; inner.style.opacity = '1';
+    const f = idxFaixa(QUIZ5[qi].faixa); if (f >= 0) tocarFaixa(f);   // toca o áudio da nova questão (ex.: quiz5-2)
+  }, 520);
+}
+function q5Fim() { const alts = $id('q5alts'); if (alts) alts.querySelectorAll('.q5alt').forEach(b => b.disabled = true); }   // (mais questões a caminho)
+function mostrarQuiz5Btn() { const b = $id('quiz5Btn'); if (b) b.classList.add('show'); }
+if ($id('q5alts')) $id('q5alts').querySelectorAll('.q5alt').forEach(b => b.addEventListener('click', () => q5Responder(parseInt(b.dataset.i, 10), b)));
+if ($id('quiz5Btn')) $id('quiz5Btn').addEventListener('click', abrirQuiz5);
 // transição do 1.9E: cola o overlay dos hidrácidos na parede (posição 2) e o desliza/some enquanto a câmera vira pra posição 1
 function nomen19Transicao() {
   resetNomenCloro();                                      // começa limpo (replay): "Oxiácidos do cloro" escondido
