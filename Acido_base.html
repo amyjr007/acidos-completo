@@ -2220,7 +2220,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.190.0</div>
+<div id="versao">v1.191.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3802,6 +3802,35 @@ function mostrarHmais(n = 7, cx = pipAguaX) {
 }
 function limparHmais() { hmaisSprites.forEach(s => scene.remove(s)); hmaisSprites.length = 0; }
 
+// íons Na⁺ e OH⁻ flutuando na água (base — "não é ácido"). Reusa hmaisSprites (mesma animação/limpeza)
+const ionTexCache = {};
+function fazerIonTex(base, carga) {
+  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 256;
+  const x = cv.getContext('2d');
+  x.textAlign = 'left'; x.textBaseline = 'middle';
+  x.shadowColor = 'rgba(166,229,52,0.9)'; x.shadowBlur = 24; x.fillStyle = '#c6ff5a';
+  x.font = 'bold 120px system-ui, sans-serif'; const wBase = x.measureText(base).width;
+  x.font = 'bold 74px system-ui, sans-serif';  const wCarga = x.measureText(carga).width;
+  const px = (256 - (wBase + wCarga)) / 2;
+  x.font = 'bold 120px system-ui, sans-serif'; x.fillText(base, px, 148);
+  x.font = 'bold 74px system-ui, sans-serif';  x.fillText(carga, px + wBase, 100);
+  return new THREE.CanvasTexture(cv);
+}
+function mostrarNaOH(nNa = 4, nOH = 4, cx = pipAguaX) {
+  if (!ionTexCache.na) ionTexCache.na = fazerIonTex('Na', '+');
+  if (!ionTexCache.oh) ionTexCache.oh = fazerIonTex('OH', '−');
+  const add = (tex, n) => {
+    for (let i = 0; i < n; i++) {
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthTest: false, fog: false }));
+      const sc = 0.6 + Math.random() * 0.35; s.scale.set(sc, sc, sc);
+      s.position.set(cx + (Math.random() - 0.5) * 2.0, 0.7 + Math.random() * (WATER_SURF - 1.0), 1.5 + (Math.random() - 0.5) * 1.4);
+      s.userData = { phase: Math.random() * 6.28, base: s.position.y, amp: 0.06 + Math.random() * 0.08 };
+      scene.add(s); hmaisSprites.push(s);
+    }
+  };
+  add(ionTexCache.na, nNa); add(ionTexCache.oh, nOH);
+}
+
 // rótulos "Ácido" acima dos frascos — um por copo, PERMANECEM na cena (50% menores)
 let rotuloAcidoTex = null;
 const rotulosAcido = [];
@@ -4840,11 +4869,11 @@ const EVENTOS = {
     { t: 4.0,  fn: pipetaVaiMergulhaH2CO3 },                       // pipeta vai e mergulha no ácido
     { t: 5.0,  fn: pipetaEncheSemMover },                          // enche a pipeta (~5s -> 6s)
     { t: 6.2,  fn: pipetaVaiPraAgua },                             // sobe e vai pra cima da água
-    { t: 8.0,  fn: () => { pipetaExpele(); irParaCamera(CAM_7, true, 1500); } },  // expele (até ~10s) + aproxima (pos7)
-    { t: 12.4, fn: mostrarHmais },                                 // os mesmos H+ na água
-    { t: 15.5, fn: () => irParaCamera(CAM_6, true, 1500) },        // volta pra pos6
-    { t: 21.0, fn: () => mostrarNomeAcido(AC_X[1], 'Ácido Carbônico') },  // nome acima do frasco (persistente)
-    { t: 23.8, fn: () => mostrarEtiqueta(1) },                     // etiqueta com a fórmula (H₂CO₃) em fade in
+    { t: 8.0,  fn: pipetaExpele },                                 // expele (até ~10s)
+    { t: 11.0, fn: () => mostrarNaOH(4, 4) },                      // Na+ e OH- na água (base — não é ácido)
+    { t: 12.5, fn: () => irParaCamera(CAM_7, true, 1500) },        // aproxima (pos7 — nova posição)
+    { t: 18.5, fn: () => irParaCamera(CAM_6, true, 1500) },        // volta pra pos6
+    { t: 21.0, fn: () => mostrarNomeAcido(AC_X[1], 'não é ácido') },  // nome acima do frasco (persistente)
   ]),
   'dialogo1.3B':  () => rodarStory([
     { t: 0.0,  fn: iniciarCena13B },                                // fade out H+ + pipeta; escurece HCl/H2CO3
@@ -5669,7 +5698,7 @@ const CAM_3 = { theta: 0.043,  phi: 1.534, dist: 21.93, target: [-0.84, 1.91, -1
 const CAM_4 = { theta: -0.04,  phi: 1.534, dist: 14.6,  target: [-3.07, 2.56, -3.39] };  // posição 4 (água, close)
 const CAM_5 = { theta: 0.013,  phi: 1.534, dist: 19.36, target: [-0.41, 5.18, 0.84] };   // posição 5
 const CAM_6 = { theta: -0.016, phi: 1.534, dist: 23.4,  target: [1.14, 7.11, 0.72] };    // posição 6
-const CAM_7 = { theta: 0.008,  phi: 1.534, dist: 16.04, target: [-3.13, 2.95, -3.21] };  // posição 7 (=posição 9)
+const CAM_7 = { theta: -0.04,  phi: 1.534, dist: 14.9,  target: [-2.51, 2.35, -3.36] };  // posição 7 (=posição 9)
 const CAM_8 = { theta: -0.012, phi: 1.534, dist: 30.61, target: [1.64, 7.74, 0.69] };    // posição 8
 const CAM_PADRAO = CAM_1;
 
