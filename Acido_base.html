@@ -1397,7 +1397,8 @@
   #c3Ico.show { opacity: 1; }
   /* prefixo (hiper -> per) à esquerda do "ico", na mesma linha — dialogo3BR */
   #c3IcoT { display: inline-block; transform-origin: center bottom; transition: transform .4s cubic-bezier(.2, .9, .3, 1.5); }
-  #c3PrefT { display: none; margin-right: .16em; transform-origin: center bottom; transition: transform .4s cubic-bezier(.2, .9, .3, 1.5), opacity .5s ease; }
+  #c3PrefT { display: none; margin-right: .42em; transform-origin: center bottom; transition: transform .4s cubic-bezier(.2, .9, .3, 1.5), opacity .5s ease; }
+  #c3PrefT.per { margin-right: .56em; }   /* "per" (mais curto) — afastamento ajustado do "ico" */
   #c3PrefT.big, #c3IcoT.big { transform: scale(1.4); }
   /* nomes montados (dialogo3BR): 1ª linha Hiperiódico, 2ª linha Periódico */
   #c3cNome, #c3cNome2 {
@@ -1411,15 +1412,6 @@
   #c3cNome.show, #c3cNome2.show { opacity: 1; }
   #c3cNome .c3c-crimson { color: #d81b60; }   /* "hiper"/"ico" em carmim */
   #c3cNome .caret, #c3cNome2 .caret { color: #fff; font-weight: 400; animation: caretBlink .8s steps(1) infinite; }
-  /* "Valeu!" do encerramento (dialogo4) */
-  #valeu {
-    position: fixed; inset: 0; z-index: 50; pointer-events: none;
-    display: flex; align-items: center; justify-content: center;
-    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(44px, 15vw, 96px);
-    color: #a6e534; text-shadow: 0 3px 14px rgba(0, 0, 0, .55);
-    opacity: 0; transform: scale(.7); transition: opacity .8s ease, transform .8s cubic-bezier(.2, .8, .2, 1.4);
-  }
-  #valeu.show { opacity: 1; transform: scale(1); }
   /* cargas do H3PO4 (posicionadas por JS: total acima, por átomo abaixo, incógnita no P) */
   .c2cg {
     position: fixed; z-index: 43; opacity: 0; pointer-events: none; white-space: nowrap; transform: translateX(-50%);
@@ -2179,7 +2171,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.182.0</div>
+<div id="versao">v1.183.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2484,8 +2476,6 @@
 <!-- Nome montado (dialogo3BR): Ácido + hiper/iodo/ico -> Hiperiódico; 2ª linha: Ácido Periódico -->
 <div id="c3cNome"><span id="c3cAcido"></span> <span id="c3cHiper" class="c3c-crimson"></span><span id="c3cIodo"></span><span id="c3cIco" class="c3c-crimson"></span></div>
 <div id="c3cNome2"><span id="c3c2Nome"></span></div>
-<!-- Encerramento (dialogo4): "Valeu!" no centro da tela -->
-<div id="valeu">Valeu!</div>
 <!-- Opções "baixo"/"alto" (fim do dialogo3A) -->
 <div id="c3aOpcoes" class="nomOpcoes"><button class="nom-opt" data-v="baixo">baixo</button><button class="nom-opt" data-v="alto">alto</button></div>
 <!-- Opções "Sim"/"Não" (fim do dialogo3B; correto = Sim) -->
@@ -5374,7 +5364,7 @@ const EVENTOS = {
     { t: 37.4, fn: () => c3PrefTrocar('per') },                     // "hiper" sai e "per" entra no lugar (esquema)
     { t: 39.9, fn: () => { $id('c3cNome2').classList.add('show'); c19Digitar('c3c2Nome', 'Ácido Periódico', 39.9, 41.4); } },   // 2ª linha: "Ácido Periódico"
   ]),
-  'dialogo4': () => rodarStory([       // encerramento: tudo some, câmera se aproxima devagar do quadro (foto do professor); no fim escreve "Valeu!"
+  'dialogo4': () => rodarStory([       // encerramento: tudo some, câmera se aproxima devagar do quadro (foto do professor); no fim entra o botão de Quiz
     { t: 0.0, fn: () => {
       dialogo4Some();
       irParaCamera({ theta: -1.62, phi: 1.447, dist: 17.08, target: [0.36, 11.41, 2.25] }, true, 4000);   // ~90% mais lento que o padrão
@@ -5391,7 +5381,6 @@ function dialogo4Some() {
   ['c3cNome', 'c3cNome2'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
   ['c3aOpcoes', 'c3bOpcoes'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
   const b = $id('c19bOxi'); if (b) b.classList.remove('show');
-  const v = $id('valeu'); if (v) v.classList.remove('show');
   setTimeout(() => { if (typeof c3NomeReset === 'function') c3NomeReset(); }, 600);   // limpa o texto dos nomes depois do fade
 }
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
@@ -5774,8 +5763,8 @@ player.addEventListener('ended', () => {
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo3B') { $id('playBtn').style.display = 'none'; c3bOpcoesMostrar(); return; }
   // fim do 3BR/3BW: o play aparece e leva ao dialogo4 (o 3BR pula o 3BW — ver click do playBtn)
   if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo3BR' || FAIXAS[faixaAtual].id === 'dialogo3BW')) { $id('playBtn').style.display = ''; return; }
-  // fim do dialogo4 (encerramento): esconde o play e escreve "Valeu!" na tela
-  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo4') { $id('playBtn').style.display = 'none'; const v = $id('valeu'); if (v) v.classList.add('show'); return; }
+  // fim do dialogo4 (encerramento): esconde o play e mostra o botão de Quiz
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo4') { $id('playBtn').style.display = 'none'; if (typeof mostrarQuizBtn === 'function') mostrarQuizBtn(); return; }
   // fim do 1.5D: em vez do play, aparece o botão "Quiz" (abre a questão 1)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5D') { $id('playBtn').style.display = 'none'; mostrarQuizBtn(); return; }
   // fim do 1.4A: some o texto e o play (força a interação do papel de tornassol; o 1.4B entra quando o papel fica vermelho)
@@ -8555,7 +8544,7 @@ function tremerVermelho() {
 }
 // zera o esquema/nomes do HIO4 (prefixo, "big" do ico e as duas linhas de nome) — usado no replay e ao sair
 function c3NomeReset() {
-  const p = $id('c3PrefT'); if (p) { p.style.display = 'none'; p.style.transition = ''; p.style.opacity = ''; p.textContent = 'hiper'; p.classList.remove('big'); }
+  const p = $id('c3PrefT'); if (p) { p.style.display = 'none'; p.style.transition = ''; p.style.opacity = ''; p.textContent = 'hiper'; p.classList.remove('big', 'per'); }
   const it = $id('c3IcoT'); if (it) it.classList.remove('big');
   ['c3cNome', 'c3cNome2'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
   ['c3cAcido', 'c3cHiper', 'c3cIodo', 'c3cIco', 'c3c2Nome'].forEach(s => { if (typeof c19Limpar === 'function') c19Limpar(s); });
@@ -8571,7 +8560,7 @@ function c3PrefShow(txt) {
 function c3PrefTrocar(txt) {   // fade out do atual, troca o texto e fade in
   const p = $id('c3PrefT'); if (!p) return;
   p.style.transition = 'opacity .4s ease'; p.style.opacity = '0';
-  setTimeout(() => { p.textContent = txt; requestAnimationFrame(() => { p.style.opacity = '1'; }); }, 420);
+  setTimeout(() => { p.textContent = txt; if (txt === 'per') p.classList.add('per'); requestAnimationFrame(() => { p.style.opacity = '1'; }); }, 420);
 }
 // transição do 1.9E: cola o overlay dos hidrácidos na parede (posição 2) e o desliza/some enquanto a câmera vira pra posição 1
 function nomen19Transicao() {
