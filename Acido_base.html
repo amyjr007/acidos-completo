@@ -2220,7 +2220,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.193.0</div>
+<div id="versao">v1.194.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3111,11 +3111,22 @@ function labelTexture(parts) {
     total += ctx.measureText(p.t).width;
   });
 
+  // auto-reduz a fonte quando o texto é largo demais (ex.: "não é ácido"); fórmulas curtas ficam iguais
+  const maxW = 216;
+  const scale = total > maxW ? maxW / total : 1;
+  const mainS = main * scale, subS = sub * scale;
+
+  total = 0;
+  parts.forEach(p => {
+    ctx.font = (p.sub ? subS : mainS) + 'px Verdana, sans-serif';
+    total += ctx.measureText(p.t).width;
+  });
+
   let x = (256 - total) / 2;
   const baseY = 88;
   parts.forEach(p => {
-    ctx.font = (p.sub ? sub : main) + 'px Verdana, sans-serif';
-    ctx.fillText(p.t, x, p.sub ? baseY + 14 : baseY);
+    ctx.font = (p.sub ? subS : mainS) + 'px Verdana, sans-serif';
+    ctx.fillText(p.t, x, p.sub ? baseY + 14 * scale : baseY);
     x += ctx.measureText(p.t).width;
   });
 
@@ -3159,7 +3170,7 @@ scene.add(waterBeaker);
 // ---------- 3 béqueres com etiquetas ----------
 const reagents = [
   { name: 'HCl', parts: [{ t: 'HCl' }], pos: [AC_X[0], 0.3, 1.5] },
-  { name: 'NaOH', parts: [{ t: 'NaOH' }], pos: [AC_X[1], 0.3, 1.5] },
+  { name: 'NaOH', parts: [{ t: 'não é ácido' }], pos: [AC_X[1], 0.3, 1.5] },
   { name: 'H₃PO₄', parts: [{ t: 'H' }, { t: '3', sub: true }, { t: 'PO' }, { t: '4', sub: true }], pos: [AC_X[2], 0.3, 1.5] },
 ];
 
@@ -4873,7 +4884,8 @@ const EVENTOS = {
     { t: 11.0, fn: () => mostrarNaOH(4, 4) },                      // Na+ e OH- na água (base — não é ácido)
     { t: 12.5, fn: () => irParaCamera(CAM_7, true, 1500) },        // aproxima (pos7 — nova posição)
     { t: 18.5, fn: () => irParaCamera(CAM_6, true, 1500) },        // volta pra pos6
-    { t: 21.0, fn: () => mostrarEtiqueta(1) },                     // etiqueta no vidro (NaOH) em fade in — sem nome flutuante
+    { t: 21.0, fn: () => mostrarEtiqueta(1) },                     // etiqueta no vidro ("não é ácido") em fade in — sem nome flutuante
+    { t: 25.0, fn: () => irParaCamera(CAM_7, true, 1500) },        // volta pro zoom na água (pos7)
   ]),
   'dialogo1.3B':  () => rodarStory([
     { t: 0.0,  fn: iniciarCena13B },                                // fade out H+ + pipeta; escurece HCl/H2CO3
@@ -5697,7 +5709,7 @@ const CAM_2 = { theta: -1.565, phi: 1.534, dist: 7.99,  target: [15.94, 11.16, 5
 const CAM_3 = { theta: 0.043,  phi: 1.534, dist: 21.93, target: [-0.84, 1.91, -1.62] };  // posição 3
 const CAM_4 = { theta: -0.04,  phi: 1.534, dist: 14.9,  target: [-2.51, 2.35, -3.36] };  // posição 4 (água, close)
 const CAM_5 = { theta: 0.013,  phi: 1.534, dist: 19.36, target: [-0.41, 5.18, 0.84] };   // posição 5
-const CAM_6 = { theta: -0.016, phi: 1.534, dist: 23.4,  target: [1.14, 7.11, 0.72] };    // posição 6
+const CAM_6 = { theta: -0.006, phi: 1.545, dist: 22.71, target: [0.43, 6.91, 0.72] };    // posição 6
 const CAM_7 = { theta: -0.04,  phi: 1.534, dist: 14.9,  target: [-2.51, 2.35, -3.36] };  // posição 7 (=posição 9)
 const CAM_8 = { theta: -0.012, phi: 1.534, dist: 30.61, target: [1.64, 7.74, 0.69] };    // posição 8
 const CAM_PADRAO = CAM_1;
