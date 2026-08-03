@@ -1392,9 +1392,30 @@
     position: fixed; left: 0; right: 0; top: 62%; text-align: center; z-index: 43; pointer-events: none;
     font-family: Georgia, serif; font-weight: 800; font-size: clamp(24px, 7vw, 44px);
     color: #d81b60; text-shadow: 0 0 16px rgba(216, 27, 96, .5);
-    opacity: 0; transition: opacity .5s ease;
+    opacity: 0; transition: opacity .5s ease, transform .4s cubic-bezier(.2, .9, .3, 1.5);
   }
   #c3Ico.show { opacity: 1; }
+  #c3Ico.big { transform: scale(1.4); }
+  /* prefixos "hipo" (azul, esquerda) e "hiper" (carmim, direita) — dialogo3BR */
+  #c3Hipo, #c3Hiper {
+    position: fixed; top: 54%; z-index: 43; pointer-events: none; transform: translateX(-50%);
+    font-family: Georgia, serif; font-weight: 800; font-size: clamp(20px, 6vw, 36px);
+    opacity: 0; transition: opacity .5s ease, transform .4s cubic-bezier(.2, .9, .3, 1.5);
+  }
+  #c3Hipo  { left: 32%; color: #6fb7ff; text-shadow: 0 0 14px rgba(111, 183, 255, .5); }
+  #c3Hiper { left: 68%; color: #d81b60; text-shadow: 0 0 14px rgba(216, 27, 96, .5); }
+  #c3Hipo.show, #c3Hiper.show { opacity: 1; }
+  #c3Hipo.big, #c3Hiper.big { transform: translateX(-50%) scale(1.4); }
+  /* nome montado (dialogo3BR): Ácido + hiper/iodo/ico -> Hiperiódico */
+  #c3cNome {
+    position: fixed; left: 0; right: 0; top: 70%; text-align: center; z-index: 42; pointer-events: none; padding: 0 12px;
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(22px, 6.5vw, 40px);
+    color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, .55); white-space: nowrap;
+    opacity: 0; transition: opacity .5s ease;
+  }
+  #c3cNome.show { opacity: 1; }
+  #c3cNome .c3c-crimson { color: #d81b60; }   /* "hiper"/"ico" em carmim */
+  #c3cNome .caret { color: #fff; font-weight: 400; animation: caretBlink .8s steps(1) infinite; }
   /* cargas do H3PO4 (posicionadas por JS: total acima, por átomo abaixo, incógnita no P) */
   .c2cg {
     position: fixed; z-index: 43; opacity: 0; pointer-events: none; white-space: nowrap; transform: translateX(-50%);
@@ -2154,7 +2175,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.175.0</div>
+<div id="versao">v1.176.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2455,10 +2476,15 @@
 <span class="c2cg" id="c37">= +7</span>
 <span class="c2cg" id="c3i7">+7</span>
 <span id="c3Ico">ico</span>
+<!-- Prefixos "hipo"/"hiper" (dialogo3BR) — hipo à esquerda (azul), hiper à direita (carmim) -->
+<span id="c3Hipo">hipo</span>
+<span id="c3Hiper">hiper</span>
+<!-- Nome montado (dialogo3BR): Ácido + hiper/iodo/ico -> Hiperiódico -->
+<div id="c3cNome"><span id="c3cAcido"></span> <span id="c3cHiper" class="c3c-crimson"></span><span id="c3cIodo"></span><span id="c3cIco" class="c3c-crimson"></span></div>
 <!-- Opções "baixo"/"alto" (fim do dialogo3A) -->
 <div id="c3aOpcoes" class="nomOpcoes"><button class="nom-opt" data-v="baixo">baixo</button><button class="nom-opt" data-v="alto">alto</button></div>
-<!-- Opções "baixo"/"alto" (fim do dialogo3B) -->
-<div id="c3bOpcoes" class="nomOpcoes"><button class="nom-opt" data-v="baixo">baixo</button><button class="nom-opt" data-v="alto">alto</button></div>
+<!-- Opções "Sim"/"Não" (fim do dialogo3B; correto = Sim) -->
+<div id="c3bOpcoes" class="nomOpcoes"><button class="nom-opt" data-v="sim">Sim</button><button class="nom-opt" data-v="nao">Não</button></div>
 <!-- Reta dos Nox -> prefixo/sufixo (dialogo1.9H): posicionada por JS abaixo do HClO; montada conforme o áudio -->
 <div id="c19hReta" aria-hidden="true">
   <svg class="c19h-eixo" viewBox="0 0 330 26" preserveAspectRatio="none">
@@ -4565,6 +4591,8 @@ const FAIXAS = [
   { id: 'dialogo3AR',    arquivo: 'audios/dialogo3AR.mp3',    titulo: 'Diálogo 3A (acerto)' },
   { id: 'dialogo3AW',    arquivo: 'audios/dialogo3AW.mp3',    titulo: 'Diálogo 3A (erro)' },
   { id: 'dialogo3B',     arquivo: 'audios/dialogo3B.mp3',     titulo: 'Diálogo 3B' },
+  { id: 'dialogo3BR',    arquivo: 'audios/dialogo3BR.mp3',    titulo: 'Diálogo 3B (acerto) — Ácido Hiperiódico' },
+  { id: 'dialogo3BW',    arquivo: 'audios/dialogo3BW.mp3',    titulo: 'Diálogo 3B (erro)' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -5280,7 +5308,20 @@ const EVENTOS = {
     { t: 4.0, fn: () => { const e = $id('c3Ico'); if (e) e.classList.add('show'); } },   // "ico" (rosa) na tela
   ]),
   'dialogo3AW': () => rodarStory([]),   // erro
-  'dialogo3B':  () => rodarStory([]),   // opções baixo/alto entram no fim (ver handler)
+  'dialogo3B':  () => rodarStory([]),   // opções Sim/Não entram no fim (ver handler)
+  'dialogo3BR': () => rodarStory([       // acerto: monta "Ácido Hiperiódico"
+    { t: 0.0,  fn: c3brInicio },                                    // prepara (esconde o nome; hipo/hiper limpos; "ico" segue visível)
+    { t: 4.0,  fn: () => { $id('c3Hipo').classList.add('show'); $id('c3Hiper').classList.add('show'); } },   // "hipo" (e "hiper") na tela, antes do "ico"
+    { t: 13.0, fn: () => $id('c3Hiper').classList.add('big') },     // aumenta "hiper"
+    { t: 14.8, fn: () => $id('c3Ico').classList.add('big') },       // aumenta "ico"
+    { t: 17.4, fn: () => { $id('c3cNome').classList.add('show'); c19Digitar('c3cAcido', 'Ácido', 17.4, 18.0); } },   // digita "Ácido"
+    { t: 18.0, fn: () => c19Digitar('c3cIodo', 'iodo', 18.0, 19.0) },   // espaço (no HTML) + "iodo"
+    { t: 20.0, fn: () => c19Digitar('c3cHiper', 'hiper', 20.0, 20.9) },   // "hiper" antes de "iodo"
+    { t: 21.7, fn: () => c19Digitar('c3cIco', 'ico', 21.7, 22.3) },      // "ico" no final
+    { t: 23.0, fn: () => { c19Limpar('c3cHiper'); c19Limpar('c3cIco'); c19Digitar('c3cIodo', 'Hiperiódico', 23.0, 24.0); } },   // apaga hiper/iodo/ico e escreve "Hiperiódico" (branco)
+    { t: 26.7, fn: () => { playSfx('applause'); playSfx('funfare'); if (typeof festaConfete === 'function') festaConfete(); } },
+  ]),
+  'dialogo3BW': () => rodarStory([]),   // erro — eventos a definir
 };
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
 // Pulo direto pro 1.8I pelo sumário (item 19): reconstrói a cena como no fim do 1.8H — título + "c)" na tela,
@@ -5531,7 +5572,7 @@ function tocarFaixa(i) {
   if (!['dialogo1.7', 'dialogo1.7A', 'dialogo1.7B', 'dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena17 === 'function') esconderCena17();   // cena das equações / subtítulo "b)" (segue até a família 1.8)
   if (!['dialogo1.8', 'dialogo1.8C', 'dialogo1.8D', 'dialogo1.8E', 'dialogo1.8F', 'dialogo1.8G', 'dialogo1.8G1', 'dialogo1.8G2', 'dialogo1.8G3', 'dialogo1.8H', 'dialogo1.8I', 'dialogo1.8I1', 'dialogo1.8J', 'dialogo1.8K', 'dialogo1.8KR', 'dialogo1.8KW', 'dialogo1.8L', 'dialogo1.8LR', 'dialogo1.8LW', 'dialogo1.8M', 'dialogo1.8MR', 'dialogo1.8MW'].includes(f.id) && typeof esconderCena18 === 'function') esconderCena18();   // cena da força (subtítulo "c)") na família 1.8 (mantém a bancada entre as partes)
   if (!['dialogo1.9', 'dialogo1.9B', 'dialogo1.9C', 'dialogo1.9D', 'dialogo1.9E'].includes(f.id) && typeof esconderCena19 === 'function') esconderCena19();   // cena da nomenclatura — mantém entre os exemplos (1.9/B/C/D) e no 1.9E (o overlay é congelado numa placa 3D)
-  if (!['dialogo1.9E', 'dialogo1.9F', 'dialogo1.9G', 'dialogo1.9GR', 'dialogo1.9GW', 'dialogo1.9H', 'dialogo1.9H1', 'dialogo1.9H1R', 'dialogo1.9H1W', 'dialogo1.9H2', 'dialogo1.9H2R', 'dialogo1.9H2W', 'dialogo1.9H3', 'dialogo2', 'dialogo2R', 'dialogo2W', 'dialogo2A', 'dialogo2AR', 'dialogo2AW', 'dialogo2B', 'dialogo2BR', 'dialogo2BW', 'dialogo2C', 'dialogo3', 'dialogo3A', 'dialogo3AR', 'dialogo3AW', 'dialogo3B'].includes(f.id) && typeof esconderNomenTransicao === 'function') esconderNomenTransicao();   // a nomenclatura dos oxiácidos segue por toda a família 1.9E→dialogo3B
+  if (!['dialogo1.9E', 'dialogo1.9F', 'dialogo1.9G', 'dialogo1.9GR', 'dialogo1.9GW', 'dialogo1.9H', 'dialogo1.9H1', 'dialogo1.9H1R', 'dialogo1.9H1W', 'dialogo1.9H2', 'dialogo1.9H2R', 'dialogo1.9H2W', 'dialogo1.9H3', 'dialogo2', 'dialogo2R', 'dialogo2W', 'dialogo2A', 'dialogo2AR', 'dialogo2AW', 'dialogo2B', 'dialogo2BR', 'dialogo2BW', 'dialogo2C', 'dialogo3', 'dialogo3A', 'dialogo3AR', 'dialogo3AW', 'dialogo3B', 'dialogo3BR', 'dialogo3BW'].includes(f.id) && typeof esconderNomenTransicao === 'function') esconderNomenTransicao();   // a nomenclatura dos oxiácidos segue por toda a família 1.9E→dialogo3B
   if (f.id !== 'dialogo1.6A' && typeof esconderQuizMini === 'function') esconderQuizMini();   // quiz rápido só no 1.6A
   if (f.id !== 'dialogo1.7B' && typeof esconderQuizMini2 === 'function') esconderQuizMini2();   // quiz dos H ionizáveis só no 1.7B
   pb.style.display = (f.auto || f.semPlay) ? 'none' : '';   // faixa automática (ou marcada semPlay, ex.: 1.8I) toca sem o botão de play
@@ -5656,8 +5697,10 @@ player.addEventListener('ended', () => {
   // fim do dialogo3AR (acerto): segue automaticamente pro dialogo3B
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo3AR') { $id('playBtn').style.display = 'none'; setTimeout(() => tocarFaixa(idxFaixa('dialogo3B')), 800); return; }
   // fim do dialogo3AW (erro): NÃO avança sozinho — aparece o play (que leva ao 3B)
-  // fim do dialogo3B: entram as opções "baixo"/"alto"
+  // fim do dialogo3B: entram as opções "Sim"/"Não"
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo3B') { $id('playBtn').style.display = 'none'; c3bOpcoesMostrar(); return; }
+  // fim do dialogo3BR (acerto): finale — esconde o play (evita cair no 3BW)
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo3BR') { $id('playBtn').style.display = 'none'; return; }
   // fim do 1.5D: em vez do play, aparece o botão "Quiz" (abre a questão 1)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5D') { $id('playBtn').style.display = 'none'; mostrarQuizBtn(); return; }
   // fim do 1.4A: some o texto e o play (força a interação do papel de tornassol; o 1.4B entra quando o papel fica vermelho)
@@ -8407,8 +8450,38 @@ function responderC3A(v, btn) {
   }
 }
 if ($id('c3aOpcoes')) $id('c3aOpcoes').querySelectorAll('.nom-opt').forEach(b => b.addEventListener('click', () => responderC3A(b.dataset.v, b)));
-// dialogo3B: opções baixo/alto no fim (comportamento da resposta a definir)
-function c3bOpcoesMostrar() { const o = $id('c3bOpcoes'); if (o) { o.querySelectorAll('.nom-opt').forEach(b => { b.classList.remove('certo', 'errado'); b.disabled = false; }); o.classList.add('show'); } }
+// ---- dialogo3B: quiz Sim/Não (correto = Sim) -> 3BR/3BW ----
+let c3bResp = false;
+function c3bOpcoesMostrar() { c3bResp = false; _perguntaMostrar('O nox +7 é o maior nox possível?'); const o = $id('c3bOpcoes'); if (o) { o.querySelectorAll('.nom-opt').forEach(b => { b.classList.remove('certo', 'errado'); b.disabled = false; }); o.classList.add('show'); } }
+function responderC3B(v, btn) {
+  if (c3bResp) return; c3bResp = true;
+  const o = $id('c3bOpcoes'); if (o) o.querySelectorAll('.nom-opt').forEach(b => b.disabled = true);
+  const certo = (v === 'sim');   // +7 é o maior nox possível
+  btn.classList.add(certo ? 'certo' : 'errado');
+  if (certo) {
+    playSfx('applause'); playSfx('funfare'); if (typeof festaConfete === 'function') festaConfete();
+    setTimeout(() => { if (o) o.classList.remove('show'); _perguntaEsconder(); }, 800);
+    setTimeout(() => tocarFaixa(idxFaixa('dialogo3BR')), 1000);
+  } else {
+    playSfx('error'); tremerVermelho();
+    if (o) { const c = o.querySelector('.nom-opt[data-v="sim"]'); if (c) c.classList.add('certo'); }
+    setTimeout(() => { if (o) o.classList.remove('show'); _perguntaEsconder(); }, 900);
+    setTimeout(() => tocarFaixa(idxFaixa('dialogo3BW')), 1200);
+  }
+}
+if ($id('c3bOpcoes')) $id('c3bOpcoes').querySelectorAll('.nom-opt').forEach(b => b.addEventListener('click', () => responderC3B(b.dataset.v, b)));
+// treme a tela em vermelho (shake + flash vermelho)
+function tremerVermelho() {
+  if (typeof tremerTela === 'function') tremerTela();
+  const gf = $id('gameFlash'); if (gf) { gf.classList.remove('red'); void gf.getBoundingClientRect(); gf.classList.add('red'); }
+}
+// dialogo3BR: prepara a montagem do nome (some o nome antigo; hipo/hiper limpos; "ico" segue visível do 3AR)
+function c3brInicio() {
+  ['c3Hipo', 'c3Hiper'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show', 'big'); });
+  const ic = $id('c3Ico'); if (ic) ic.classList.remove('big');
+  const nm = $id('c3cNome'); if (nm) nm.classList.remove('show');
+  ['c3cAcido', 'c3cHiper', 'c3cIodo', 'c3cIco'].forEach(s => { if (typeof c19Limpar === 'function') c19Limpar(s); });
+}
 // transição do 1.9E: cola o overlay dos hidrácidos na parede (posição 2) e o desliza/some enquanto a câmera vira pra posição 1
 function nomen19Transicao() {
   resetNomenCloro();                                      // começa limpo (replay): "Oxiácidos do cloro" escondido
