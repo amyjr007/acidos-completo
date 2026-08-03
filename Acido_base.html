@@ -2220,7 +2220,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.187.0</div>
+<div id="versao">v1.188.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -8721,9 +8721,16 @@ function q5Responder(i, btn) {
   else { playSfx('error'); if (typeof tremerVermelho === 'function') tremerVermelho(); const c = alts.querySelector('.q5alt[data-i="' + it.correta + '"]'); if (c) c.classList.add('certo'); }
   setTimeout(q5Avancar, certo ? 1100 : 1300);
 }
+function q5Som(a) { if (!a) return; try { a.currentTime = 0; const p = a.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
 function q5Avancar() {
   const Q = QUIZ5[q5.qi];
-  if (q5.ii < Q.itens.length - 1) { q5.ii++; q5ProximoItem(); return; }   // próximo item (animação dramática)
+  if (q5.ii < Q.itens.length - 1) {
+    q5.ii++;
+    if (q5.ii === 1 && typeof proximaAudio !== 'undefined') q5Som(proximaAudio);       // a) -> b): "próxima"
+    else if (q5.ii === 2 && typeof maisumaAudio !== 'undefined') q5Som(maisumaAudio);  // b) -> c): "mais uma"
+    q5ProximoItem();
+    return;
+  }
   if (q5.qi < QUIZ5.length - 1) { q5TrocarQuestao(q5.qi + 1); return; }        // próxima questão
   q5Fim();
 }
