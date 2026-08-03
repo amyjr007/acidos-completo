@@ -476,13 +476,13 @@
   #quiz5.show { display: block; opacity: 1; }
   #q5inner { position: relative; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; will-change: transform, opacity; }
   #q5titulo { text-align: center; max-width: 640px; }
-  #q5num {
-    font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(20px, 6vw, 30px);
-    color: #ffd21e; text-shadow: 0 2px 8px rgba(0, 0, 0, .55);
+  #q5num {   /* mesmo estilo do Quiz 1 (.q1num): verde, caixa-alta */
+    font-family: system-ui, sans-serif; font-weight: 800; color: #a6e534; letter-spacing: .06em;
+    font-size: clamp(12px, 3.4vw, 15px); text-transform: uppercase;
   }
-  #q5perg {
-    margin-top: 5px; font-family: system-ui, sans-serif; font-weight: 700; line-height: 1.25;
-    font-size: clamp(16px, 4.6vw, 23px); color: #eaf7d9; text-shadow: 0 2px 8px rgba(0, 0, 0, .55);
+  #q5perg {   /* mesmo estilo do Quiz 1 (.q1tit): branco, título forte */
+    margin-top: 5px; font-family: system-ui, sans-serif; font-weight: 800; line-height: 1.25;
+    font-size: clamp(17px, 4.8vw, 26px); color: #f2fbe4; text-shadow: 0 2px 12px rgba(0, 0, 0, .6);
   }
   #q5frasco { position: relative; display: flex; align-items: center; justify-content: center; flex: 1; width: 100%; }
   #q5svg { width: clamp(190px, 58vw, 300px); display: flex; align-items: center; justify-content: center; }
@@ -572,12 +572,12 @@
     50%      { transform: translate(-50%, calc(-50% + 3px)); }
   }
   /* ---- Questão 2 (papel de tornassol na cena 3D) ---- */
-  #quiz2 {
+  #quiz2, #quizAcido {
     position: fixed; inset: 0; z-index: 47; pointer-events: none;
     display: none;   /* escondido = fora do hit-test; os botoes A/B/C (pointer-events:auto) não interceptam outros quizzes */
   }
-  #quiz2.show { display: block; }
-  #quiz2 .q2tit {
+  #quiz2.show, #quizAcido.show { display: block; }
+  #quiz2 .q2tit, #quizAcido .q2tit {
     position: absolute; left: 50%; top: calc(14px + env(safe-area-inset-top)); transform: translateX(-50%);
     width: min(92vw, 620px); pointer-events: auto; text-align: center;
     font-family: system-ui, sans-serif; font-weight: 800; color: #f2fbe4; line-height: 1.3;
@@ -586,11 +586,11 @@
     border: 1px solid rgba(166, 229, 52, .35); border-radius: 16px; padding: 12px 16px;
     backdrop-filter: blur(3px);
   }
-  #quiz2 .q2num {
+  #quiz2 .q2num, #quizAcido .q2num {
     display: block; font-weight: 800; color: #a6e534; letter-spacing: .06em;
     font-size: clamp(11px, 3.2vw, 14px); text-transform: uppercase; margin-bottom: .3em;
   }
-  #quiz2 .q2q { display: block; }
+  #quiz2 .q2q, #quizAcido .q2q { display: block; }
   /* botão de dica (todas as questões) — circular, mesma posição do play (canto inferior direito) */
   .dicaBtn {
     position: fixed; right: 18px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 62;
@@ -969,21 +969,21 @@
   #qfFlash { position: fixed; inset: 0; z-index: 63; pointer-events: none; opacity: 0;
     background: radial-gradient(circle at 50% 45%, rgba(255, 40, 40, 0), rgba(220, 20, 20, .5)); }
   #qfFlash.red { animation: flashRed .5s ease; }
-  #quiz2 .q2opts {
+  #quiz2 .q2opts, #quizAcido .q2opts {
     position: absolute; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%);
     pointer-events: auto; display: flex; gap: clamp(14px, 5vw, 30px);
   }
-  #quiz2 .q2opt {
+  #quiz2 .q2opt, #quizAcido .q2opt {
     font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(22px, 6.6vw, 34px);
     width: 2.1em; height: 2.1em; border-radius: 50%; cursor: pointer; color: #eaf7d9;
     background: rgba(10, 26, 6, .72); border: 2.5px solid rgba(166, 229, 52, .55);
     box-shadow: 0 5px 16px rgba(0, 0, 0, .45);
     transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
   }
-  #quiz2 .q2opt:hover { transform: translateY(-3px); background: rgba(166, 229, 52, .18); }
-  #quiz2 .q2opt:disabled { cursor: default; }
-  #quiz2 .q2opt.certo  { background: rgba(120, 220, 60, .4); border-color: #a6e534; color: #fff; box-shadow: 0 0 22px rgba(166, 229, 52, .7); transform: translateY(-2px) scale(1.08); }
-  #quiz2 .q2opt.errado { background: rgba(230, 50, 50, .38); border-color: #ff5a5a; color: #fff; }
+  #quiz2 .q2opt:hover, #quizAcido .q2opt:hover { transform: translateY(-3px); background: rgba(166, 229, 52, .18); }
+  #quiz2 .q2opt:disabled, #quizAcido .q2opt:disabled { cursor: default; }
+  #quiz2 .q2opt.certo, #quizAcido .q2opt.certo  { background: rgba(120, 220, 60, .4); border-color: #a6e534; color: #fff; box-shadow: 0 0 22px rgba(166, 229, 52, .7); transform: translateY(-2px) scale(1.08); }
+  #quiz2 .q2opt.errado, #quizAcido .q2opt.errado { background: rgba(230, 50, 50, .38); border-color: #ff5a5a; color: #fff; }
   /* "Ácido" verde escuro no topo (sobre o quadro branco, dialogo1.2) */
   .st-verdeescuro {
     color: #0f4d18;
@@ -2220,7 +2220,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.194.0</div>
+<div id="versao">v1.195.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2355,9 +2355,19 @@
   </div>
 </div>
 
-<!-- Questão 2: descobrir o ácido com o papel de tornassol (cena 3D) -->
+<!-- Questão 2 (interativa): pipeta + 4 béqueres; descobrir qual substância é o ácido (H+) -->
+<div id="quizAcido">
+  <div class="q2tit"><span class="q2num">Questão 2</span><span class="q2q">Usando a pipeta pra misturar as substâncias na água, descubra qual é o ácido.</span></div>
+  <div class="q2opts">
+    <button class="q2opt" data-c="a">A</button>
+    <button class="q2opt" data-c="b">B</button>
+    <button class="q2opt" data-c="c">C</button>
+  </div>
+</div>
+
+<!-- Questão 3: descobrir o ácido com o papel de tornassol (cena 3D) -->
 <div id="quiz2">
-  <div class="q2tit"><span class="q2num">Questão 2</span><span class="q2q">Qual dessas substâncias é um ácido inorgânico?</span></div>
+  <div class="q2tit"><span class="q2num">Questão 3</span><span class="q2q">Qual dessas substâncias é um ácido inorgânico?</span></div>
   <button class="dicaBtn" id="dica2Btn" aria-label="Dica"><span class="dicaLuz">&#128161;</span></button>
   <div class="q2opts">
     <button class="q2opt" data-c="a">A</button>
@@ -2369,7 +2379,7 @@
 <!-- Questão 3: íons produzidos pelo HBr (dica revela a equação de ionização) -->
 <div id="quiz3">
   <div class="q3card">
-    <div class="q3num">Questão 3</div>
+    <div class="q3num">Questão 4</div>
     <div class="q3tit">Observando a molécula do ácido Bromídrico, HBr, qual alternativa contém os íons que essa molécula produz em solução?</div>
     <div class="q3eq" id="q3eq"><span class="q3mol">HBr</span><span class="q3seta"><span class="q3agua">H<sub>2</sub>O</span><span class="q3arrow">&#8594;</span></span><span class="q3prod">H<sup>+</sup> + Br<sup>&#8722;</sup></span></div>
     <div class="q3opts">
@@ -2384,7 +2394,7 @@
 <!-- Questão 4: arrastar a espécie correta pro slot (sequência de reações) -->
 <div id="quiz4">
   <div class="q4card">
-    <div class="q4num" id="q4num">Questão 4</div>
+    <div class="q4num" id="q4num">Questão 5</div>
     <div class="q4tit">Observe as reações a seguir e complete com a espécie química correta. Arraste sua resposta pro slot vazio pra completar a reação.</div>
     <div class="q4stage" id="q4stage">
       <div class="q4eq">
@@ -3210,6 +3220,28 @@ bench18.forEach(item => {
   item.beaker = b;
 });
 
+// ---- Questão 2 do quiz (interativa): 4 béqueres à esquerda (água + 3 substâncias desconhecidas) ----
+// pipReagentes = quizAcidoSubs durante a questão; ao derramar na água aparecem os íons de cada substância.
+const QA_X = { a: -10.2, b: -8.4, c: -6.6, agua: -4.2 };
+const quizAcidoSubs = [
+  { name: 'NaCl', letra: 'A', pos: [QA_X.a, 0.3, 1.5], locked: false, ions: [['Na', '+'], ['Cl', '−']] },   // sal (não é ácido)
+  { name: 'HCl',  letra: 'B', pos: [QA_X.b, 0.3, 1.5], locked: false, ions: [['H', '+'], ['Cl', '−']] },     // ÁCIDO (libera H⁺) -> resposta correta
+  { name: 'NaOH', letra: 'C', pos: [QA_X.c, 0.3, 1.5], locked: false, ions: [['Na', '+'], ['OH', '−']] },    // base
+];
+quizAcidoSubs.forEach(s => {
+  const b = makeBeaker(1.1, 2.6, 0xe6f2fa, 0.5, 0.14);
+  b.position.set(...s.pos);
+  b.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  b.visible = false;
+  scene.add(b);
+  s.beaker = b;
+});
+const quizAcidoAgua = makeBeaker(1.6, 3.4, 0x4aa8e8, 0.62);   // béquer de água (mesma geometria da água principal)
+quizAcidoAgua.position.set(QA_X.agua, 0.3, 1.5);
+quizAcidoAgua.traverse(o => { if (o.isMesh) o.castShadow = true; });
+quizAcidoAgua.visible = false;
+scene.add(quizAcidoAgua);
+
 // Ácidos do 1.8 (força/ionização com a pipeta): HNCO líquido na esquerda; HCl no meio (só p/ travar a pipeta na posição do balão).
 // pos/locked/name compatíveis com tipContainer (pipReagentes = acidos18 durante o 1.8).
 const acidos18 = [
@@ -3293,7 +3325,7 @@ function tipContainer() {
   if (Math.abs(x - pipAguaX) < 1.5 && y < WATER_SURF) return { name: 'água', color: 0x4aa8e8 };
   for (const r of pipReagentes) {
     if (r.locked) continue;   // copo bloqueado não pode ser usado
-    if (Math.abs(x - r.pos[0]) < 0.95 && y < ACID_SURF) return { name: r.name, color: 0xdcedf7 };
+    if (Math.abs(x - r.pos[0]) < 0.95 && y < ACID_SURF) return { name: r.name, color: 0xdcedf7, letra: r.letra };
   }
   return null;
 }
@@ -3841,6 +3873,21 @@ function mostrarNaOH(nNa = 4, nOH = 4, cx = pipAguaX) {
   };
   add(ionTexCache.na, nNa); add(ionTexCache.oh, nOH);
 }
+// íons genéricos: pares = [['H','+'], ['Cl','−'], ...]; n de cada. Reusa hmaisSprites (animação/limpeza).
+function mostrarIonsMix(pares, cx = pipAguaX, n = 4) {
+  pares.forEach(([base, carga]) => {
+    const key = base + carga;
+    if (!ionTexCache[key]) ionTexCache[key] = fazerIonTex(base, carga);
+    const tex = ionTexCache[key];
+    for (let i = 0; i < n; i++) {
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthTest: false, fog: false }));
+      const sc = 0.6 + Math.random() * 0.35; s.scale.set(sc, sc, sc);
+      s.position.set(cx + (Math.random() - 0.5) * 2.0, 0.7 + Math.random() * (WATER_SURF - 1.0), 1.5 + (Math.random() - 0.5) * 1.4);
+      s.userData = { phase: Math.random() * 6.28, base: s.position.y, amp: 0.06 + Math.random() * 0.08 };
+      scene.add(s); hmaisSprites.push(s);
+    }
+  });
+}
 
 // rótulos "Ácido" acima dos frascos — um por copo, PERMANECEM na cena (50% menores)
 let rotuloAcidoTex = null;
@@ -4041,6 +4088,9 @@ function soltarPapel(g) {
 
 // demonstração interativa (dialogo1.3B): o usuário enche e derrama a pipeta
 let demoInterativo = { ativo: false, encheu: false, derramou: false };
+// Questão 2 do quiz (interativa): estado da pipeta/substância
+let quizAcidoAtivo = false, qaEncheu = false, qaFonte = null;
+function qaSubstanciaEmX(x) { return quizAcidoSubs.find(s => Math.abs(x - s.pos[0]) < 0.95) || null; }
 // pipeta reaparece pronta pra ser movida (t13) e libera a interação
 function pipetaProntaH3PO4() {
   pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
@@ -4062,7 +4112,7 @@ const raycaster = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
 const dragPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -PLANE_Z);
 const planePoint = new THREE.Vector3();
-const LIMITS = { minX: -8.5, maxX: 11, minY: 0.42, maxY: 7.5 };
+const LIMITS = { minX: -11, maxX: 11, minY: 0.42, maxY: 7.5 };   // esquerda ampliada p/ alcançar os béqueres da Q2 interativa (x até -10.2)
 let pipDrag = null;
 
 function raycastPipette(e) {
@@ -4100,9 +4150,10 @@ function endBulbPress(drag) {
       pipLiquid.material.opacity = 0.9;
       squeezeTime = clock.getElapsedTime();
       tweenPipFill(1, 900);                // enche até o topo (não precisa segurar)
-      showMsg('Pipeta cheia de ' + (c.name === 'água' ? 'água' : 'ácido') + '!');
+      // na Q2 do quiz não revela se é ácido (isso é o que o aluno deve descobrir)
+      showMsg(quizAcidoAtivo ? (c.name === 'água' ? 'Pipeta cheia de água!' : 'Pipeta cheia da substância ' + (c.letra || '') + '!') : 'Pipeta cheia de ' + (c.name === 'água' ? 'água' : 'ácido') + '!');
     } else {
-      showMsg(tipSobreCopoBloqueado() ? 'Esse ácido já foi analisado — use o ácido novo (à direita)' : 'Mergulhe a ponta no ácido e aperte nela pra encher');
+      showMsg(quizAcidoAtivo ? 'Mergulhe a ponta numa substância (A, B ou C) e aperte pra encher' : (tipSobreCopoBloqueado() ? 'Esse ácido já foi analisado — use o ácido novo (à direita)' : 'Mergulhe a ponta no ácido e aperte nela pra encher'));
     }
     return;
   }
@@ -4473,6 +4524,22 @@ function animate() {
           c18Pingou = true; pipDragBloqueada = true;
           setTimeout(c18Dialogo18B, 2000);
         }
+      }
+    }
+  }
+  // Questão 2 do quiz (interativa): encher numa substância, derramar na água -> aparecem os íons dela
+  if (quizAcidoAtivo) {
+    if (!qaEncheu && pipFill > 0.55) {          // encheu: guarda a substância + reseta os íons da água
+      qaEncheu = true;
+      qaFonte = qaSubstanciaEmX(pipette.position.x);
+      limparHmais();                            // a cada nova coleta, some o que estava na água
+    } else if (qaEncheu && pipFill < 0.1) {
+      qaEncheu = false;                         // pipeta esvaziou -> pode reencher
+    }
+    if (demoInterativo.expelindo && pipFill < 0.05) {   // derramou
+      demoInterativo.expelindo = false;
+      if (qaFonte && Math.abs(pipette.position.x - pipAguaX) < 1.6) {
+        mostrarIonsMix(qaFonte.ions, pipAguaX); // só o HCl (B) contém H⁺
       }
     }
   }
@@ -5712,6 +5779,7 @@ const CAM_5 = { theta: 0.013,  phi: 1.534, dist: 19.36, target: [-0.41, 5.18, 0.
 const CAM_6 = { theta: -0.006, phi: 1.545, dist: 22.71, target: [0.43, 6.91, 0.72] };    // posição 6
 const CAM_7 = { theta: -0.04,  phi: 1.534, dist: 14.9,  target: [-2.51, 2.35, -3.36] };  // posição 7 (=posição 9)
 const CAM_8 = { theta: -0.012, phi: 1.534, dist: 30.61, target: [1.64, 7.74, 0.69] };    // posição 8
+const CAM_QA = { theta: -0.029, phi: 1.551, dist: 21.96, target: [-7.03, 3.81, 0.69] };  // Questão 2 do quiz (4 béqueres à esquerda)
 const CAM_PADRAO = CAM_1;
 
 function tocarFaixa(i) {
@@ -5735,6 +5803,7 @@ function tocarFaixa(i) {
   if (i > idxFaixa('dialogo1.4') && typeof pipette !== 'undefined') { pipette.visible = false; pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001; }   // a pipeta só existe no 1.3; some pra sempre a partir do 1.4
   if (f.id !== 'dialogo1.5Cy' && f.id !== 'dialogo1.5Cn') $id('quizCarga').classList.remove('show');   // quiz da carga só some ao sair (as respostas mantêm)
   if (typeof fecharQuiz1 === 'function') fecharQuiz1();   // some o botão/questão do quiz 1 e para a narração do exercício
+  if (typeof fecharQuizAcido === 'function') fecharQuizAcido();   // some a Q2 interativa (béqueres/pipeta), limpa íons/labels e reseta a pipeta
   if (typeof fecharQuiz2 === 'function') fecharQuiz2();   // some a questão 2, limpa rótulos A/B/C, para os áudios e o tornassol
   if (typeof fecharQuiz3 === 'function') fecharQuiz3();   // some a questão 3 e para os áudios
   if (typeof fecharQuiz4 === 'function') fecharQuiz4();   // some a questão 4 (arrastar)
@@ -7187,14 +7256,15 @@ $id('quizCarga').querySelectorAll('.opt').forEach(b => b.addEventListener('click
 // ---- Quiz 1: "Qual frasco é um ácido de Arrhenius?" (fim do dialogo1.5D) ----
 const exLavaia1a = new Audio('audios/Ex. lávaia1a.mp3');   // enunciado da questão 1 (toca 1º)
 const quiz1Audio = new Audio('audios/quiz1.mp3');          // questão 1: toca DEPOIS do enunciado
-const quiz2Audio = new Audio('audios/quiz2.mp3');          // enunciado da questão 2 (com 1s de delay)
+const quiz2ExtraAudio = new Audio('audios/quiz2_extra.mp3'); // enunciado da NOVA questão 2 (interativa: pipeta + 4 béqueres)
+const quiz2Audio = new Audio('audios/quiz2.mp3');          // enunciado da questão 3 (tornassol; com 1s de delay)
 const quiz3Audio = new Audio('audios/quiz3.mp3');          // enunciado da questão 3
 const dica1Audio = new Audio('audios/dica1.mp3');          // dica da questão 1
 const dica2Audio = new Audio('audios/dica2.mp3');          // dica da questão 2
 const dica3Audio = new Audio('audios/dica3.mp3');          // dica da questão 3 (+ equação do HBr)
 const proximaAudio = new Audio('audios/próxima.mp3');      // transição antes da próxima questão
 const maisumaAudio = new Audio('audios/maisuma.mp3');      // transição antes da questão 3
-[exLavaia1a, quiz1Audio, quiz2Audio, quiz3Audio, dica1Audio, dica2Audio, dica3Audio, proximaAudio, maisumaAudio].forEach(a => a.preload = 'auto');
+[exLavaia1a, quiz1Audio, quiz2ExtraAudio, quiz2Audio, quiz3Audio, dica1Audio, dica2Audio, dica3Audio, proximaAudio, maisumaAudio].forEach(a => a.preload = 'auto');
 let _audioQuizAtual = null;   // última narração de quiz tocada (pra cortar assim que o usuário responde)
 const tocarAudioQuiz = a => { try { a.currentTime = 0; const p = a.play(); if (p && p.catch) p.catch(() => {}); _audioQuizAtual = a; } catch (e) {} };
 const pararAudioQuiz = a => { try { a.pause(); a.currentTime = 0; } catch (e) {} };
@@ -7235,12 +7305,12 @@ function agendarTransicao(transAudio, proxFn, feedbackAudio) {
 }
 // ao marcar a resposta, corta qualquer áudio de enunciado/quiz/dica que esteja tocando
 function pararAudiosDasQuestoes() {
-  [exLavaia1a, quiz1Audio, quiz2Audio, quiz3Audio, dica1Audio, dica2Audio, dica3Audio].forEach(pararAudioQuiz);
+  [exLavaia1a, quiz1Audio, quiz2ExtraAudio, quiz2Audio, quiz3Audio, dica1Audio, dica2Audio, dica3Audio].forEach(pararAudioQuiz);
 }
 // fechar/minimizar o app (aba oculta) corta TODO áudio
 function pausarTodoAudio() {
   try { player.pause(); } catch (e) {}
-  [exLavaia1a, quiz1Audio, quiz2Audio, quiz3Audio, dica1Audio, dica2Audio, dica3Audio, proximaAudio, maisumaAudio].forEach(a => { try { a.pause(); } catch (e) {} });
+  [exLavaia1a, quiz1Audio, quiz2ExtraAudio, quiz2Audio, quiz3Audio, dica1Audio, dica2Audio, dica3Audio, proximaAudio, maisumaAudio].forEach(a => { try { a.pause(); } catch (e) {} });
   try { [quizF41, quizF41A, quizF42, quizF43, quizF44, quizF45, essaagoraAudio, qfApplause].forEach(a => a.pause()); } catch (e) {}
   try { Object.values(sfx).forEach(a => a.pause()); } catch (e) {}
 }
@@ -7309,16 +7379,80 @@ function responderQuiz1(letra, btn) {
   q.querySelector('.q1opt[data-c="c"]').classList.add('certo');   // sempre destaca a correta
   if (certo) { playSfx('right'); playSfx('funfare'); festaConfete(); }
   else       { playSfx('error'); playSfx('lowscore'); }
-  agendarTransicao(proximaAudio, irParaQuiz2, certo ? sfx.funfare : sfx.lowscore);   // "próxima" só depois do feedback -> Q2
+  agendarTransicao(proximaAudio, irParaQuizAcido, certo ? sfx.funfare : sfx.lowscore);   // "próxima" só depois do feedback -> nova Q2 (interativa)
 }
 $id('quizBtn').addEventListener('click', abrirQuiz1);
 $id('quiz1').querySelectorAll('.q1opt').forEach(b => b.addEventListener('click', () => responderQuiz1(b.dataset.c, b)));
+
+// ---- Questão 2 (interativa): pipeta + 4 béqueres; descobrir qual substância libera H⁺ ----
+let quizAcidoResp = false;
+function montarCenaQuizAcido() {
+  // limpa herança de cenas anteriores (equação, nomes, H+, tornassol)
+  esconderEquacao(); esconderEqTitulo(); limparHmais();
+  if (typeof limparNomesAcido === 'function') limparNomesAcido();
+  if (typeof limparRotuloAcido === 'function') limparRotuloAcido();
+  // esconde os 3 ácidos do 1.3 + a água principal
+  reagents.forEach((r, i) => { if (r.beaker) fade3D(r.beaker, 0, 300); if (r.label) r.label.visible = false; });
+  if (waterBeaker.visible) fade3D(waterBeaker, 0, 300);
+  // mostra os 4 béqueres da questão (3 substâncias + água)
+  quizAcidoSubs.forEach(s => { s.beaker.visible = true; restaurarOpacidade(s.beaker); fade3D(s.beaker, 1, 500); });
+  quizAcidoAgua.visible = true; restaurarOpacidade(quizAcidoAgua); fade3D(quizAcidoAgua, 1, 500);
+  // pipeta pronta acima da água + reconhece as substâncias da questão
+  pipReagentes = quizAcidoSubs; pipAguaX = QA_X.agua; pip18Ativo = false; pipDragBloqueada = false;
+  pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
+  pipette.position.set(QA_X.agua, 4.2, PLANE_Z); restaurarOpacidade(pipette); pipette.visible = true; fade3D(pipette, 1, 500);
+  demoInterativo = { ativo: false, encheu: false, derramou: false, expelindo: false };
+  quizAcidoAtivo = true; qaEncheu = false; qaFonte = null;
+  irParaCamera(CAM_QA, true, 1500);
+  mostrarLabelsABC([QA_X.a, QA_X.b, QA_X.c], 3.75);   // A/B/C sobre os béqueres de substância
+  mostrarNomeAcido(QA_X.agua, 'Água');                // rótulo da água (onde derramar)
+}
+function irParaQuizAcido() {
+  if (!emQuizPrincipal()) return;
+  fecharQuiz1();
+  montarCenaQuizAcido();
+  abrirQuizAcido();
+}
+function abrirQuizAcido() {
+  quizAcidoResp = false;
+  const q = $id('quizAcido');
+  q.querySelectorAll('.q2opt').forEach(b => { b.disabled = false; b.classList.remove('certo', 'errado'); });
+  q.classList.add('show');
+  setTimeout(() => { if (q.classList.contains('show')) tocarAudioQuiz(quiz2ExtraAudio); }, 900);   // enunciado da Q2 (câmera já foi movida)
+}
+function fecharQuizAcido() {
+  limparTransicao();
+  $id('quizAcido').classList.remove('show');
+  quizAcidoAtivo = false; qaEncheu = false; qaFonte = null;
+  limparLabelsABC(); limparNomesAcido(); limparHmais();
+  quizAcidoSubs.forEach(s => { s.beaker.visible = false; });
+  quizAcidoAgua.visible = false;
+  pipette.visible = false; pipFill = 0; pipTargetFill = 0; pipLiquid.scale.y = 0.0001;
+  pipReagentes = reagents; pipAguaX = WATER_X;
+  pararAudioQuiz(quiz2ExtraAudio);
+}
+function responderQuizAcido(letra, btn) {
+  cortarAudiosQuiz();
+  if (quizAcidoResp) return;
+  quizAcidoResp = true;
+  pararAudiosDasQuestoes();
+  const certo = (letra === 'b');            // B = HCl, único que libera H⁺
+  quizTotal++; if (certo) quizAcertos++;
+  const q = $id('quizAcido');
+  q.querySelectorAll('.q2opt').forEach(b => b.disabled = true);
+  btn.classList.add(certo ? 'certo' : 'errado');
+  q.querySelector('.q2opt[data-c="b"]').classList.add('certo');   // sempre destaca a correta
+  if (certo) { playSfx('right'); playSfx('funfare'); festaConfete(); }
+  else       { playSfx('error'); playSfx('lowscore'); }
+  agendarTransicao(maisumaAudio, irParaQuiz2, certo ? sfx.funfare : sfx.lowscore);   // -> Q3 (tornassol)
+}
+$id('quizAcido').querySelectorAll('.q2opt').forEach(b => b.addEventListener('click', () => responderQuizAcido(b.dataset.c, b)));
 
 // ---- Quiz 2: "Qual substância é um ácido inorgânico?" (papel de tornassol na cena 3D) ----
 // rótulos 3D A/B/C acima dos 3 béqueres (mesmo estilo verde dos nomes dos ácidos)
 const quiz2Labels = [];
 function limparLabelsABC() { quiz2Labels.forEach(s => scene.remove(s)); quiz2Labels.length = 0; }
-function mostrarLabelsABC() {
+function mostrarLabelsABC(xs = AC_X, y = 3.75) {   // xs: posições x dos 3 béqueres (default = os ácidos do 1.3)
   limparLabelsABC();
   ['A', 'B', 'C'].forEach((L, i) => {
     const cv = document.createElement('canvas'); cv.width = 128; cv.height = 128;
@@ -7328,7 +7462,7 @@ function mostrarLabelsABC() {
     c.font = 'bold 92px system-ui, sans-serif'; c.fillText(L, 64, 72);
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, opacity: 0, depthTest: false, fog: false }));
     s.scale.set(1.15, 1.15, 1);
-    s.position.set(AC_X[i], 3.75, 1.5);   // acima de cada béquer
+    s.position.set(xs[i], y, 1.5);   // acima de cada béquer
     scene.add(s); quiz2Labels.push(s);
     const t0 = animNow();
     (function step() { const k = Math.min(1, (animNow() - t0) / 500); s.material.opacity = 0.98 * k; if (k < 1) requestAnimationFrame(step); })();
@@ -7356,6 +7490,7 @@ let quiz2Resp = false;
 function irParaQuiz2() {
   if (!emQuizPrincipal()) return;
   fecharQuiz1();
+  fecharQuizAcido();   // limpa a cena interativa da Q2 (béqueres/pipeta) antes do tornassol
   abrirQuiz2();
 }
 function abrirQuiz2() {
@@ -7466,7 +7601,7 @@ let q4Idx = 0, q4Resp = false, q4Drag = null, _q4Timer = null;
 function q4Montar() {
   q4Resp = false;
   const eq = QUIZ4[q4Idx];
-  $id('q4num').innerHTML = `Questão 4 <span class="q4letra">${Q4_LETRAS[q4Idx]})</span>`;   // numera cada reação: a, b, c...
+  $id('q4num').innerHTML = `Questão 5 <span class="q4letra">${Q4_LETRAS[q4Idx]})</span>`;   // numera cada reação: a, b, c...
   const slotHTML = '<span class="q4slot" id="q4slot"></span>';
   const cel = v => (v == null ? slotHTML : `<span class="q4prod">${v}</span>`);
   $id('q4esq').innerHTML = eq.esq == null ? slotHTML : eq.esq;                         // slot pode ser o reagente
