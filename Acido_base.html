@@ -475,10 +475,14 @@
   }
   #quiz5.show { display: block; opacity: 1; }
   #q5inner { position: relative; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; will-change: transform, opacity; }
-  #q5titulo {
-    text-align: center; font-family: system-ui, sans-serif; font-weight: 800;
-    font-size: clamp(17px, 5vw, 25px); color: #eaf7d9; text-shadow: 0 2px 8px rgba(0, 0, 0, .55);
-    max-width: 620px; line-height: 1.25;
+  #q5titulo { text-align: center; max-width: 640px; }
+  #q5num {
+    font-family: system-ui, sans-serif; font-weight: 900; font-size: clamp(20px, 6vw, 30px);
+    color: #ffd21e; text-shadow: 0 2px 8px rgba(0, 0, 0, .55);
+  }
+  #q5perg {
+    margin-top: 5px; font-family: system-ui, sans-serif; font-weight: 700; line-height: 1.25;
+    font-size: clamp(16px, 4.6vw, 23px); color: #eaf7d9; text-shadow: 0 2px 8px rgba(0, 0, 0, .55);
   }
   #q5frasco { position: relative; display: flex; align-items: center; justify-content: center; flex: 1; width: 100%; }
   #q5svg { width: clamp(190px, 58vw, 300px); display: flex; align-items: center; justify-content: center; }
@@ -2216,7 +2220,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.186.0</div>
+<div id="versao">v1.187.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2261,7 +2265,7 @@
 <div id="quiz5" aria-hidden="true">
   <div id="q5inner">
     <div id="q5letra"></div>
-    <div id="q5titulo"></div>
+    <div id="q5titulo"><div id="q5num"></div><div id="q5perg"></div></div>
     <div id="q5frasco">
       <div id="q5svg"></div>
     </div>
@@ -8633,7 +8637,7 @@ function c3PrefTrocar(txt) {   // fade out do atual, troca o texto e fade in
 }
 // ================= Quiz 5: identificar nome pela fórmula (e vice-versa), frasco a frasco =================
 const QUIZ5 = [
-  { faixa: 'quiz5-1', titulo: 'Questão 01: Qual o nome dos hidrácidos a seguir?', modo: 'frasco',
+  { faixa: 'quiz5-1', titulo: 'Questão 01: Qual o nome dos hidrácidos a seguir?', modo: 'frasco', revelarEm: 3.0,
     itens: [
       { disp: 'HCl', alts: ['ácido clórico', 'ácido cloroso', 'ácido clorídrico'],      correta: 2 },
       { disp: 'HF',  alts: ['ácido ferrídrico', 'ácido fluorídrico', 'ácido férrico'],  correta: 1 },
@@ -8688,12 +8692,16 @@ function q5RevelarItem(drama) {   // mostra letra + frasco/etiqueta + alternativ
 function q5OcultarItem() { ['q5frasco', 'q5alts', 'q5letra'].forEach(id => { const e = $id(id); if (e) e.classList.add('oculto'); }); }
 function q5ProximoItem() { q5AplicarConteudo(); q5RevelarItem(true); }
 function q5MontarQuestao(qi) {
-  q5.qi = qi; q5.ii = 0; $id('q5titulo').textContent = QUIZ5[qi].titulo;
+  q5.qi = qi; q5.ii = 0;
+  const t = QUIZ5[qi].titulo, k = t.indexOf(': ');
+  $id('q5num').textContent = k >= 0 ? t.slice(0, k) : t;        // "Questão 01" (em cima)
+  $id('q5perg').textContent = k >= 0 ? t.slice(k + 2) : '';     // "Qual o nome..." (embaixo)
   q5AplicarConteudo();
   if (QUIZ5[qi].revelarEm) q5OcultarItem();   // espera o cue do áudio (ex.: 5s do quiz5-2)
   else q5RevelarItem(true);
 }
-// revela o 1º item da Questão 2 no tempo certo do áudio (nome "Ácido Iodídrico" em 5s)
+// revela o 1º item de cada questão no tempo certo do áudio (frasco/alternativas em 3s; nome da Q2 em 5s)
+EVENTOS['quiz5-1'] = () => rodarStory([{ t: 3.0, fn: () => q5RevelarItem(true) }]);
 EVENTOS['quiz5-2'] = () => rodarStory([{ t: 5.0, fn: () => q5RevelarItem(true) }]);
 function abrirQuiz5() {
   const b5 = $id('quiz5Btn'); if (b5) b5.classList.remove('show');
