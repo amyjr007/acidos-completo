@@ -2220,7 +2220,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.189.0</div>
+<div id="versao">v1.190.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -8653,7 +8653,9 @@ const QUIZ5 = [
     ] },
   { faixa: 'quiz5-5', titulo: 'Questão 03: Qual o nox do elemento central nos oxiácidos a seguir:', modo: 'frasco', revelarEm: 5.5,
     itens: [
-      { disp: 'H2CO3', alts: ['+3', '+3', '+4'], correta: 2 },
+      { disp: 'H2CO3', alts: ['+3', '+3', '+4'], correta: 2 },   // C = +4
+      { disp: 'H2SO4', alts: ['+4', '+6', '+2'], correta: 1 },   // S = +6
+      { disp: 'HClO',  alts: ['+1', '+3', '+5'], correta: 0 },   // Cl = +1
     ] },
 ];
 let q5 = { qi: 0, ii: 0, resp: false };
