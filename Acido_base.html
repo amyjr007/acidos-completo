@@ -1411,6 +1411,15 @@
   #c3cNome.show, #c3cNome2.show { opacity: 1; }
   #c3cNome .c3c-crimson { color: #d81b60; }   /* "hiper"/"ico" em carmim */
   #c3cNome .caret, #c3cNome2 .caret { color: #fff; font-weight: 400; animation: caretBlink .8s steps(1) infinite; }
+  /* "Valeu!" do encerramento (dialogo4) */
+  #valeu {
+    position: fixed; inset: 0; z-index: 50; pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+    font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(44px, 15vw, 96px);
+    color: #a6e534; text-shadow: 0 3px 14px rgba(0, 0, 0, .55);
+    opacity: 0; transform: scale(.7); transition: opacity .8s ease, transform .8s cubic-bezier(.2, .8, .2, 1.4);
+  }
+  #valeu.show { opacity: 1; transform: scale(1); }
   /* cargas do H3PO4 (posicionadas por JS: total acima, por átomo abaixo, incógnita no P) */
   .c2cg {
     position: fixed; z-index: 43; opacity: 0; pointer-events: none; white-space: nowrap; transform: translateX(-50%);
@@ -2170,7 +2179,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.179.0</div>
+<div id="versao">v1.180.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2475,6 +2484,8 @@
 <!-- Nome montado (dialogo3BR): Ácido + hiper/iodo/ico -> Hiperiódico; 2ª linha: Ácido Periódico -->
 <div id="c3cNome"><span id="c3cAcido"></span> <span id="c3cHiper" class="c3c-crimson"></span><span id="c3cIodo"></span><span id="c3cIco" class="c3c-crimson"></span></div>
 <div id="c3cNome2"><span id="c3c2Nome"></span></div>
+<!-- Encerramento (dialogo4): "Valeu!" no centro da tela -->
+<div id="valeu">Valeu!</div>
 <!-- Opções "baixo"/"alto" (fim do dialogo3A) -->
 <div id="c3aOpcoes" class="nomOpcoes"><button class="nom-opt" data-v="baixo">baixo</button><button class="nom-opt" data-v="alto">alto</button></div>
 <!-- Opções "Sim"/"Não" (fim do dialogo3B; correto = Sim) -->
@@ -4587,6 +4598,7 @@ const FAIXAS = [
   { id: 'dialogo3B',     arquivo: 'audios/dialogo3B.mp3',     titulo: 'Diálogo 3B' },
   { id: 'dialogo3BR',    arquivo: 'audios/dialogo3BR.mp3',    titulo: 'Diálogo 3B (acerto) — Ácido Hiperiódico' },
   { id: 'dialogo3BW',    arquivo: 'audios/dialogo3BW.mp3',    titulo: 'Diálogo 3B (erro)' },
+  { id: 'dialogo4',      arquivo: 'audios/dialogo4.mp3',      titulo: 'Diálogo 4 — Encerramento' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -5332,7 +5344,21 @@ const EVENTOS = {
     { t: 37.4, fn: () => c3PrefTrocar('per') },                     // "hiper" sai e "per" entra no lugar (esquema)
     { t: 39.9, fn: () => { $id('c3cNome2').classList.add('show'); c19Digitar('c3c2Nome', 'Ácido Periódico', 39.9, 41.4); } },   // 2ª linha: "Ácido Periódico"
   ]),
+  'dialogo4': () => rodarStory([       // encerramento: tudo some; no fim escreve "Valeu!" (ver handler de 'ended')
+    { t: 0.0, fn: dialogo4Some },
+  ]),
 };
+// dialogo4: some tudo que está na tela (esquema/nomes do HIO4 + "b) Regra..."; a família dos oxiácidos já sai no esconderNomenTransicao)
+function dialogo4Some() {
+  const f = $id('c3Formula'); if (f) { f.style.transition = 'opacity .5s ease'; f.classList.remove('show'); }
+  const ic = $id('c3Ico'); if (ic) ic.classList.remove('show');
+  ['c3i7', 'c38', 'c3m1', 'c3x', 'c3n2', 'c37'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on'); });
+  ['c3cNome', 'c3cNome2'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
+  ['c3aOpcoes', 'c3bOpcoes'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
+  const b = $id('c19bOxi'); if (b) b.classList.remove('show');
+  const v = $id('valeu'); if (v) v.classList.remove('show');
+  setTimeout(() => { if (typeof c3NomeReset === 'function') c3NomeReset(); }, 600);   // limpa o texto dos nomes depois do fade
+}
 function c18iSome() { const li = $id('c18iLista'); if (li) li.querySelectorAll('.show').forEach(s => s.classList.remove('show')); }   // lista dos hidrácidos sai em fade
 // Pulo direto pro 1.8I pelo sumário (item 19): reconstrói a cena como no fim do 1.8H — título + "c)" na tela,
 // nenhum resíduo 3D (aparelho, béqueres, H+, aparato), iluminação e câmera na posição 1 (vista padrão do lab).
@@ -5621,6 +5647,8 @@ $id('playBtn').addEventListener('click', () => {
     if (_cur && _cur.id === 'dialogo1.5Cy') { const d = idxFaixa('dialogo1.5D'); if (d >= 0) { tocarFaixa(d); return; } }
     // fim do 1.9G (acerto): o play pula o 1.9GW (re-dedução do erro) e vai direto pro 1.9H
     if (_cur && _cur.id === 'dialogo1.9GR') { const h = idxFaixa('dialogo1.9H'); if (h >= 0) { tocarFaixa(h); return; } }
+    // fim do 3BR (acerto): o play pula o 3BW (erro) e vai direto pro dialogo4
+    if (_cur && _cur.id === 'dialogo3BR') { const d = idxFaixa('dialogo4'); if (d >= 0) { tocarFaixa(d); return; } }
     if (faixaAtual < FAIXAS.length - 1) tocarFaixa(faixaAtual + 1);
     return;
   }
@@ -5709,8 +5737,10 @@ player.addEventListener('ended', () => {
   // fim do dialogo3AW (erro): NÃO avança sozinho — aparece o play (que leva ao 3B)
   // fim do dialogo3B: entram as opções "Sim"/"Não"
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo3B') { $id('playBtn').style.display = 'none'; c3bOpcoesMostrar(); return; }
-  // fim do dialogo3BR (acerto): finale — esconde o play (evita cair no 3BW)
-  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo3BR') { $id('playBtn').style.display = 'none'; return; }
+  // fim do 3BR/3BW: o play aparece e leva ao dialogo4 (o 3BR pula o 3BW — ver click do playBtn)
+  if (FAIXAS[faixaAtual] && (FAIXAS[faixaAtual].id === 'dialogo3BR' || FAIXAS[faixaAtual].id === 'dialogo3BW')) { $id('playBtn').style.display = ''; return; }
+  // fim do dialogo4 (encerramento): esconde o play e escreve "Valeu!" na tela
+  if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo4') { $id('playBtn').style.display = 'none'; const v = $id('valeu'); if (v) v.classList.add('show'); return; }
   // fim do 1.5D: em vez do play, aparece o botão "Quiz" (abre a questão 1)
   if (FAIXAS[faixaAtual] && FAIXAS[faixaAtual].id === 'dialogo1.5D') { $id('playBtn').style.display = 'none'; mostrarQuizBtn(); return; }
   // fim do 1.4A: some o texto e o play (força a interação do papel de tornassol; o 1.4B entra quando o papel fica vermelho)
