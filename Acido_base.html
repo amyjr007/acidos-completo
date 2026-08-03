@@ -2170,7 +2170,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.178.0</div>
+<div id="versao">v1.179.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5813,6 +5813,7 @@ const SUMARIO = [
   { titulo: 'Aplicação da tabela no HClO',   faixa: idxFaixa('dialogo1.9H1'), acao: irParaAplicaTabela },
   { titulo: 'A nomenclatura do H<sub>3</sub>PO<sub>4</sub>', faixa: idxFaixa('dialogo2'), acao: irParaNomeH3PO4 },
   { titulo: 'A nomenclatura do HIO<sub>4</sub>', faixa: idxFaixa('dialogo3'), acao: irParaNomeHIO4 },
+  { titulo: 'Nome do HIO<sub>4</sub>', faixa: idxFaixa('dialogo3B'), acao: irParaNomeHIO4B },   // [PROVISÓRIO - dev] pula direto pro dialogo3B
 ];
 
 SUMARIO.forEach(item => {
@@ -9395,6 +9396,30 @@ function irParaNomeHIO4() {
   const b = $id('c19bOxi'); if (b) b.classList.add('show');
   const i = idxFaixa('dialogo3');
   if (i >= 0) tocarFaixa(i);
+}
+// [PROVISÓRIO - dev] "Nome do HIO4": reconstrói o fim do 3A (HIO4 + "+7" + "ico") e vai direto pro dialogo3B
+function irParaNomeHIO4B() {
+  irParaCamera(CAM_1, false);
+  if (typeof esconderNomenH === 'function') esconderNomenH();
+  if (typeof c19hReset === 'function') { c19hAtivo = false; c19hReset(); }
+  const cloro = $id('c19cloro'); if (cloro) cloro.classList.remove('show');
+  const c2f = $id('c2Formula'); if (c2f) { c2f.style.transition = 'none'; c2f.style.transform = 'translateX(200vw)'; }
+  const cn = $id('c2cNome'); if (cn) cn.classList.remove('show');
+  const b = $id('c19bOxi'); if (b) b.classList.add('show');
+  // HIO4 no centro (sem animação de entrada) + esconde as peças do cálculo do atalho
+  const f = $id('c3Formula'); if (f) { f.style.transition = 'none'; f.classList.remove('show'); void f.offsetWidth; f.style.transform = 'translateX(0)'; f.classList.add('show'); }
+  ['c38', 'c3m1', 'c3x', 'c3n2', 'c37'].forEach(id => { const e = $id(id); if (e) e.classList.remove('on'); });
+  const tx = $id('c3Texto'); if (tx) tx.style.opacity = '0';
+  if (typeof c19Limpar === 'function') c19Limpar('c3Texto');
+  if (typeof c3NomeReset === 'function') c3NomeReset();
+  const ic = $id('c3Ico'); if (ic) ic.classList.add('show');   // "ico" na tela (como no fim do 3AR)
+  const idx = idxFaixa('dialogo3B');
+  if (idx >= 0) tocarFaixa(idx);
+  setTimeout(() => {   // posiciona e mostra o "+7" (aumentado) acima do Iodo, já com a fórmula renderizada
+    if (typeof posicionarC3 === 'function') posicionarC3();
+    if (typeof c2Show === 'function') c2Show('c3i7');
+    if (typeof c2cgBig === 'function') c2cgBig('c3i7', true);
+  }, 80);
 }
 // H+ vira sobrescrito; caret pisca enquanto digita
 function montarDef(s, digitando) {
