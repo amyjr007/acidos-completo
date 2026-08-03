@@ -2179,7 +2179,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.181.0</div>
+<div id="versao">v1.182.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -5374,12 +5374,13 @@ const EVENTOS = {
     { t: 37.4, fn: () => c3PrefTrocar('per') },                     // "hiper" sai e "per" entra no lugar (esquema)
     { t: 39.9, fn: () => { $id('c3cNome2').classList.add('show'); c19Digitar('c3c2Nome', 'Ácido Periódico', 39.9, 41.4); } },   // 2ª linha: "Ácido Periódico"
   ]),
-  'dialogo4': () => rodarStory([       // encerramento: tudo some, câmera vai pro quadro com a foto do professor; no fim escreve "Valeu!"
+  'dialogo4': () => rodarStory([       // encerramento: tudo some, câmera se aproxima devagar do quadro (foto do professor); no fim escreve "Valeu!"
     { t: 0.0, fn: () => {
       dialogo4Some();
-      irParaCamera({ theta: -1.62, phi: 1.447, dist: 17.08, target: [0.36, 11.41, 2.25] }, true, 2000);
+      irParaCamera({ theta: -1.62, phi: 1.447, dist: 17.08, target: [0.36, 11.41, 2.25] }, true, 4000);   // ~90% mais lento que o padrão
       if (typeof quadroFoto === 'function') quadroFoto('imagens/amauri_jr.jpg', 'Professor Amauri Junior');
     } },
+    { t: 4.5, fn: () => irParaCamera({ theta: -1.752, phi: 1.467, dist: 5, target: [0.75, 13.54, 1.32] }, true, 9000) },   // depois: aproxima bem devagar (zoom lento até a foto)
   ]),
 };
 // dialogo4: some tudo que está na tela (esquema/nomes do HIO4 + "b) Regra..."; a família dos oxiácidos já sai no esconderNomenTransicao)
