@@ -1395,27 +1395,22 @@
     opacity: 0; transition: opacity .5s ease, transform .4s cubic-bezier(.2, .9, .3, 1.5);
   }
   #c3Ico.show { opacity: 1; }
-  #c3Ico.big { transform: scale(1.4); }
-  /* prefixos "hipo" (azul, esquerda) e "hiper" (carmim, direita) — dialogo3BR */
-  #c3Hipo, #c3Hiper {
-    position: fixed; top: 54%; z-index: 43; pointer-events: none; transform: translateX(-50%);
-    font-family: Georgia, serif; font-weight: 800; font-size: clamp(20px, 6vw, 36px);
-    opacity: 0; transition: opacity .5s ease, transform .4s cubic-bezier(.2, .9, .3, 1.5);
-  }
-  #c3Hipo  { left: 32%; color: #6fb7ff; text-shadow: 0 0 14px rgba(111, 183, 255, .5); }
-  #c3Hiper { left: 68%; color: #d81b60; text-shadow: 0 0 14px rgba(216, 27, 96, .5); }
-  #c3Hipo.show, #c3Hiper.show { opacity: 1; }
-  #c3Hipo.big, #c3Hiper.big { transform: translateX(-50%) scale(1.4); }
-  /* nome montado (dialogo3BR): Ácido + hiper/iodo/ico -> Hiperiódico */
-  #c3cNome {
-    position: fixed; left: 0; right: 0; top: 70%; text-align: center; z-index: 42; pointer-events: none; padding: 0 12px;
+  /* prefixo (hiper -> per) à esquerda do "ico", na mesma linha — dialogo3BR */
+  #c3IcoT { display: inline-block; transform-origin: center bottom; transition: transform .4s cubic-bezier(.2, .9, .3, 1.5); }
+  #c3PrefT { display: none; margin-right: .16em; transform-origin: center bottom; transition: transform .4s cubic-bezier(.2, .9, .3, 1.5), opacity .5s ease; }
+  #c3PrefT.big, #c3IcoT.big { transform: scale(1.4); }
+  /* nomes montados (dialogo3BR): 1ª linha Hiperiódico, 2ª linha Periódico */
+  #c3cNome, #c3cNome2 {
+    position: fixed; left: 0; right: 0; text-align: center; z-index: 42; pointer-events: none; padding: 0 12px;
     font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(22px, 6.5vw, 40px);
     color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, .55); white-space: nowrap;
     opacity: 0; transition: opacity .5s ease;
   }
-  #c3cNome.show { opacity: 1; }
+  #c3cNome  { top: 70%; }
+  #c3cNome2 { top: 78%; }
+  #c3cNome.show, #c3cNome2.show { opacity: 1; }
   #c3cNome .c3c-crimson { color: #d81b60; }   /* "hiper"/"ico" em carmim */
-  #c3cNome .caret { color: #fff; font-weight: 400; animation: caretBlink .8s steps(1) infinite; }
+  #c3cNome .caret, #c3cNome2 .caret { color: #fff; font-weight: 400; animation: caretBlink .8s steps(1) infinite; }
   /* cargas do H3PO4 (posicionadas por JS: total acima, por átomo abaixo, incógnita no P) */
   .c2cg {
     position: fixed; z-index: 43; opacity: 0; pointer-events: none; white-space: nowrap; transform: translateX(-50%);
@@ -2175,7 +2170,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.176.0</div>
+<div id="versao">v1.177.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2475,12 +2470,11 @@
 <span class="c2cg" id="c3m1">&minus;1</span>
 <span class="c2cg" id="c37">= +7</span>
 <span class="c2cg" id="c3i7">+7</span>
-<span id="c3Ico">ico</span>
-<!-- Prefixos "hipo"/"hiper" (dialogo3BR) — hipo à esquerda (azul), hiper à direita (carmim) -->
-<span id="c3Hipo">hipo</span>
-<span id="c3Hiper">hiper</span>
-<!-- Nome montado (dialogo3BR): Ácido + hiper/iodo/ico -> Hiperiódico -->
+<!-- Esquema "hiper ico" (dialogo3BR): prefixo (hiper -> per) à esquerda do "ico", na mesma linha -->
+<span id="c3Ico"><span id="c3PrefT">hiper</span><span id="c3IcoT">ico</span></span>
+<!-- Nome montado (dialogo3BR): Ácido + hiper/iodo/ico -> Hiperiódico; 2ª linha: Ácido Periódico -->
 <div id="c3cNome"><span id="c3cAcido"></span> <span id="c3cHiper" class="c3c-crimson"></span><span id="c3cIodo"></span><span id="c3cIco" class="c3c-crimson"></span></div>
+<div id="c3cNome2"><span id="c3c2Nome"></span></div>
 <!-- Opções "baixo"/"alto" (fim do dialogo3A) -->
 <div id="c3aOpcoes" class="nomOpcoes"><button class="nom-opt" data-v="baixo">baixo</button><button class="nom-opt" data-v="alto">alto</button></div>
 <!-- Opções "Sim"/"Não" (fim do dialogo3B; correto = Sim) -->
@@ -5310,16 +5304,18 @@ const EVENTOS = {
   'dialogo3AW': () => rodarStory([]),   // erro
   'dialogo3B':  () => rodarStory([]),   // opções Sim/Não entram no fim (ver handler)
   'dialogo3BR': () => rodarStory([       // acerto: monta "Ácido Hiperiódico"
-    { t: 0.0,  fn: c3brInicio },                                    // prepara (esconde o nome; hipo/hiper limpos; "ico" segue visível)
-    { t: 4.0,  fn: () => { $id('c3Hipo').classList.add('show'); $id('c3Hiper').classList.add('show'); } },   // "hipo" (e "hiper") na tela, antes do "ico"
-    { t: 13.0, fn: () => $id('c3Hiper').classList.add('big') },     // aumenta "hiper"
-    { t: 14.8, fn: () => $id('c3Ico').classList.add('big') },       // aumenta "ico"
+    { t: 0.0,  fn: c3brInicio },                                    // prepara (esconde os nomes; prefixo limpo; "ico" segue visível)
+    { t: 4.0,  fn: () => c3PrefShow('hiper') },                     // "hiper" (carmim) à esquerda do "ico", na mesma linha
+    { t: 13.0, fn: () => $id('c3PrefT').classList.add('big') },     // aumenta "hiper"
+    { t: 14.8, fn: () => $id('c3IcoT').classList.add('big') },      // aumenta "ico"
     { t: 17.4, fn: () => { $id('c3cNome').classList.add('show'); c19Digitar('c3cAcido', 'Ácido', 17.4, 18.0); } },   // digita "Ácido"
     { t: 18.0, fn: () => c19Digitar('c3cIodo', 'iodo', 18.0, 19.0) },   // espaço (no HTML) + "iodo"
     { t: 20.0, fn: () => c19Digitar('c3cHiper', 'hiper', 20.0, 20.9) },   // "hiper" antes de "iodo"
     { t: 21.7, fn: () => c19Digitar('c3cIco', 'ico', 21.7, 22.3) },      // "ico" no final
     { t: 23.0, fn: () => { c19Limpar('c3cHiper'); c19Limpar('c3cIco'); c19Digitar('c3cIodo', 'Hiperiódico', 23.0, 24.0); } },   // apaga hiper/iodo/ico e escreve "Hiperiódico" (branco)
     { t: 26.7, fn: () => { playSfx('applause'); playSfx('funfare'); if (typeof festaConfete === 'function') festaConfete(); } },
+    { t: 33.5, fn: () => c3PrefTrocar('per') },                     // "hiper" sai e "per" entra no lugar (fade)
+    { t: 36.0, fn: () => { $id('c3cNome2').classList.add('show'); c19Digitar('c3c2Nome', 'Ácido Periódico', 36.0, 37.5); } },   // 2ª linha: "Ácido Periódico"
   ]),
   'dialogo3BW': () => rodarStory([]),   // erro — eventos a definir
 };
@@ -8418,6 +8414,7 @@ function c3Inicio() {
   ['c3H', 'c3I', 'c3O', 'c3s4'].forEach(id => { const e = $id(id); if (e) { e.classList.remove('cbig'); e.style.animation = ''; } });
   const tx = $id('c3Texto'); if (tx) { tx.style.transition = 'none'; tx.style.opacity = ''; }
   if (typeof c19Limpar === 'function') c19Limpar('c3Texto');
+  if (typeof c3NomeReset === 'function') c3NomeReset();
   setTimeout(posicionarC3, 1100);
 }
 function c3Esconder() {
@@ -8428,6 +8425,7 @@ function c3Esconder() {
   const ic = $id('c3Ico'); if (ic) ic.classList.remove('show');
   const ao = $id('c3aOpcoes'); if (ao) ao.classList.remove('show');
   const bo = $id('c3bOpcoes'); if (bo) bo.classList.remove('show');
+  if (typeof c3NomeReset === 'function') c3NomeReset();
 }
 addEventListener('resize', () => { const f = $id('c3Formula'); if (f && f.classList.contains('show')) posicionarC3(); });
 // ---- dialogo3A: quiz baixo/alto (correto = alto) -> 3AR/3AW ----
@@ -8475,12 +8473,25 @@ function tremerVermelho() {
   if (typeof tremerTela === 'function') tremerTela();
   const gf = $id('gameFlash'); if (gf) { gf.classList.remove('red'); void gf.getBoundingClientRect(); gf.classList.add('red'); }
 }
-// dialogo3BR: prepara a montagem do nome (some o nome antigo; hipo/hiper limpos; "ico" segue visível do 3AR)
-function c3brInicio() {
-  ['c3Hipo', 'c3Hiper'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show', 'big'); });
-  const ic = $id('c3Ico'); if (ic) ic.classList.remove('big');
-  const nm = $id('c3cNome'); if (nm) nm.classList.remove('show');
-  ['c3cAcido', 'c3cHiper', 'c3cIodo', 'c3cIco'].forEach(s => { if (typeof c19Limpar === 'function') c19Limpar(s); });
+// zera o esquema/nomes do HIO4 (prefixo, "big" do ico e as duas linhas de nome) — usado no replay e ao sair
+function c3NomeReset() {
+  const p = $id('c3PrefT'); if (p) { p.style.display = 'none'; p.style.transition = ''; p.style.opacity = ''; p.textContent = 'hiper'; p.classList.remove('big'); }
+  const it = $id('c3IcoT'); if (it) it.classList.remove('big');
+  ['c3cNome', 'c3cNome2'].forEach(id => { const e = $id(id); if (e) e.classList.remove('show'); });
+  ['c3cAcido', 'c3cHiper', 'c3cIodo', 'c3cIco', 'c3c2Nome'].forEach(s => { if (typeof c19Limpar === 'function') c19Limpar(s); });
+}
+// dialogo3BR: prepara a montagem do nome ("ico" segue visível do 3AR)
+function c3brInicio() { c3NomeReset(); }
+// prefixo do esquema (dialogo3BR): mostra "hiper" com fade in; depois troca por "per" com fade
+function c3PrefShow(txt) {
+  const p = $id('c3PrefT'); if (!p) return;
+  p.textContent = txt; p.style.display = 'inline-block'; p.style.transition = 'none'; p.style.opacity = '0';
+  requestAnimationFrame(() => { p.style.transition = 'opacity .5s ease, transform .4s cubic-bezier(.2,.9,.3,1.5)'; p.style.opacity = '1'; });
+}
+function c3PrefTrocar(txt) {   // fade out do atual, troca o texto e fade in
+  const p = $id('c3PrefT'); if (!p) return;
+  p.style.transition = 'opacity .4s ease'; p.style.opacity = '0';
+  setTimeout(() => { p.textContent = txt; requestAnimationFrame(() => { p.style.opacity = '1'; }); }, 420);
 }
 // transição do 1.9E: cola o overlay dos hidrácidos na parede (posição 2) e o desliza/some enquanto a câmera vira pra posição 1
 function nomen19Transicao() {
