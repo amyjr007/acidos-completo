@@ -2220,7 +2220,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.191.0</div>
+<div id="versao">v1.192.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3159,7 +3159,7 @@ scene.add(waterBeaker);
 // ---------- 3 béqueres com etiquetas ----------
 const reagents = [
   { name: 'HCl', parts: [{ t: 'HCl' }], pos: [AC_X[0], 0.3, 1.5] },
-  { name: 'H₂CO₃', parts: [{ t: 'H' }, { t: '2', sub: true }, { t: 'CO' }, { t: '3', sub: true }], pos: [AC_X[1], 0.3, 1.5] },
+  { name: 'NaOH', parts: [{ t: 'NaOH' }], pos: [AC_X[1], 0.3, 1.5] },
   { name: 'H₃PO₄', parts: [{ t: 'H' }, { t: '3', sub: true }, { t: 'PO' }, { t: '4', sub: true }], pos: [AC_X[2], 0.3, 1.5] },
 ];
 
@@ -4873,7 +4873,7 @@ const EVENTOS = {
     { t: 11.0, fn: () => mostrarNaOH(4, 4) },                      // Na+ e OH- na água (base — não é ácido)
     { t: 12.5, fn: () => irParaCamera(CAM_7, true, 1500) },        // aproxima (pos7 — nova posição)
     { t: 18.5, fn: () => irParaCamera(CAM_6, true, 1500) },        // volta pra pos6
-    { t: 21.0, fn: () => mostrarNomeAcido(AC_X[1], 'não é ácido') },  // nome acima do frasco (persistente)
+    { t: 21.0, fn: () => mostrarEtiqueta(1) },                     // etiqueta no vidro (NaOH) em fade in — sem nome flutuante
   ]),
   'dialogo1.3B':  () => rodarStory([
     { t: 0.0,  fn: iniciarCena13B },                                // fade out H+ + pipeta; escurece HCl/H2CO3
@@ -7063,7 +7063,7 @@ function iniciarCena13B() {
     reagents[i].locked = true; escurecerBeakerFade(reagents[i].beaker, true);   // escurece em fade (mantém a ação, sem corte seco)
   });
   mostrarNomeAcido(AC_X[0], 'Ácido Clorídrico');   // idempotente (não duplica no fluxo normal)
-  mostrarNomeAcido(AC_X[1], 'Ácido Carbônico');
+  // posição 1 agora é NaOH (base): sem nome flutuante — só a etiqueta do vidro (revelada no 1.3A)
   reagents[2].locked = false;
   demoInterativo = { ativo: false, encheu: false, derramou: false, expelindo: false };
   $id('ajudaBtn').classList.remove('ativo');
