@@ -2220,7 +2220,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.188.0</div>
+<div id="versao">v1.189.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -4689,6 +4689,8 @@ const FAIXAS = [
   { id: 'dialogo4',      arquivo: 'audios/dialogo4.mp3',      titulo: 'Diálogo 4 — Encerramento' },
   { id: 'quiz5-1',       arquivo: 'audios/quiz5-1.mp3',       titulo: 'Quiz 5 — Questão 01 (nome dos hidrácidos)' },
   { id: 'quiz5-2',       arquivo: 'audios/quiz5-2.mp3',       titulo: 'Quiz 5 — Questão 02 (fórmula do ácido)' },
+  { id: 'quiz5-4',       arquivo: 'audios/quiz5-4.mp3',       titulo: 'Quiz 5 — Q02 item c (Ácido Cianídrico)' },
+  { id: 'quiz5-5',       arquivo: 'audios/quiz5-5.mp3',       titulo: 'Quiz 5 — Questão 03 (nox central)' },
 ];
 
 // EVENTOS: cada função roda quando a faixa correspondente COMEÇA a tocar.
@@ -8647,6 +8649,11 @@ const QUIZ5 = [
     itens: [
       { disp: 'Ácido Iodídrico',  alts: ['HIO', 'HI', 'HIO<sub>2</sub>'], correta: 1 },
       { disp: 'Ácido Bromídrico', alts: ['HBm', 'HBO', 'HBr'],            correta: 2 },
+      { disp: 'Ácido Cianídrico', alts: ['HCO', 'HCNO', 'HCN'], correta: 2, faixa: 'quiz5-4', revelarEm: 1.0 },
+    ] },
+  { faixa: 'quiz5-5', titulo: 'Questão 03: Qual o nox do elemento central nos oxiácidos a seguir:', modo: 'frasco', revelarEm: 5.5,
+    itens: [
+      { disp: 'H2CO3', alts: ['+3', '+3', '+4'], correta: 2 },
     ] },
 ];
 let q5 = { qi: 0, ii: 0, resp: false };
@@ -8697,19 +8704,22 @@ function q5MontarQuestao(qi) {
   $id('q5num').textContent = k >= 0 ? t.slice(0, k) : t;        // "Questão 01" (em cima)
   $id('q5perg').textContent = k >= 0 ? t.slice(k + 2) : '';     // "Qual o nome..." (embaixo)
   q5AplicarConteudo();
-  if (QUIZ5[qi].revelarEm) q5OcultarItem();   // espera o cue do áudio (ex.: 5s do quiz5-2)
+  if (QUIZ5[qi].revelarEm != null) q5OcultarItem();   // espera o cue do áudio (ex.: 5s do quiz5-2)
   else q5RevelarItem(true);
 }
-// revela o 1º item de cada questão no tempo certo do áudio (frasco/alternativas em 3s; nome da Q2 em 5s)
-EVENTOS['quiz5-1'] = () => rodarStory([{ t: 3.0, fn: () => q5RevelarItem(true) }]);
-EVENTOS['quiz5-2'] = () => rodarStory([{ t: 5.0, fn: () => q5RevelarItem(true) }]);
+// toca a faixa (da questão ou de um item) e revela o item atual no tempo certo do áudio (cue dinâmico)
+function q5TocarFaixaRevelar(faixa, tempo) {
+  if (!faixa) return;
+  if (tempo != null) EVENTOS[faixa] = () => rodarStory([{ t: tempo, fn: () => q5RevelarItem(true) }]);
+  const f = idxFaixa(faixa); if (f >= 0) tocarFaixa(f);
+}
 function abrirQuiz5() {
   const b5 = $id('quiz5Btn'); if (b5) b5.classList.remove('show');
   if (typeof CAM_1 !== 'undefined') irParaCamera(CAM_1, true, 1500);   // vai pra posição 1
   const inner = $id('q5inner'); if (inner) { inner.style.transition = 'none'; inner.style.transform = ''; inner.style.opacity = '1'; }
   $id('quiz5').classList.add('show');
   q5MontarQuestao(0);
-  const i = idxFaixa('quiz5-1'); if (i >= 0) tocarFaixa(i);   // Questão 01 aparece junto com o quiz5-1
+  const Q0 = QUIZ5[0]; q5TocarFaixaRevelar(Q0.faixa, Q0.revelarEm);   // toca quiz5-1 e revela o 1º item no tempo certo
 }
 function q5Responder(i, btn) {
   if (q5.resp) return; q5.resp = true;
@@ -8726,9 +8736,16 @@ function q5Avancar() {
   const Q = QUIZ5[q5.qi];
   if (q5.ii < Q.itens.length - 1) {
     q5.ii++;
-    if (q5.ii === 1 && typeof proximaAudio !== 'undefined') q5Som(proximaAudio);       // a) -> b): "próxima"
-    else if (q5.ii === 2 && typeof maisumaAudio !== 'undefined') q5Som(maisumaAudio);  // b) -> c): "mais uma"
-    q5ProximoItem();
+    const it = Q.itens[q5.ii];
+    if (it.faixa) {   // item com áudio próprio (ex.: Q02 c -> quiz5-4): toca a faixa e revela no tempo dela
+      q5AplicarConteudo();
+      if (it.revelarEm != null) q5OcultarItem(); else q5RevelarItem(true);
+      q5TocarFaixaRevelar(it.faixa, it.revelarEm);
+    } else {          // transição só com efeito sonoro
+      if (q5.ii === 1 && typeof proximaAudio !== 'undefined') q5Som(proximaAudio);       // a) -> b): "próxima"
+      else if (q5.ii === 2 && typeof maisumaAudio !== 'undefined') q5Som(maisumaAudio);  // b) -> c): "mais uma"
+      q5ProximoItem();
+    }
     return;
   }
   if (q5.qi < QUIZ5.length - 1) { q5TrocarQuestao(q5.qi + 1); return; }        // próxima questão
@@ -8743,7 +8760,7 @@ function q5TrocarQuestao(qi) {   // desliza tudo pra direita; a próxima questã
     inner.style.transition = 'none'; inner.style.transform = 'translateX(-95vw)'; inner.style.opacity = '0';
     void inner.offsetWidth;
     inner.style.transition = 'transform .55s ease, opacity .55s ease'; inner.style.transform = 'translateX(0)'; inner.style.opacity = '1';
-    const f = idxFaixa(QUIZ5[qi].faixa); if (f >= 0) tocarFaixa(f);   // toca o áudio da nova questão (ex.: quiz5-2)
+    const Q = QUIZ5[qi]; q5TocarFaixaRevelar(Q.faixa, Q.revelarEm);   // toca o áudio da nova questão e revela no tempo certo
   }, 520);
 }
 function q5Fim() { const alts = $id('q5alts'); if (alts) alts.querySelectorAll('.q5alt').forEach(b => b.disabled = true); }   // (mais questões a caminho)
