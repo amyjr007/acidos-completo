@@ -2220,7 +2220,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.195.0</div>
+<div id="versao">v1.196.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3222,7 +3222,8 @@ bench18.forEach(item => {
 
 // ---- Questão 2 do quiz (interativa): 4 béqueres à esquerda (água + 3 substâncias desconhecidas) ----
 // pipReagentes = quizAcidoSubs durante a questão; ao derramar na água aparecem os íons de cada substância.
-const QA_X = { a: -10.2, b: -8.4, c: -6.6, agua: -4.2 };
+// água à ESQUERDA; os 3 frascos de substância (A/B/C) à direita
+const QA_X = { agua: -10.2, a: -7.8, b: -6.0, c: -4.2 };
 const quizAcidoSubs = [
   { name: 'NaCl', letra: 'A', pos: [QA_X.a, 0.3, 1.5], locked: false, ions: [['Na', '+'], ['Cl', '−']] },   // sal (não é ácido)
   { name: 'HCl',  letra: 'B', pos: [QA_X.b, 0.3, 1.5], locked: false, ions: [['H', '+'], ['Cl', '−']] },     // ÁCIDO (libera H⁺) -> resposta correta
@@ -3231,6 +3232,7 @@ const quizAcidoSubs = [
 quizAcidoSubs.forEach(s => {
   const b = makeBeaker(1.1, 2.6, 0xe6f2fa, 0.5, 0.14);
   b.position.set(...s.pos);
+  b.scale.setScalar(0.85);   // frascos de substância 15% menores
   b.traverse(o => { if (o.isMesh) o.castShadow = true; });
   b.visible = false;
   scene.add(b);
@@ -3238,6 +3240,7 @@ quizAcidoSubs.forEach(s => {
 });
 const quizAcidoAgua = makeBeaker(1.6, 3.4, 0x4aa8e8, 0.62);   // béquer de água (mesma geometria da água principal)
 quizAcidoAgua.position.set(QA_X.agua, 0.3, 1.5);
+quizAcidoAgua.scale.setScalar(0.95);   // béquer de água 5% menor
 quizAcidoAgua.traverse(o => { if (o.isMesh) o.castShadow = true; });
 quizAcidoAgua.visible = false;
 scene.add(quizAcidoAgua);
@@ -7404,7 +7407,7 @@ function montarCenaQuizAcido() {
   demoInterativo = { ativo: false, encheu: false, derramou: false, expelindo: false };
   quizAcidoAtivo = true; qaEncheu = false; qaFonte = null;
   irParaCamera(CAM_QA, true, 1500);
-  mostrarLabelsABC([QA_X.a, QA_X.b, QA_X.c], 3.75);   // A/B/C sobre os béqueres de substância
+  mostrarLabelsABC([QA_X.a, QA_X.b, QA_X.c], 3.3);   // A/B/C sobre os béqueres de substância (menores)
   mostrarNomeAcido(QA_X.agua, 'Água');                // rótulo da água (onde derramar)
 }
 function irParaQuizAcido() {
