@@ -474,7 +474,7 @@
     overflow: hidden;
   }
   #quiz5.show { display: block; opacity: 1; }
-  #q5inner { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; will-change: transform, opacity; }
+  #q5inner { position: relative; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; will-change: transform, opacity; }
   #q5titulo {
     text-align: center; font-family: system-ui, sans-serif; font-weight: 800;
     font-size: clamp(17px, 5vw, 25px); color: #eaf7d9; text-shadow: 0 2px 8px rgba(0, 0, 0, .55);
@@ -489,11 +489,11 @@
     font-family: system-ui, sans-serif; font-weight: 800; font-size: clamp(22px, 6.6vw, 34px);
     box-shadow: 0 8px 22px rgba(0, 0, 0, .4); white-space: nowrap;
   }
-  #q5frasco.oculto, #q5alts.oculto { opacity: 0; pointer-events: none; }
-  #q5frasco, #q5alts { transition: opacity .45s ease; }
+  #q5frasco.oculto, #q5alts.oculto, #q5letra.oculto { opacity: 0; pointer-events: none; }
+  #q5frasco, #q5alts, #q5letra { transition: opacity .45s ease; }
   #q5letra {
-    position: absolute; left: 50%; top: 0; transform: translateX(-50%); z-index: 2;
-    font: 800 clamp(20px, 6vw, 30px) Georgia, serif; color: #ffd21e; text-shadow: 0 2px 6px rgba(0, 0, 0, .6);
+    position: absolute; left: 6%; top: 60%; transform: translateY(-50%); z-index: 2;
+    font: 800 clamp(22px, 6.5vw, 32px) Georgia, serif; color: #ffd21e; text-shadow: 0 2px 6px rgba(0, 0, 0, .6);
   }
   #q5frasco.drama { animation: q5drama .62s cubic-bezier(.2, .8, .2, 1.5); }
   @keyframes q5drama {
@@ -2216,7 +2216,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.185.0</div>
+<div id="versao">v1.186.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2260,9 +2260,9 @@
 <!-- Quiz 5: identificar nome pela fórmula (e vice-versa), frasco a frasco -->
 <div id="quiz5" aria-hidden="true">
   <div id="q5inner">
+    <div id="q5letra"></div>
     <div id="q5titulo"></div>
     <div id="q5frasco">
-      <div id="q5letra"></div>
       <div id="q5svg"></div>
     </div>
     <div id="q5alts">
@@ -8668,12 +8668,24 @@ function q5AplicarConteudo() {   // preenche letra + frasco/etiqueta + alternati
     b.classList.remove('certo', 'errado'); b.disabled = false;
   });
   q5.resp = false;
+  requestAnimationFrame(q5PosicionarLetra);
 }
-function q5RevelarItem(drama) {   // mostra frasco/etiqueta + alternativas (com pop dramático)
-  ['q5frasco', 'q5alts'].forEach(id => { const e = $id(id); if (e) e.classList.remove('oculto'); });
+function q5PosicionarLetra() {   // a) b) c) na esquerda, na altura do rótulo da garrafa
+  const inner = $id('q5inner'), letra = $id('q5letra'), wrap = $id('q5svg');
+  if (!inner || !letra || !wrap) return;
+  const svg = wrap.querySelector('svg'), et = wrap.querySelector('.q5etiqueta');
+  const alvo = svg || et || wrap;
+  const rA = alvo.getBoundingClientRect(), rI = inner.getBoundingClientRect();
+  if (!rA.height) return;
+  const y = svg ? rA.top + 0.727 * rA.height : rA.top + rA.height / 2;   // rótulo ~72,7% da altura do frasco; etiqueta = centro
+  letra.style.top = Math.round(y - rI.top) + 'px';
+}
+addEventListener('resize', () => { const q = $id('quiz5'); if (q && q.classList.contains('show')) q5PosicionarLetra(); });
+function q5RevelarItem(drama) {   // mostra letra + frasco/etiqueta + alternativas (com pop dramático)
+  ['q5frasco', 'q5alts', 'q5letra'].forEach(id => { const e = $id(id); if (e) e.classList.remove('oculto'); });
   if (drama) { const fr = $id('q5frasco'); fr.classList.remove('drama'); void fr.offsetWidth; fr.classList.add('drama'); }
 }
-function q5OcultarItem() { ['q5frasco', 'q5alts'].forEach(id => { const e = $id(id); if (e) e.classList.add('oculto'); }); }
+function q5OcultarItem() { ['q5frasco', 'q5alts', 'q5letra'].forEach(id => { const e = $id(id); if (e) e.classList.add('oculto'); }); }
 function q5ProximoItem() { q5AplicarConteudo(); q5RevelarItem(true); }
 function q5MontarQuestao(qi) {
   q5.qi = qi; q5.ii = 0; $id('q5titulo').textContent = QUIZ5[qi].titulo;
