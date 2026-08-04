@@ -2222,7 +2222,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.200.0</div>
+<div id="versao">v1.201.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -7280,8 +7280,10 @@ function cortarAudiosQuiz() {
   try { if (typeof player !== 'undefined' && player && !player.paused) player.pause(); } catch (e) {}
 }
 // questão 1: quando o enunciado ("Ex. lávaia1a") termina, espera 1s e toca o "quiz1"
+let _quiz1AudioTimer = null;
 exLavaia1a.addEventListener('ended', () => {
-  setTimeout(() => { if ($id('quiz1').classList.contains('show')) tocarAudioQuiz(quiz1Audio); }, 1000);
+  clearTimeout(_quiz1AudioTimer);
+  _quiz1AudioTimer = setTimeout(() => { if (!quiz1Resp && $id('quiz1').classList.contains('show')) tocarAudioQuiz(quiz1Audio); }, 1000);
 });
 // transição entre questões: o áudio ("próxima"/"maisuma") só toca DEPOIS do feedback terminar (nunca junto); aí avança
 let _transTimers = [], _transToken = 0;
@@ -7367,11 +7369,13 @@ function abrirQuiz1() {
 // some botão + questão e para a narração do enunciado (ao navegar pra outra faixa)
 function fecharQuiz1() {
   limparTransicao();
+  clearTimeout(_quiz1AudioTimer);   // cancela o "quiz1" agendado
   $id('quizBtn').classList.remove('show');
   $id('quiz1').classList.remove('show');
   pararAudioQuiz(exLavaia1a); pararAudioQuiz(quiz1Audio); pararAudioQuiz(dica1Audio);
 }
 function responderQuiz1(letra, btn) {
+  clearTimeout(_quiz1AudioTimer);   // cancela o "quiz1" agendado (caso o usuário clique antes de ele tocar)
   cortarAudiosQuiz();
   if (quiz1Resp) return;
   quiz1Resp = true;
