@@ -2220,7 +2220,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.196.0</div>
+<div id="versao">v1.197.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3915,7 +3915,7 @@ function limparRotuloAcido() { rotulosAcido.forEach(s => scene.remove(s)); rotul
 
 // nomes ("Ácido Clorídrico" etc.) acima dos frascos — 60% menores e persistentes (ficam até o fim)
 const nomesAcido = [];
-function mostrarNomeAcido(px, nome) {
+function mostrarNomeAcido(px, nome, y = 3.55, xPos = px) {
   if (nomesAcido.some(s => s.userData.px === px)) return;   // já existe (evita duplicar/piscar)
   const cv = document.createElement('canvas'); cv.width = 640; cv.height = 136;
   const c = cv.getContext('2d');
@@ -3925,7 +3925,7 @@ function mostrarNomeAcido(px, nome) {
   const tex = new THREE.CanvasTexture(cv);
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthTest: false, fog: false }));
   s.scale.set(2.53, 0.539, 1);               // 60% menor (+10% de fonte)
-  s.position.set(px, 3.55, 1.5);             // acima do frasco
+  s.position.set(xPos, y, 1.5);              // acima do frasco (y/x ajustáveis)
   s.userData.px = px;
   scene.add(s); nomesAcido.push(s);
   const t0 = animNow();
@@ -7407,8 +7407,8 @@ function montarCenaQuizAcido() {
   demoInterativo = { ativo: false, encheu: false, derramou: false, expelindo: false };
   quizAcidoAtivo = true; qaEncheu = false; qaFonte = null;
   irParaCamera(CAM_QA, true, 1500);
-  mostrarLabelsABC([QA_X.a, QA_X.b, QA_X.c], 3.3);   // A/B/C sobre os béqueres de substância (menores)
-  mostrarNomeAcido(QA_X.agua, 'Água');                // rótulo da água (onde derramar)
+  mostrarLabelsABC([QA_X.a, QA_X.b, QA_X.c], 1.3, 2.44, 0.92);   // A/B/C na frente do vidro (z~2.44), 20% menores
+  mostrarNomeAcido(QA_X.agua, 'Água', 4.1, QA_X.agua - 1.1);     // "Água": 1 linha acima e ~2 linhas à esquerda
 }
 function irParaQuizAcido() {
   if (!emQuizPrincipal()) return;
@@ -7455,7 +7455,7 @@ $id('quizAcido').querySelectorAll('.q2opt').forEach(b => b.addEventListener('cli
 // rótulos 3D A/B/C acima dos 3 béqueres (mesmo estilo verde dos nomes dos ácidos)
 const quiz2Labels = [];
 function limparLabelsABC() { quiz2Labels.forEach(s => scene.remove(s)); quiz2Labels.length = 0; }
-function mostrarLabelsABC(xs = AC_X, y = 3.75) {   // xs: posições x dos 3 béqueres (default = os ácidos do 1.3)
+function mostrarLabelsABC(xs = AC_X, y = 3.75, z = 1.5, sc = 1.15) {   // xs: posições x; z/sc ajustáveis (Q2 põe as letras na frente do vidro, menores)
   limparLabelsABC();
   ['A', 'B', 'C'].forEach((L, i) => {
     const cv = document.createElement('canvas'); cv.width = 128; cv.height = 128;
@@ -7464,8 +7464,8 @@ function mostrarLabelsABC(xs = AC_X, y = 3.75) {   // xs: posições x dos 3 bé
     c.shadowColor = 'rgba(166,229,52,0.9)'; c.shadowBlur = 20; c.fillStyle = '#a6e534';
     c.font = 'bold 92px system-ui, sans-serif'; c.fillText(L, 64, 72);
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, opacity: 0, depthTest: false, fog: false }));
-    s.scale.set(1.15, 1.15, 1);
-    s.position.set(xs[i], y, 1.5);   // acima de cada béquer
+    s.scale.set(sc, sc, 1);
+    s.position.set(xs[i], y, z);   // acima (ou na frente) de cada béquer
     scene.add(s); quiz2Labels.push(s);
     const t0 = animNow();
     (function step() { const k = Math.min(1, (animNow() - t0) / 500); s.material.opacity = 0.98 * k; if (k < 1) requestAnimationFrame(step); })();
