@@ -2220,7 +2220,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.197.0</div>
+<div id="versao">v1.198.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -4535,7 +4535,7 @@ function animate() {
     if (!qaEncheu && pipFill > 0.55) {          // encheu: guarda a substância + reseta os íons da água
       qaEncheu = true;
       qaFonte = qaSubstanciaEmX(pipette.position.x);
-      limparHmais();                            // a cada nova coleta, some o que estava na água
+      esconderHmaisFade();                      // a cada nova coleta, os íons da água somem em fade out
     } else if (qaEncheu && pipFill < 0.1) {
       qaEncheu = false;                         // pipeta esvaziou -> pode reencher
     }
