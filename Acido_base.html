@@ -2222,7 +2222,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.202.0</div>
+<div id="versao">v1.203.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -8595,8 +8595,9 @@ function c2Big(id, on) { const e = $id(id); if (e) e.classList.toggle('cbig', !!
 function c2cgBig(id, on) { const e = $id(id); if (e) e.style.transform = 'translateX(-50%)' + (on ? ' scale(1.4)' : ''); }   // idem, pra uma carga (mantém o translate)
 function c2Inicio() {
   // desliza o HClO e a reta pra direita (empurrados) e some o +1 do Cl
-  const hclo = $id('c19clHClO'); if (hclo) { hclo.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; hclo.style.transform = 'translateX(85vw) ' + (hclo.style.transform || ''); }
-  const reta = $id('c19hReta'); if (reta) { reta.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; reta.style.transform = 'translateX(85vw) translateX(-50%) scale(1.035)'; }
+  const hclo = $id('c19clHClO'); if (hclo) { hclo.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; hclo.style.transform = 'translateX(125vw) ' + (hclo.style.transform || ''); }
+  const reta = $id('c19hReta'); if (reta) { reta.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; reta.style.transform = 'translateX(125vw) translateX(-50%) scale(1.035)'; }   // desliza mais pra direita (a ponta esquerda da seta não pode sobrar na tela)
+  const nomeH3 = $id('c19h3Nome'); if (nomeH3) { nomeH3.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; nomeH3.style.transform = 'translateX(125vw)'; }   // "Ácido Hipocloroso" desliza junto com a tabela
   const cl = $id('cgCl'); if (cl) cl.classList.remove('on');
   // H3PO4 entra pela esquerda até o centro
   const f = $id('c2Formula');
@@ -8639,6 +8640,7 @@ function c2Esconder() {
   const cn = $id('c2cNome'); if (cn) { cn.classList.remove('show'); cn.style.transition = ''; cn.style.transform = ''; ['c2cAcido', 'c2cFosforo', 'c2cIco'].forEach(s => { if (typeof c19Limpar === 'function') c19Limpar(s); }); }
   if (typeof c3Esconder === 'function') c3Esconder();
   const reta = $id('c19hReta'); if (reta) { reta.style.transition = ''; reta.style.transform = ''; }
+  const nomeH3 = $id('c19h3Nome'); if (nomeH3) { nomeH3.style.transition = ''; nomeH3.style.transform = ''; }   // limpa o deslize do "Ácido Hipocloroso" (replay)
 }
 // fim do 2R/2W: some (fade out) todos os números menos o +5 e entram os 2 botões
 function c2FimMostrar() {
@@ -8733,10 +8735,10 @@ function posicionarC3() {
   const n2 = $id('c3n2'); if (n2) { n2.style.top = midY + 'px'; n2.style.left = Math.round(rO.right + 22) + 'px'; n2.style.transform = 'translateY(-50%)'; }
 }
 function c3Inicio() {
-  // desliza o exemplo anterior (H3PO4 + tabela + nome) pra direita
-  const c2f = $id('c2Formula'); if (c2f) { c2f.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; c2f.style.transform = 'translateX(85vw)'; }
-  const reta = $id('c19hReta'); if (reta) { reta.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; reta.style.transform = 'translateX(85vw) translateX(-50%) scale(1.035)'; }
-  const cn = $id('c2cNome'); if (cn) { cn.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; cn.style.transform = 'translateX(85vw)'; }
+  // desliza o exemplo anterior (H3PO4 + tabela + nome) pra direita (longe o bastante pra nada sobrar na tela)
+  const c2f = $id('c2Formula'); if (c2f) { c2f.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; c2f.style.transform = 'translateX(125vw)'; }
+  const reta = $id('c19hReta'); if (reta) { reta.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; reta.style.transform = 'translateX(125vw) translateX(-50%) scale(1.035)'; }
+  const cn = $id('c2cNome'); if (cn) { cn.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)'; cn.style.transform = 'translateX(125vw)'; }
   document.querySelectorAll('.c2cg').forEach(e => { e.classList.remove('on', 'c2pulsaLento'); e.style.animation = ''; e.style.transform = ''; });   // some as cargas do exemplo anterior
   // HIO4 entra pela esquerda
   const f = $id('c3Formula');
