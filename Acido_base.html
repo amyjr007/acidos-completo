@@ -2222,7 +2222,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.203.0</div>
+<div id="versao">v1.204.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -2796,6 +2796,9 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = false;   // sem efeitos de sombra
 document.body.appendChild(renderer.domElement);
+// texturas de canvas (rótulos/íons) costumam ter dimensão NPOT -> em GPU de celular viram "listras" com mipmap.
+// Desliga mipmap + filtro linear pra renderizar o texto nítido em qualquer aparelho.
+function texCrisp(t) { t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; return t; }
 
 // Relógio de animação que CONGELA quando o áudio está pausado.
 // Todas as animações sincronizadas (câmera, pipeta, fades) usam animNow() em vez
@@ -2858,7 +2861,7 @@ function woodTexture() {
     g.strokeStyle = 'rgba(28,14,6,0.55)'; g.lineWidth = 2.5;  // fresta entre tábuas
     g.beginPath(); g.moveTo(0, y0); g.lineTo(w, y0); g.stroke();
   }
-  const tex = new THREE.CanvasTexture(cv);
+  const tex = texCrisp(new THREE.CanvasTexture(cv));
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   tex.anisotropy = 8;
   return tex;
@@ -2960,7 +2963,7 @@ function desenharSlide(txt, k, caret) {
   if (slideTex) slideTex.needsUpdate = true;
 }
 desenharSlide('', 0, false);
-slideTex = new THREE.CanvasTexture(slideCv);
+slideTex = texCrisp(new THREE.CanvasTexture(slideCv));
 slideTex.anisotropy = 8;
 
 // desenha uma FOTO + nome no quadro (dialogo4: encerramento com o professor)
@@ -3142,7 +3145,7 @@ function labelTexture(parts) {
     x += ctx.measureText(p.t).width;
   });
 
-  const tex = new THREE.CanvasTexture(cv);
+  const tex = texCrisp(new THREE.CanvasTexture(cv));
   tex.anisotropy = 8;
   return tex;
 }
@@ -3416,7 +3419,7 @@ function glowTex18(nucleo) {
     gr.addColorStop(1, 'rgba(255,175,55,0)');
   }
   x.fillStyle = gr; x.fillRect(0, 0, 256, 256);
-  return new THREE.CanvasTexture(cv);
+  return texCrisp(new THREE.CanvasTexture(cv));
 }
 let seta18Spr = null, seta18TexCima = null, seta18TexBaixo = null;   // seta de luz azul do botão do suporte (elevador)
 function seta18Tex(cima) {   // triângulo azul brilhante (▲/▼) em canvas
@@ -3427,7 +3430,7 @@ function seta18Tex(cima) {   // triângulo azul brilhante (▲/▼) em canvas
   if (cima) { x.moveTo(64, 20); x.lineTo(106, 88); x.lineTo(22, 88); }
   else { x.moveTo(64, 108); x.lineTo(106, 40); x.lineTo(22, 40); }
   x.closePath(); x.fill();
-  return new THREE.CanvasTexture(cv);
+  return texCrisp(new THREE.CanvasTexture(cv));
 }
 // sons do aparelho + vibração
 const snd18Click = new Audio('audios/click_sound.mp3');   // (convertido de .m4a — o m4a não tocava em todos os navegadores)
@@ -3489,7 +3492,7 @@ function makeAparelho18e() {
   cOn.textAlign = 'center'; cOn.textBaseline = 'middle';
   cOn.shadowColor = 'rgba(0,0,0,.8)'; cOn.shadowBlur = 8; cOn.fillStyle = '#dfe9f2';
   cOn.font = '600 40px system-ui, sans-serif'; cOn.fillText('on/off', 128, 48);
-  const sprOn = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cvOn), transparent: true, depthTest: false }));
+  const sprOn = new THREE.Sprite(new THREE.SpriteMaterial({ map: texCrisp(new THREE.CanvasTexture(cvOn)), transparent: true, depthTest: false }));
   sprOn.scale.set(0.62, 0.23, 1);
   sprOn.position.set(AX - 0.75, 5.94, -3.15);
   g.add(sprOn);
@@ -3837,7 +3840,7 @@ function mostrarHmais(n = 7, cx = pipAguaX) {
     x.shadowColor = 'rgba(166,229,52,0.9)'; x.shadowBlur = 24; x.fillStyle = '#c6ff5a';
     x.font = 'bold 150px system-ui, sans-serif'; x.fillText('H', 108, 152);
     x.font = 'bold 92px system-ui, sans-serif'; x.fillText('+', 202, 98);
-    hmaisTex = new THREE.CanvasTexture(cv);
+    hmaisTex = texCrisp(new THREE.CanvasTexture(cv));
   }
   // dentro da solução: entre ~0.7 e ~2.2 de altura (a água vai de 0.3 até WATER_SURF)
   for (let i = 0; i < n; i++) {
@@ -3862,7 +3865,7 @@ function fazerIonTex(base, carga) {
   const px = (256 - (wBase + wCarga)) / 2;
   x.font = 'bold 120px system-ui, sans-serif'; x.fillText(base, px, 148);
   x.font = 'bold 74px system-ui, sans-serif';  x.fillText(carga, px + wBase, 100);
-  return new THREE.CanvasTexture(cv);
+  return texCrisp(new THREE.CanvasTexture(cv));
 }
 function mostrarNaOH(nNa = 4, nOH = 4, cx = pipAguaX) {
   if (!ionTexCache.na) ionTexCache.na = fazerIonTex('Na', '+');
@@ -3904,7 +3907,7 @@ function mostrarRotuloAcido(px) {
     c.textAlign = 'center'; c.textBaseline = 'middle';
     c.shadowColor = 'rgba(166,229,52,0.9)'; c.shadowBlur = 22; c.fillStyle = '#a6e534';
     c.font = 'bold 120px system-ui, sans-serif'; c.fillText('Ácido', 256, 112);
-    rotuloAcidoTex = new THREE.CanvasTexture(cv);
+    rotuloAcidoTex = texCrisp(new THREE.CanvasTexture(cv));
   }
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: rotuloAcidoTex, transparent: true, opacity: 0, depthTest: false, fog: false }));
   s.scale.set(1.7, 0.665, 1);                       // 50% menor
@@ -3924,7 +3927,7 @@ function mostrarNomeAcido(px, nome, y = 3.55, xPos = px) {
   c.textAlign = 'center'; c.textBaseline = 'middle';
   c.shadowColor = 'rgba(166,229,52,0.9)'; c.shadowBlur = 20; c.fillStyle = '#a6e534';
   c.font = 'bold 62px system-ui, sans-serif'; c.fillText(nome, 320, 72);
-  const tex = new THREE.CanvasTexture(cv);
+  const tex = texCrisp(new THREE.CanvasTexture(cv));
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthTest: false, fog: false }));
   s.scale.set(2.53, 0.539, 1);               // 60% menor (+10% de fonte)
   s.position.set(xPos, y, 1.5);              // acima do frasco (y/x ajustáveis)
@@ -7470,7 +7473,7 @@ function mostrarLabelsABC(xs = AC_X, y = 3.75, z = 1.5, sc = 1.15) {   // xs: po
     c.textAlign = 'center'; c.textBaseline = 'middle';
     c.shadowColor = 'rgba(166,229,52,0.9)'; c.shadowBlur = 20; c.fillStyle = '#a6e534';
     c.font = 'bold 92px system-ui, sans-serif'; c.fillText(L, 64, 72);
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, opacity: 0, depthTest: false, fog: false }));
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: texCrisp(new THREE.CanvasTexture(cv)), transparent: true, opacity: 0, depthTest: false, fog: false }));
     s.scale.set(sc, sc, 1);
     s.position.set(xs[i], y, z);   // acima (ou na frente) de cada béquer
     scene.add(s); quiz2Labels.push(s);
