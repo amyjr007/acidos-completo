@@ -2042,7 +2042,7 @@
 
   /* Título "Definição de Arrhenius" que sobe de baixo e continua no dialogo1.3 */
   #tituloDef {
-    position: fixed; left: 0; right: 0; top: 5%; z-index: 42;
+    position: fixed; left: 0; right: 0; top: calc(5% + 0.86em); z-index: 42;   /* desceu 0,75 linha */
     text-align: center; padding: 0 24px;
     font-family: system-ui, sans-serif; font-weight: 900; color: var(--acid);
     text-shadow: 0 0 16px var(--acid-glow);
@@ -2222,7 +2222,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.205.0</div>
+<div id="versao">v1.206.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -4843,7 +4843,7 @@ const EVENTOS = {
     { t: 1.2,  fn: () => stShow('center', 'O que são substâncias<br><span class="maior">inorgânicas?</span>', 'st-pergunta') },
     { t: 5.0,  fn: stSair },
     { t: 10.0, fn: () => { mostrarImg2('imagens/lab.png', { fit: 'cover', pos: '0% 50%', from: 'scale(1.06)', w: 'calc(min(74vw, 320px) * 1.1)', h: 'calc(min(74vw, 320px) * 1.3)' });
-                           kenBurns(8000, { transform: 'scale(1.06)', pos: '100% 50%' }); } },  // card + pan esq→dir
+                           kenBurns(10000, { transform: 'scale(1.06)', pos: '100% 50%' }); } },  // card + pan esq→dir (20% mais lento)
     { t: 18.0, fn: esconderImg2 },                             // sai
     { t: 22.0, fn: () => stShow('top', 'Dois grupos de substâncias', 'st-parte') },
     { t: 24.0, fn: () => mostrarSubstTitulo('Substâncias Orgânicas') },
