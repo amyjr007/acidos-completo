@@ -2052,6 +2052,16 @@
   }
   #tituloDef.show { opacity: 1; }
   #tituloDef.subiu { transform: translateY(0); }
+  /* Rótulos 3D (íons/"Ácido"/nomes) em HTML sobreposto — a GPU de alguns celulares corrompe texto em textura 3D */
+  .lab3d {
+    position: fixed; left: 0; top: 0; z-index: 20; pointer-events: none; white-space: nowrap;
+    font-family: system-ui, sans-serif; font-weight: 800; line-height: 1; opacity: 0;
+    transform: translate(-50%, -50%); will-change: left, top, font-size, opacity;
+    text-shadow: 0 0 .3em rgba(166, 229, 52, .95), 0 0 .1em rgba(166, 229, 52, .9);
+  }
+  .lab3d sup { font-size: .62em; vertical-align: super; }
+  .lab3d.ion { color: #c6ff5a; }
+  .lab3d.nome { color: #a6e534; }
 
   /* Definição digitada (dialogo1.3) */
   #defTexto {
@@ -2222,7 +2232,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.207.0</div>
+<div id="versao">v1.208.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3829,114 +3839,57 @@ function pipetaVaiMergulhaH2CO3() {
 }
 function pipetaEncheSemMover() { encherPipeta(); }           // só enche (o movimento é um cue separado)
 
-// H+ flutuando na água (t34)
+// ---- Rótulos 3D (íons, "Ácido", nomes) via HTML sobreposto (projetado a cada frame) ----
+// GPU de alguns celulares corrompe texturas de canvas com texto (vira listras); HTML resolve.
+const _p3 = new THREE.Vector3(), _p3b = new THREE.Vector3();
+function _projLab(el, pos, sclH, op) {
+  _p3.copy(pos).project(camera);
+  if (_p3.z > 1) { el.style.opacity = '0'; return; }
+  _p3b.set(pos.x, pos.y + sclH, pos.z).project(camera);
+  const h = Math.abs((_p3.y - _p3b.y) * 0.5 * innerHeight);
+  el.style.left = ((_p3.x * 0.5 + 0.5) * innerWidth).toFixed(1) + 'px';
+  el.style.top = ((-_p3.y * 0.5 + 0.5) * innerHeight).toFixed(1) + 'px';
+  el.style.fontSize = h.toFixed(1) + 'px';
+  el.style.opacity = (op == null ? 1 : Math.max(0, op)).toFixed(3);
+}
+function _novoLab(cls, html) { const el = document.createElement('div'); el.className = 'lab3d ' + cls; el.innerHTML = html; document.body.appendChild(el); return el; }
+
+// H+ (e outros íons) flutuando na água
 const hmaisSprites = [];
-let hmaisTex = null;
-function mostrarHmais(n = 7, cx = pipAguaX) {
-  if (!hmaisTex) {
-    const cv = document.createElement('canvas'); cv.width = 256; cv.height = 256;
-    const x = cv.getContext('2d');
-    x.textAlign = 'center'; x.textBaseline = 'middle';
-    x.shadowColor = 'rgba(166,229,52,0.9)'; x.shadowBlur = 24; x.fillStyle = '#c6ff5a';
-    x.font = 'bold 150px system-ui, sans-serif'; x.fillText('H', 108, 152);
-    x.font = 'bold 92px system-ui, sans-serif'; x.fillText('+', 202, 98);
-    hmaisTex = texCrisp(new THREE.CanvasTexture(cv));
-  }
-  // dentro da solução: entre ~0.7 e ~2.2 de altura (a água vai de 0.3 até WATER_SURF)
-  for (let i = 0; i < n; i++) {
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: hmaisTex, transparent: true, opacity: 0, depthTest: false, fog: false }));
-    const sc = 0.55 + Math.random() * 0.35; s.scale.set(sc, sc, sc);
-    s.position.set(cx + (Math.random() - 0.5) * 2.0, 0.7 + Math.random() * (WATER_SURF - 1.0), 1.5 + (Math.random() - 0.5) * 1.4);
-    s.userData = { phase: Math.random() * 6.28, base: s.position.y, amp: 0.06 + Math.random() * 0.08 };
-    scene.add(s); hmaisSprites.push(s);
-  }
+function _spawnIon(html, cx) {
+  const el = _novoLab('ion', html);
+  const sc = 0.55 + Math.random() * 0.35;
+  const pos = new THREE.Vector3(cx + (Math.random() - 0.5) * 2.0, 0.7 + Math.random() * (WATER_SURF - 1.0), 1.5 + (Math.random() - 0.5) * 1.4);
+  hmaisSprites.push({ el, pos, sclH: sc * 0.81, op: 0, userData: { phase: Math.random() * 6.28, base: pos.y, amp: 0.06 + Math.random() * 0.08 } });
 }
-function limparHmais() { hmaisSprites.forEach(s => scene.remove(s)); hmaisSprites.length = 0; }
+function mostrarHmais(n = 7, cx = pipAguaX) { for (let i = 0; i < n; i++) _spawnIon('H<sup>+</sup>', cx); }
+function mostrarNaOH(nNa = 4, nOH = 4, cx = pipAguaX) { for (let i = 0; i < nNa; i++) _spawnIon('Na<sup>+</sup>', cx); for (let i = 0; i < nOH; i++) _spawnIon('OH<sup>−</sup>', cx); }
+// íons genéricos: pares = [['H','+'], ['Cl','−'], ...]; n de cada.
+function mostrarIonsMix(pares, cx = pipAguaX, n = 4) { pares.forEach(([base, carga]) => { for (let i = 0; i < n; i++) _spawnIon(base + '<sup>' + carga + '</sup>', cx); }); }
+function limparHmais() { hmaisSprites.forEach(s => s.el.remove()); hmaisSprites.length = 0; }
 
-// íons Na⁺ e OH⁻ flutuando na água (base — "não é ácido"). Reusa hmaisSprites (mesma animação/limpeza)
-const ionTexCache = {};
-function fazerIonTex(base, carga) {
-  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 256;
-  const x = cv.getContext('2d');
-  x.textAlign = 'left'; x.textBaseline = 'middle';
-  x.shadowColor = 'rgba(166,229,52,0.9)'; x.shadowBlur = 24; x.fillStyle = '#c6ff5a';
-  x.font = 'bold 120px system-ui, sans-serif'; const wBase = x.measureText(base).width;
-  x.font = 'bold 74px system-ui, sans-serif';  const wCarga = x.measureText(carga).width;
-  const px = (256 - (wBase + wCarga)) / 2;
-  x.font = 'bold 120px system-ui, sans-serif'; x.fillText(base, px, 148);
-  x.font = 'bold 74px system-ui, sans-serif';  x.fillText(carga, px + wBase, 100);
-  return texCrisp(new THREE.CanvasTexture(cv));
-}
-function mostrarNaOH(nNa = 4, nOH = 4, cx = pipAguaX) {
-  if (!ionTexCache.na) ionTexCache.na = fazerIonTex('Na', '+');
-  if (!ionTexCache.oh) ionTexCache.oh = fazerIonTex('OH', '−');
-  const add = (tex, n) => {
-    for (let i = 0; i < n; i++) {
-      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthTest: false, fog: false }));
-      const sc = 0.6 + Math.random() * 0.35; s.scale.set(sc, sc, sc);
-      s.position.set(cx + (Math.random() - 0.5) * 2.0, 0.7 + Math.random() * (WATER_SURF - 1.0), 1.5 + (Math.random() - 0.5) * 1.4);
-      s.userData = { phase: Math.random() * 6.28, base: s.position.y, amp: 0.06 + Math.random() * 0.08 };
-      scene.add(s); hmaisSprites.push(s);
-    }
-  };
-  add(ionTexCache.na, nNa); add(ionTexCache.oh, nOH);
-}
-// íons genéricos: pares = [['H','+'], ['Cl','−'], ...]; n de cada. Reusa hmaisSprites (animação/limpeza).
-function mostrarIonsMix(pares, cx = pipAguaX, n = 4) {
-  pares.forEach(([base, carga]) => {
-    const key = base + carga;
-    if (!ionTexCache[key]) ionTexCache[key] = fazerIonTex(base, carga);
-    const tex = ionTexCache[key];
-    for (let i = 0; i < n; i++) {
-      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthTest: false, fog: false }));
-      const sc = 0.6 + Math.random() * 0.35; s.scale.set(sc, sc, sc);
-      s.position.set(cx + (Math.random() - 0.5) * 2.0, 0.7 + Math.random() * (WATER_SURF - 1.0), 1.5 + (Math.random() - 0.5) * 1.4);
-      s.userData = { phase: Math.random() * 6.28, base: s.position.y, amp: 0.06 + Math.random() * 0.08 };
-      scene.add(s); hmaisSprites.push(s);
-    }
-  });
-}
-
-// rótulos "Ácido" acima dos frascos — um por copo, PERMANECEM na cena (50% menores)
-let rotuloAcidoTex = null;
+// rótulos "Ácido" acima dos frascos — um por copo, PERMANECEM na cena
 const rotulosAcido = [];
 function mostrarRotuloAcido(px) {
-  if (!rotuloAcidoTex) {
-    const cv = document.createElement('canvas'); cv.width = 512; cv.height = 200;
-    const c = cv.getContext('2d');
-    c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.shadowColor = 'rgba(166,229,52,0.9)'; c.shadowBlur = 22; c.fillStyle = '#a6e534';
-    c.font = 'bold 120px system-ui, sans-serif'; c.fillText('Ácido', 256, 112);
-    rotuloAcidoTex = texCrisp(new THREE.CanvasTexture(cv));
-  }
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: rotuloAcidoTex, transparent: true, opacity: 0, depthTest: false, fog: false }));
-  s.scale.set(1.7, 0.665, 1);                       // 50% menor
-  s.position.set(px == null ? AC_X[0] : px, 3.55, 1.5); // acima do frasco
-  scene.add(s); rotulosAcido.push(s);
+  const el = _novoLab('nome', 'Ácido');
+  const o = { el, pos: new THREE.Vector3(px == null ? AC_X[0] : px, 3.55, 1.5), sclH: 0.55, op: 0 };
+  rotulosAcido.push(o);
   const t0 = animNow();
-  (function step() { const k = Math.min(1, (animNow() - t0) / 500); s.material.opacity = 0.98 * k; if (k < 1) requestAnimationFrame(step); })();
+  (function step() { const k = Math.min(1, (animNow() - t0) / 500); o.op = 0.98 * k; if (k < 1) requestAnimationFrame(step); })();
 }
-function limparRotuloAcido() { rotulosAcido.forEach(s => scene.remove(s)); rotulosAcido.length = 0; }   // reset total (replay do 1.3)
+function limparRotuloAcido() { rotulosAcido.forEach(o => o.el.remove()); rotulosAcido.length = 0; }   // reset total (replay do 1.3)
 
-// nomes ("Ácido Clorídrico" etc.) acima dos frascos — 60% menores e persistentes (ficam até o fim)
+// nomes ("Ácido Clorídrico" etc.) acima dos frascos — persistentes (ficam até o fim)
 const nomesAcido = [];
 function mostrarNomeAcido(px, nome, y = 3.55, xPos = px) {
-  if (nomesAcido.some(s => s.userData.px === px)) return;   // já existe (evita duplicar/piscar)
-  const cv = document.createElement('canvas'); cv.width = 640; cv.height = 136;
-  const c = cv.getContext('2d');
-  c.textAlign = 'center'; c.textBaseline = 'middle';
-  c.shadowColor = 'rgba(166,229,52,0.9)'; c.shadowBlur = 20; c.fillStyle = '#a6e534';
-  c.font = 'bold 62px system-ui, sans-serif'; c.fillText(nome, 320, 72);
-  const tex = texCrisp(new THREE.CanvasTexture(cv));
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthTest: false, fog: false }));
-  s.scale.set(2.53, 0.539, 1);               // 60% menor (+10% de fonte)
-  s.position.set(xPos, y, 1.5);              // acima do frasco (y/x ajustáveis)
-  s.userData.px = px;
-  scene.add(s); nomesAcido.push(s);
+  if (nomesAcido.some(o => o.px === px)) return;   // já existe (evita duplicar/piscar)
+  const el = _novoLab('nome', nome);
+  const o = { el, pos: new THREE.Vector3(xPos, y, 1.5), sclH: 0.34, op: 0, px };
+  nomesAcido.push(o);
   const t0 = animNow();
-  (function step() { const k = Math.min(1, (animNow() - t0) / 500); s.material.opacity = 0.98 * k; if (k < 1) requestAnimationFrame(step); })();
+  (function step() { const k = Math.min(1, (animNow() - t0) / 500); o.op = 0.98 * k; if (k < 1) requestAnimationFrame(step); })();
 }
-function limparNomesAcido() { nomesAcido.forEach(s => scene.remove(s)); nomesAcido.length = 0; }
+function limparNomesAcido() { nomesAcido.forEach(o => o.el.remove()); nomesAcido.length = 0; }
 function esconderHmaisFade() { hmaisSprites.forEach(s => s.userData.fadeOut = true); }
 
 // clareia (fade) os copos que estavam escuros/bloqueados (dialogo1.4)
@@ -3976,12 +3929,12 @@ function esconderCoposAcidosFade() {
     if (r.beaker) fade3D(r.beaker, 0, 700);
   });
   nomesAcido.slice().forEach(s => {
-    const t0 = animNow(), base = s.material.opacity;
+    const t0 = animNow(), base = s.op;
     (function step() {
       const k = Math.min(1, (animNow() - t0) / 700);
-      s.material.opacity = base * (1 - k);
+      s.op = base * (1 - k);
       if (k < 1) requestAnimationFrame(step);
-      else { scene.remove(s); const idx = nomesAcido.indexOf(s); if (idx >= 0) nomesAcido.splice(idx, 1); }
+      else { s.el.remove(); const idx = nomesAcido.indexOf(s); if (idx >= 0) nomesAcido.splice(idx, 1); }
     })();
   });
 }
@@ -4491,14 +4444,17 @@ function animate() {
   for (let i = hmaisSprites.length - 1; i >= 0; i--) {
     const s = hmaisSprites[i];
     if (s.userData.fadeOut) {
-      s.material.opacity -= dt * 1.6;
-      if (s.material.opacity <= 0) { scene.remove(s); hmaisSprites.splice(i, 1); continue; }
-    } else if (s.material.opacity < 0.95) {
-      s.material.opacity = Math.min(0.95, s.material.opacity + dt * 1.2);
+      s.op -= dt * 1.6;
+      if (s.op <= 0) { s.el.remove(); hmaisSprites.splice(i, 1); continue; }
+    } else if (s.op < 0.95) {
+      s.op = Math.min(0.95, s.op + dt * 1.2);
     }
-    s.position.y = s.userData.base + Math.sin(t * 1.3 + s.userData.phase) * s.userData.amp;
-    s.position.x += Math.sin(t * 0.7 + s.userData.phase) * dt * 0.12;
+    s.pos.y = s.userData.base + Math.sin(t * 1.3 + s.userData.phase) * s.userData.amp;
+    s.pos.x += Math.sin(t * 0.7 + s.userData.phase) * dt * 0.12;
+    _projLab(s.el, s.pos, s.sclH, s.op);
   }
+  for (const o of nomesAcido) _projLab(o.el, o.pos, o.sclH, o.op);       // nomes (projetados a cada frame)
+  for (const o of rotulosAcido) _projLab(o.el, o.pos, o.sclH, o.op);     // "Ácido"
 
   // demonstração interativa (1.3B): detecta encher e derramar a pipeta
   if (demoInterativo.ativo) {
