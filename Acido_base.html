@@ -259,6 +259,11 @@
     animation: stIn .7s cubic-bezier(.18, .9, .24, 1.35) both;
   }
   .st-credito { font-size: clamp(20px, 5.6vw, 30px); font-weight: 700; color: #dceec0; }
+  .st-foto {   /* foto do professor acima do crédito (entra/sai junto com o texto) */
+    display: block; margin: 0 auto 14px; width: clamp(96px, 28vw, 150px); height: clamp(96px, 28vw, 150px);
+    object-fit: cover; border-radius: 50%; border: 3px solid rgba(166, 229, 52, .6);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, .5), 0 0 22px rgba(166, 229, 52, .3);
+  }
   .st-grande {
     font-size: clamp(56px, 17vw, 104px); font-weight: 900; letter-spacing: 2px;
     color: var(--acid); text-shadow: 0 0 16px var(--acid-glow), 0 0 44px var(--acid-glow);
@@ -2232,7 +2237,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.209.0</div>
+<div id="versao">v1.210.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -4771,7 +4776,7 @@ const EVENTOS = {
     { t: 0.0,  fn: () => stShow('top',    'Olá!') },
     { t: 1.0,  fn: () => stShow('center', 'Bem-Vindo') },
     { t: 2.0,  fn: stSair },
-    { t: 2.7,  fn: () => stShow('center', 'Desenvolvido por<br>Amauri Junior', 'st-credito') },
+    { t: 2.7,  fn: () => stShow('center', '<img class="st-foto" src="imagens/amauri_jr.jpg" alt="">Desenvolvido por<br>Amauri Junior', 'st-credito') },
     { t: 7.5,  fn: () => stShow('center', 'Ácidos', 'st-grande') },
     { t: 10.0, fn: () => stShow('center', 'Inorgânicos', 'st-medio') },
     { t: 14.0, fn: stSair },
