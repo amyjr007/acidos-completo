@@ -115,7 +115,13 @@
   .credito {
     position: relative; z-index: 2;
     margin: 18px 0 0; font-size: clamp(12px, 3.4vw, 14px); font-weight: 600;
-    letter-spacing: .5px; color: #cfe8a8; opacity: .8;
+    letter-spacing: .5px; color: #cfe8a8; opacity: .85;
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+  }
+  .cred-foto {
+    width: clamp(32px, 9vw, 40px); height: clamp(32px, 9vw, 40px);
+    border-radius: 50%; object-fit: cover; flex: none;
+    border: 2px solid rgba(166, 229, 52, .55); box-shadow: 0 0 12px rgba(166, 229, 52, .3);
   }
   .titulo {
     position: relative; z-index: 2;
@@ -2233,11 +2239,11 @@
   <p class="lema">"Um Audiobook Interativo"</p>
 
   <button id="btnIniciar">INICIAR</button>
-  <p class="credito">Designed by Professor Amauri Junior</p>
+  <p class="credito"><img class="cred-foto" src="imagens/amauri_jr.jpg" alt="">Designed by Professor Amauri Junior</p>
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.210.0</div>
+<div id="versao">v1.211.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
