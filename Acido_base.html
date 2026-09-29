@@ -2243,7 +2243,7 @@
 </div>
 
 <!-- Selo de versão (canto inferior esquerdo) -->
-<div id="versao">v1.211.0</div>
+<div id="versao">v1.212.0</div>
 
 <!-- Painel de coordenadas da câmera (tecla C) -->
 <div id="camCoords" hidden></div>
@@ -3961,6 +3961,7 @@ let litmusSpawnX = LITMUS_X, litmusSpawnY = LITMUS_Y;   // onde nasce o bloco/ti
 let quiz2Litmus = false;                                // no quiz 2 só o béquer do meio (B) avermelha
 
 const quedaTiras = [];   // tiras caindo (gravidade)
+const tirasTornassol = [];   // tiras de tornassol na tela (máx. 3; a 4ª remove a mais antiga)
 // a tira mergulhada na ÁGUA (que virou ácida com os H+) fica vermelha; os ácidos sumiram
 function coposMergulho(x, y) {
   if (quiz2Litmus) {   // quiz 2: só o béquer do MEIO (B = AC_X[1]) avermelha; A e C ficam azuis
@@ -3995,7 +3996,11 @@ function pintarContato(g, surfY) {
     }
   });
 }
-function novaTiraAtiva() { papel = criarTira(litmusSpawnX, litmusSpawnY); }
+function novaTiraAtiva() {
+  papel = criarTira(litmusSpawnX, litmusSpawnY);
+  tirasTornassol.push(papel);
+  while (tirasTornassol.length > 3) dissolverTira(tirasTornassol[0]);   // a partir da 4ª, dissolve a mais antiga
+}
 function mostrarBlocoTornassol(spawnX = LITMUS_X, spawnY = LITMUS_Y) {
   litmusSpawnX = spawnX; litmusSpawnY = spawnY;
   while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]);
@@ -4005,13 +4010,14 @@ function mostrarBlocoTornassol(spawnX = LITMUS_X, spawnY = LITMUS_Y) {
     litmusBloco.add(m);
   }
   litmusBloco.visible = true; litmusVermelhoUsado = false;
-  if (papel) { scene.remove(papel); papel = null; }
+  tirasTornassol.slice().forEach(t => scene.remove(t)); tirasTornassol.length = 0; papel = null;
   novaTiraAtiva();
   litmusAtivo = true;
   fade3D(litmusBloco, 1, 700); fade3D(papel, 1, 700);   // entra em fade in
 }
 function dissolverTira(g) {
   if (!g) return;
+  const ti = tirasTornassol.indexOf(g); if (ti >= 0) tirasTornassol.splice(ti, 1);
   const idx = quedaTiras.indexOf(g); if (idx >= 0) quedaTiras.splice(idx, 1);
   const mats = [];
   g.traverse(o => { if (o.material && o.name !== 'litmus') { o.material.transparent = true; mats.push(o.material); } });
@@ -4025,6 +4031,7 @@ function dissolverTira(g) {
 function limparTornassol() {
   litmusAtivo = false; litmusDrag = null;
   quedaTiras.length = 0;
+  tirasTornassol.slice().forEach(t => scene.remove(t)); tirasTornassol.length = 0;
   if (papel) { scene.remove(papel); papel = null; }
   litmusBloco.visible = false;
   while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]);
@@ -4033,17 +4040,17 @@ function limparTornassol() {
 // remove o papel de tornassol com FADE (ao sair da cena dos indicadores pra equação)
 function dissolverTornassol() {
   litmusAtivo = false; litmusDrag = null; quedaTiras.length = 0;
-  const alvo = papel; papel = null;
+  const alvos = tirasTornassol.slice(); tirasTornassol.length = 0; papel = null;
   const mats = [];
   const coletar = raiz => raiz && raiz.traverse(o => { if (o.material && o.name !== 'litmus') { o.material.transparent = true; mats.push(o.material); } });
-  coletar(alvo); coletar(litmusBloco);
+  alvos.forEach(coletar); coletar(litmusBloco);
   if (!mats.length) { limparTornassol(); return; }
   const t0 = performance.now();
   (function step() {
     const k = Math.min(1, (performance.now() - t0) / 700);
     mats.forEach(m => m.opacity = 1 - k);
     if (k < 1) requestAnimationFrame(step);
-    else { if (alvo) scene.remove(alvo); litmusBloco.visible = false; while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]); }
+    else { alvos.forEach(a => scene.remove(a)); litmusBloco.visible = false; while (litmusBloco.children.length) litmusBloco.remove(litmusBloco.children[0]); }
   })();
 }
 // a parte que toca o líquido fica vermelha (cumulativo, conforme mergulha); a 1ª a ficar vermelha dispara o 1.4B
@@ -4212,14 +4219,14 @@ renderer.domElement.addEventListener('pointerdown', e => {
       raycaster.ray.intersectPlane(dragPlane, planePoint);
       litmusDrag = { id: e.pointerId, offX: planePoint.x - papel.position.x, offY: planePoint.y - papel.position.y, sx: e.clientX, sy: e.clientY, moved: false };
     };
-    // 1) tocou a tira atual (onde ela estiver) -> arrasta ela de novo
-    if (papel) {
-      const objs = []; papel.traverse(o => { if (o.name === 'litmus') objs.push(o); });
-      if (raycaster.intersectObjects(objs, false).length) { iniciaArraste(); return; }
+    // 1) tocou ALGUMA tira (a mais recente por cima) -> arrasta ela (vira a ativa)
+    for (let k = tirasTornassol.length - 1; k >= 0; k--) {
+      const t = tirasTornassol[k];
+      const objs = []; t.traverse(o => { if (o.name === 'litmus') objs.push(o); });
+      if (raycaster.intersectObjects(objs, false).length) { papel = t; iniciaArraste(); return; }
     }
-    // 2) tocou o bloco -> pega uma tira NOVA (a atual dissolve)
+    // 2) tocou o bloco -> pega uma tira NOVA (mantém as anteriores; só a 4ª remove a mais antiga)
     if (raycaster.intersectObjects(litmusBloco.children, false).length) {
-      if (papel) dissolverTira(papel);
       novaTiraAtiva();
       iniciaArraste();
       return;
